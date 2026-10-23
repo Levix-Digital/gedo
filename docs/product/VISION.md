@@ -21,7 +21,7 @@ Today teams cope with conventions (small pull requests, "who is touching X?" mes
 
 ## Value Proposition
 
-- **History per entity, not per line**: `gedo blame <symbol>` follows a function through renames, moves and reformatting.
+- **History per entity, not per line**: `gedo trace <symbol>` follows a function through renames, moves and reformatting.
 - **Zero cost for the rest of the team**: source files stay pure code, `refs/heads/*` stay canonical, and a teammate without Gedo clones, pushes and reviews exactly as before.
 - **No server to buy or run**: events and node identities travel through Git itself, in `refs/gedo/*`.
 - **Surgical code movement**: `gedo graft` moves a symbol and its minimal dependency closure into another stream.
@@ -41,6 +41,7 @@ Costs that matter: CI minutes on a private repository (Windows minutes count dou
 | Dogfooding | The Levix team uses Gedo on at least one real repository for 4 consecutive weeks after the MVP |
 | Standard Git invariance | Zero corruption or divergence for collaborators using plain Git, across the whole test suite and the dogfooding period |
 | Identity accuracy | At least 95% of node identities preserved on a reference corpus of renames, moves and formatter runs |
+| Git compatibility | Every Git command run through `gedo` gives the same output, exit code and repository state as through `git` on the end-to-end suite |
 | Publish latency | `gedo publish` completes in under 1 second on a medium repository (about 100k lines) |
 
 ## Scope
@@ -53,12 +54,13 @@ The complete product, as capabilities:
 4. **Data and markup formats**: structural tracking for JSON, YAML, TOML, SQL, Markdown and similar formats, after the programming languages.
 5. **Event log and convergence**: an immutable local write-ahead log, event tapes per canonical commit, a tree CRDT with deterministic conflict resolution, semantic lanes (refactor and feature) and virtual streams that switch or isolate experiments in memory without `git stash` or `git checkout`.
 6. **Symbol graph and contracts**: a directed dependency graph between node identities, LSP integration for precise types and diagnostics, the minimum-cut algorithm behind `gedo graft`, and detection of silent API contract breaks before compilation.
-7. **Developer CLI and daemon**: the `gedo` command line (`init`, `status`, `publish`, `blame`, `graft`, and later `inbox`) and the `gedod` background daemon that watches the file system and feeds the parser and the WAL.
-8. **Distributed control plane**: an asynchronous pub/sub bus for developer intents (`SymbolLocked`, `SymbolMutating`), an ingress queue with a deterministic sequencer that materializes canonical commits without textual conflicts, over Git remotes first and WebSocket or peer-to-peer in local networks later.
-9. **Symbol inbox**: asynchronous negotiation and review per symbol instead of per pull request.
-10. **IDE integration**: a language server and lightweight extensions (VS Code first) that show the tree status and semantic locks.
-11. **Platforms and distribution**: Windows and Linux first, macOS later; signed binaries; installation through `cargo install`, release archives and the platforms' package managers.
-12. **Pair programming (future)**: live collaboration on the same symbols, built on the control plane, much later.
+7. **Developer CLI and daemon**: the `gedo` command line (`init`, `publish`, `trace`, `graft`, and later `inbox`) and the `gedod` background daemon that watches the file system and feeds the parser and the WAL.
+8. **Full Git command compatibility**: every Git command works through `gedo`, transparently: Gedo commands are handled by the overlay, any other command passes straight to the user's Git with the same output and exit code, and Git hooks installed by `gedo init` (chained with existing hooks) keep the overlay correct even when `git` is called directly.
+9. **Distributed control plane**: an asynchronous pub/sub bus for developer intents (`SymbolLocked`, `SymbolMutating`), an ingress queue with a deterministic sequencer that materializes canonical commits without textual conflicts, over Git remotes first and WebSocket or peer-to-peer in local networks later.
+10. **Symbol inbox**: asynchronous negotiation and review per symbol instead of per pull request.
+11. **IDE integration**: a language server and lightweight extensions (VS Code first) that show the tree status and semantic locks.
+12. **Platforms and distribution**: Windows and Linux first, macOS later; signed binaries; installation through `cargo install`, release archives and the platforms' package managers.
+13. **Pair programming (future)**: live collaboration on the same symbols, built on the control plane, much later.
 
 ## Non-Goals
 

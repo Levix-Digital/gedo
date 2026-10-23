@@ -43,7 +43,7 @@ Persists Gedo data in the Git object store, the local WAL and the redb cache.
 
 ## Decisions
 
-- [ADR-0002](../adr/0002-rust-workspace-with-gitoxide-tree-sitter-blake3-and-postcard.md): gitoxide, no Git subprocess.
+- [ADR-0002](../adr/0002-rust-workspace-with-gitoxide-tree-sitter-blake3-and-postcard.md): gitoxide, no Git subprocess in the store ([ADR-0006](../adr/0006-git-command-pass-through-with-hook-based-augmentation.md) allows it only for the CLI pass-through).
 - [ADR-0003](../adr/0003-git-object-store-as-the-canonical-datastore.md): the Git object store is the canonical datastore.
 - [ADR-0004](../adr/0004-redb-for-the-local-symbol-cache.md): redb for the local cache.
 - [ADR-0005](../adr/0005-serverless-operation-with-git-remotes-as-the-only-transport.md): refspecs carry the data through Git remotes.
