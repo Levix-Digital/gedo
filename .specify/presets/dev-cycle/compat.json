@@ -1,0 +1,8 @@
+{
+  "verified": "v1.2.3",
+  "verified_at": "2026-10-23",
+  "checked_with": {
+    "integration": "claude",
+    "script": "sh"
+  }
+}

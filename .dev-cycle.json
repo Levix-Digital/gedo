@@ -31,5 +31,12 @@
   },
   "architecture_docs": {
     "language": "en"
+  },
+  "speckit": {
+    "enabled": true,
+    "version": "v1.2.3",
+    "integration": "claude",
+    "script": "py",
+    "branch_prefix": "feat"
   }
 }
