@@ -1,0 +1,11 @@
+{
+  "project_name": "gedo",
+  "docs": {
+    "user_doc": "README.md"
+  },
+  "devops": {
+    "branching": "trunk",
+    "production_branch": "main",
+    "version_files": []
+  }
+}
