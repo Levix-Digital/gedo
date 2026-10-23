@@ -7,5 +7,29 @@
     "branching": "trunk",
     "production_branch": "main",
     "version_files": []
+  },
+  "architecture": {
+    "style": "hexagonal",
+    "core_path": "crates/core",
+    "surfaces": [
+      "cli",
+      "daemon"
+    ],
+    "canonical_datastore": "git object store (refs/gedo/*) + local WAL (.git/gedo/wal.log)",
+    "forbidden_core_imports": [
+      "gix",
+      "tree_sitter",
+      "redb",
+      "tokio",
+      "notify",
+      "gedo_store",
+      "gedo_parse",
+      "gedo_net",
+      "gedo_cli",
+      "gedod"
+    ]
+  },
+  "architecture_docs": {
+    "language": "en"
   }
 }
