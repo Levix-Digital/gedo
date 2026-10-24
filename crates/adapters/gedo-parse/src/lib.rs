@@ -16,8 +16,9 @@ use gedo_core::syntax::{Language, ParsedFile};
 
 /// Largest file accepted: generated files above it are not hand-edited code.
 pub const MAX_SOURCE_BYTES: u64 = 16 * 1024 * 1024;
-/// Deepest syntax tree accepted.
-pub const MAX_NESTING_DEPTH: u32 = 512;
+/// Deepest syntax tree accepted. The walk is iterative, so this bounds memory, not the stack; long
+/// or-pattern chains in generated tables reach about 750 levels.
+pub const MAX_NESTING_DEPTH: u32 = 4_096;
 /// Longest a single parse may take.
 pub const PARSE_TIMEOUT_MS: u64 = 2_000;
 
@@ -88,6 +89,7 @@ fn parse_supported(language: Language, path: &str, source: &[u8]) -> Result<Pars
         path: path.to_owned(),
         tokens,
         entities,
+        has_error: tree.root_node().has_error(),
     })
 }
 

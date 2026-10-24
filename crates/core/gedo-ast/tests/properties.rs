@@ -71,6 +71,7 @@ fn build(items: &[Item], line_ending: &str) -> (ParsedFile, Vec<u8>) {
         path: "src/lib.rs".into(),
         tokens,
         entities,
+        has_error: false,
     };
     (file, source)
 }

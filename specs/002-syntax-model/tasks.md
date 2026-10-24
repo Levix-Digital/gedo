@@ -103,10 +103,10 @@ description: "Tasks for the syntax model (v0.2.0, first feature)"
 
 **Independent Test**: `tests/errors.rs` and `tests/properties.rs`
 
-- [ ] T027 [P] [US4] Write `crates/adapters/gedo-parse/tests/errors.rs`: the error-injection corpus of research R8 (at least 95% of entities outside the damaged region keep kind, path and hashes, SC-005; damaged entities have `has_error`), empty, truncated, binary and invalid UTF-8 files, and `TooLarge`, `TooDeep` and `Timeout` with their `tracing` events
-- [ ] T028 [P] [US4] Write `crates/adapters/gedo-parse/tests/properties.rs`: arbitrary bytes and arbitrary token soups never panic and stay within the limits
-- [ ] T029 [US4] Implement the error flags and the `tracing` events for refused files and grammar errors in `crates/adapters/gedo-parse/src/walk.rs` and `src/lib.rs`; T027 and T028 pass
-- [ ] T030 [P] [US4] Add the fuzz target `fuzz/fuzz_targets/parse_rust.rs` (`cargo-fuzz`, outside the workspace) and the manual workflow `.github/workflows/fuzz.yml` (10 minutes on Linux, nightly); run it once and record the result in the plan envelope (SC-007)
+- [X] T027 [P] [US4] Write `crates/adapters/gedo-parse/tests/errors.rs`: the error-injection corpus of research R8 (at least 95% of entities outside the damaged region keep kind, path and hashes, SC-005; damaged entities have `has_error`), empty, truncated, binary and invalid UTF-8 files, and `TooLarge`, `TooDeep` and `Timeout` with their `tracing` events
+- [X] T028 [P] [US4] Write `crates/adapters/gedo-parse/tests/properties.rs`: arbitrary bytes and arbitrary token soups never panic and stay within the limits
+- [X] T029 [US4] Implement the error flags and the `tracing` events for refused files and grammar errors in `crates/adapters/gedo-parse/src/walk.rs` and `src/lib.rs`; T027 and T028 pass
+- [X] T030 [P] [US4] Add the fuzz target `fuzz/fuzz_targets/parse_rust.rs` (`cargo-fuzz`, outside the workspace) and the manual workflow `.github/workflows/fuzz.yml` (10 minutes on Linux, nightly); run it once and record the result in the plan envelope (SC-007)
 
 **Checkpoint**: User Stories 1 to 4 work
 
@@ -118,9 +118,9 @@ description: "Tasks for the syntax model (v0.2.0, first feature)"
 
 **Independent Test**: `cargo xtask parse-sweep` and `cargo bench -p gedo-parse --bench parse_rust`
 
-- [ ] T031 [US5] Implement `cargo xtask parse-sweep` in `tools/xtask/src/parse_sweep.rs`: reads the sources of every package in `cargo metadata` (workspace and locked dependencies), parses every `.rs` file, reports files, lines, crashes and files with syntax errors, and fails on any crash or on an error file not listed in `crates/adapters/gedo-parse/tests/known_grammar_gaps.toml`
-- [ ] T032 [US5] Write `known_grammar_gaps.toml` with the gaps found (starting with `unsafe extern` blocks, research R2), add a backlog item per gap in `docs/BACKLOG.md`, and run the sweep in the Linux test job of `.github/workflows/ci.yml` after `cargo fetch` (SC-006)
-- [ ] T033 [P] [US5] Write the benchmark `crates/adapters/gedo-parse/benches/parse_rust.rs` over a 2,000-line fixture (parse, normalization and hash) and add it to the bench job of `.github/workflows/ci.yml` (SC-001)
+- [X] T031 [US5] Implement `cargo xtask parse-sweep` in `tools/xtask/src/parse_sweep.rs`: reads the sources of every package in `cargo metadata` (workspace and locked dependencies), parses every `.rs` file, reports files, lines, crashes and files with syntax errors, and fails on any crash or on an error file not listed in `crates/adapters/gedo-parse/tests/known_grammar_gaps.toml`
+- [X] T032 [US5] Write `known_grammar_gaps.toml` with the gaps found (starting with `unsafe extern` blocks, research R2), add a backlog item per gap in `docs/BACKLOG.md`, and run the sweep in the Linux test job of `.github/workflows/ci.yml` after `cargo fetch` (SC-006)
+- [X] T033 [P] [US5] Write the benchmark `crates/adapters/gedo-parse/benches/parse_rust.rs` over a 2,000-line fixture (parse, normalization and hash) and add it to the bench job of `.github/workflows/ci.yml` (SC-001)
 
 **Checkpoint**: all user stories work
 

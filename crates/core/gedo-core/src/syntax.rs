@@ -219,6 +219,8 @@ pub struct ParsedFile {
     pub tokens: Vec<Token>,
     /// Every entity, in source order; containers come before their children.
     pub entities: Vec<RawEntity>,
+    /// Whether the file contains a syntax error anywhere, inside an entity or between them.
+    pub has_error: bool,
 }
 
 /// The version of the normalization and hash rules that produced a hash.
@@ -304,4 +306,6 @@ pub struct SyntaxMap {
     pub hash_format: HashFormat,
     /// The entities, in source order.
     pub entities: Vec<CodeEntity>,
+    /// Whether the file contains a syntax error anywhere.
+    pub has_error: bool,
 }

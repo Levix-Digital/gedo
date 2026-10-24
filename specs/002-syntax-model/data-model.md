@@ -47,9 +47,9 @@ Relationship: one `SyntaxMap` per (file path, file content); `AnchoredAstNode` o
 
 ## ParseError
 
-- `UnsupportedLanguage { path }`, `TooLarge { path, bytes, limit }`, `TooDeep { path, depth, limit }`, `Timeout { path, limit_ms }`, `Internal { path, detail }`.
+- `UnsupportedLanguage { path }`, `TooLarge { path, bytes, limit }`, `TooDeep { path, limit }`, `Timeout { path, limit_ms }`, `Internal { path, detail }`.
 - Syntax errors are never a `ParseError`; they set `has_error` on entities.
 
 ## Limits (named constants in `gedo-parse`)
 
-- `MAX_SOURCE_BYTES = 16 MiB`, `MAX_NESTING_DEPTH = 512`, `PARSE_TIMEOUT_MS = 2_000`.
+- `MAX_SOURCE_BYTES = 16 MiB`, `MAX_NESTING_DEPTH = 4096`, `PARSE_TIMEOUT_MS = 2_000`.

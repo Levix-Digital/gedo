@@ -126,6 +126,7 @@ mod tests {
             path: "src/lib.rs".into(),
             tokens,
             entities,
+            has_error: false,
         }
     }
 

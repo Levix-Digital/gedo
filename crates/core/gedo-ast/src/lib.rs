@@ -31,5 +31,6 @@ pub fn normalize(file: &ParsedFile, source: &[u8]) -> Result<SyntaxMap, ParseErr
         path: file.path.clone(),
         hash_format: HASH_FORMAT,
         entities,
+        has_error: file.has_error,
     })
 }

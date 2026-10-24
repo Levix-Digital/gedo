@@ -67,6 +67,7 @@ mod tests {
             path: "a.rs".into(),
             tokens,
             entities: vec![],
+            has_error: false,
         };
         (file, source)
     }

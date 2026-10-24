@@ -2343,7 +2343,9 @@ name = "xtask"
 version = "0.1.0"
 dependencies = [
  "cargo_metadata",
+ "gedo-ast",
  "gedo-core",
+ "gedo-parse",
  "gedo-store",
  "serde_json",
  "tempfile",

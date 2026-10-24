@@ -32,9 +32,9 @@ milestones:
 - name: M4 Determinism
   done: false
 - name: M5 Error tolerance
-  done: false
+  done: true
 - name: M6 Rust support
-  done: false
+  done: true
 - name: M7 Documentation and acceptance
   done: false
 status_log:
@@ -63,7 +63,7 @@ First of the two features of release v0.2.0 Node identity: a source file becomes
 - **Trivia**: whitespace, comments and documentation comments (clarification 1); line endings normalized; trailing separators and the order of `use` and `mod foo;` declarations ignored (research R5).
 - **Hash format V1**: BLAKE3 derive-key over class, length and text of each significant token; any rule change needs V2 (research R6).
 - **Entities**: items and associated items; enum variants and fields stay in their parent (clarification 2); qualified paths start with `crate::` without the crate name (clarification 3); trait impl items are `<Type as Trait>::item` (research R7).
-- **Error tolerance and limits**: errors flag only the entities that contain them; 16 MiB, nesting 512, 2 s per file (research R8).
+- **Error tolerance and limits**: errors flag only the entities that contain them; 16 MiB, nesting 4,096, 2 s per file (research R8).
 - **No incremental parsing** until measurements need it (research R10).
 
 ## Backlog items
@@ -96,3 +96,12 @@ Taken from the phases of `tasks.md`:
 | M5 Error tolerance | T027–T030 (US4) |
 | M6 Rust support | T031–T033 (US5) |
 | M7 Documentation and acceptance | T034–T039 |
+
+## Fuzzing results
+
+`cargo +nightly fuzz run parse_rust -- -max_total_time=600` (SC-007):
+
+| Machine | Runs | Duration | Result |
+|---|---:|---:|---|
+| Linux container, 4 vCPUs, nightly 2026-10-24 | 644,590 | 601 s | no crash, hang or out-of-memory |
+

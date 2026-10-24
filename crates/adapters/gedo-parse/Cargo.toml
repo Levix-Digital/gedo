@@ -19,6 +19,7 @@ gedo-ast.workspace = true
 insta.workspace = true
 proptest.workspace = true
 criterion.workspace = true
+tracing.workspace = true
 
 [lints]
 workspace = true

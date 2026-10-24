@@ -24,7 +24,7 @@ Turn a source file into the list of its code entities with stable structural has
 
 **Performance Goals**: parse, normalization and hashing of a 2,000-line Rust file under 10 ms p95 (SC-001; spike: about 5 to 7 ms, research R1).
 
-**Constraints**: core crates without Tree-sitter (ADR-0001, `forbidden_core_imports`); deterministic results across platforms (FR-007); limits of 16 MiB, nesting 512 and 2 s per file (research R8); no `unsafe` code (workspace lint).
+**Constraints**: core crates without Tree-sitter (ADR-0001, `forbidden_core_imports`); deterministic results across platforms (FR-007); limits of 16 MiB, nesting 4,096 and 2 s per file (research R8); no `unsafe` code (workspace lint).
 
 **Scale/Scope**: the reference repository (about 100,000 lines in about 1,000 files); real-world sweep of about 300,000 lines.
 

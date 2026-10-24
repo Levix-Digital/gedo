@@ -49,6 +49,11 @@ jobs:
         run: cargo test -p gedo-store --test transport -- --include-ignored ssh_remote
       - name: Architecture check
         run: cargo xtask arch-check
+      - name: Parser sweep over the locked dependencies
+        if: runner.os == 'Linux'
+        run: |
+          cargo fetch
+          cargo xtask parse-sweep
 
   msrv:
     name: msrv (1.95)
@@ -84,7 +89,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Benchmarks
         shell: bash
-        run: cargo bench -p gedo-store --bench wal_append -- --quick | tee bench-output.txt
+        run: |
+          cargo bench -p gedo-store --bench wal_append -- --quick | tee bench-output.txt
+          cargo bench -p gedo-parse --bench parse_rust -- --quick | tee -a bench-output.txt
       - uses: actions/upload-artifact@v4
         with:
           name: bench-${{ matrix.os }}
