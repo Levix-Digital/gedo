@@ -93,6 +93,14 @@ impl GitRefStore {
         if error.is_not_found() {
             return Ok(RefOutcome::Moved { current: None });
         }
+        if error.is_retryable() {
+            // The lock stayed taken by other writers for the whole wait; nothing was written.
+            tracing::debug!(reference = %name, wait_ms = REF_LOCK_WAIT_MS, "reference lock still busy");
+            return Err(StoreError::Contended {
+                name: name.to_string(),
+                attempts: 1,
+            });
+        }
         Err(StoreError::backend(
             "update reference",
             format!("{name}: {error:?}"),

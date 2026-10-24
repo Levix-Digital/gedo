@@ -59,7 +59,7 @@ All records are Postcard-encoded inside an envelope that starts with a `u16` for
 
 ### Platform behavior
 
-On Windows, an operation on a file another program holds open (an antivirus, an indexer) is retried for up to 2 s before the error is returned. Reference updates wait up to 2 s for another process's ref lock.
+On Windows, an operation on a file another program holds open (an antivirus, an indexer) is retried for up to 2 s before the error is returned. Reference updates wait up to 2 s for another writer's reference lock, then return `Contended` without writing anything.
 
 ### Later features
 

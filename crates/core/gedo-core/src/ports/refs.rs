@@ -60,6 +60,8 @@ pub trait RefStore {
     /// Sets a reference if it still holds the expected value.
     ///
     /// Creating a reference (`Absent`) that already holds exactly the new value is `Updated`.
+    /// When other writers keep the reference locked past the adapter's lock wait, the result is
+    /// `StoreError::Contended`: nothing was written, and the caller may read and try again.
     fn compare_and_swap(&self, update: &RefUpdate) -> Result<RefOutcome, StoreError>;
     /// Deletes a reference if it still holds `expected`.
     fn delete(&self, name: &GedoRefName, expected: GitOid) -> Result<RefOutcome, StoreError>;

@@ -45,7 +45,17 @@ fn write_updates(repository: &Path, writer: String) -> Vec<GitOid> {
                 new,
                 log_message: format!("gedo: stress {writer}"),
             };
-            match refs.compare_and_swap(&request).expect("compare-and-swap") {
+            let outcome = match refs.compare_and_swap(&request) {
+                Ok(outcome) => outcome,
+                // Other writers held the lock for the whole wait (seen on Windows); nothing was
+                // written, so read and try again.
+                Err(StoreError::Contended { .. }) => {
+                    expected = refs.read(&reference()).expect("read");
+                    continue;
+                }
+                Err(error) => panic!("compare-and-swap: {error}"),
+            };
+            match outcome {
                 RefOutcome::Updated => {
                     expected = Some(new);
                     written.push(new);
@@ -195,4 +205,44 @@ fn concurrent_collection_puts_keep_every_entry() {
     );
     let entries = Collection::new(name, &objects, &refs).entries().expect("entries");
     assert_eq!(entries.len(), WRITERS * PUTS_PER_WRITER, "no put was lost");
+}
+
+#[test]
+fn a_reference_locked_past_the_wait_is_contended_and_unchanged() {
+    let sandbox = Sandbox::new();
+    let repository = sandbox.repository("work");
+    let opened = GitRepository::open_isolated(&repository).expect("opens");
+    let objects = GitObjectStore::new(opened.clone());
+    let refs = GitRefStore::new(opened);
+    let lock = repository.join(".git/refs/gedo/stress.lock");
+    std::fs::create_dir_all(lock.parent().expect("has a parent")).expect("directory");
+    std::fs::write(&lock, b"").expect("another writer's lock");
+
+    let update = RefUpdate {
+        name: reference(),
+        expected: Expected::Absent,
+        new: objects.write_blob(b"value").expect("blob"),
+        log_message: "gedo: locked".into(),
+    };
+    let started = std::time::Instant::now();
+    let result = refs.compare_and_swap(&update);
+    assert!(
+        matches!(result, Err(StoreError::Contended { .. })),
+        "a lock held past the wait is contention: {result:?}"
+    );
+    assert!(
+        started.elapsed() >= std::time::Duration::from_millis(gedo_store::refs::REF_LOCK_WAIT_MS),
+        "the update waited for the lock first"
+    );
+    assert_eq!(
+        refs.read(&reference()).expect("read"),
+        None,
+        "nothing was written"
+    );
+
+    std::fs::remove_file(&lock).expect("lock released");
+    assert_eq!(
+        refs.compare_and_swap(&update).expect("update"),
+        RefOutcome::Updated
+    );
 }

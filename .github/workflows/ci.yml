@@ -84,7 +84,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Benchmarks
         shell: bash
-        run: cargo bench -p gedo-store -- --quick | tee bench-output.txt
+        run: cargo bench -p gedo-store --bench wal_append -- --quick | tee bench-output.txt
       - uses: actions/upload-artifact@v4
         with:
           name: bench-${{ matrix.os }}
