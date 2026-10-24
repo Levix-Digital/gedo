@@ -69,6 +69,7 @@ specs/001-store-foundation/
 
 ```text
 Cargo.toml                         # workspace, [workspace.dependencies], rust-version = "1.95"
+.cargo/config.toml                 # `cargo xtask` alias
 deny.toml                          # licenses, advisories, bans (cargo-deny)
 .github/workflows/
 ├── ci.yml                         # Windows + Linux matrix, MSRV, deny, arch-check, benches
@@ -145,7 +146,8 @@ FEAT-001, FEAT-002, FEAT-003, FEAT-004, FEAT-005, FEAT-006, FEAT-007 and FEAT-11
 
 - New workflows `ci.yml` and `host-validation.yml` (research R9). Required checks on `main`: the matrix jobs, MSRV, deny and arch-check.
 - Version: workspace `0.1.0` (pre-release crates, not published to crates.io yet; crate names are reserved in v0.4.0 with FEAT-120). Release candidate `v0.1.0-rc.1` tagged on `main` after the pull request merges (trunk model).
-- Observability profile `library`: no logging by default; `tracing` events in the adapters (torn record dropped, cache rebuilt, CAS retries, lock waits) for the binaries to collect later; errors with context. Tests assert the events for torn records and rebuilds.
+- Observability profile `library`: no logging by default; `tracing` events in the adapters (torn record dropped, cache rebuilt, CAS retries, lock waits) for the binaries to collect later; errors with context. Tests assert all four events (T020, T025, T026, T036).
+- Branch protection on `main` (required checks) is enabled by the repository owner from `docs/ci/branch-protection.md` (T048).
 
 ### Security, migration and rollback
 

@@ -81,7 +81,7 @@ description: "Tasks for the store foundation (v0.1.0)"
 
 ### Tests for User Story 2
 
-- [ ] T020 [P] [US2] Write the stress test: 8 threads and 2 processes (the test binary re-invoked with an environment variable) perform 10,000 compare-and-swap updates on one reference; zero lost updates, every `Moved` carries the current value, the reflog lists every value, in `crates/adapters/gedo-store/tests/cas_stress.rs`
+- [ ] T020 [P] [US2] Write the stress test: 8 threads and 2 processes (the test binary re-invoked with an environment variable) perform 10,000 compare-and-swap updates on one reference; zero lost updates, every `Moved` carries the current value, the reflog lists every value, and collection `put` retries emit a `tracing` event with the attempt count, in `crates/adapters/gedo-store/tests/cas_stress.rs`
 - [ ] T021 [P] [US2] Write property tests for collections on the in-memory adapters: fan-out paths unique and valid on case-insensitive file systems; union merge commutative, associative and idempotent; `put` retries on `Moved` up to 8 attempts, in `crates/core/gedo-core/tests/collection.rs`
 
 ### Implementation for User Story 2
@@ -102,8 +102,8 @@ description: "Tasks for the store foundation (v0.1.0)"
 
 ### Tests for User Story 3
 
-- [ ] T025 [P] [US3] Write torn and corruption tests: truncate the last record at every byte offset, flip bytes inside earlier records, truncate the header; open returns every good record, drops and reports a torn tail, returns `Corrupted { offset }` for other damage, in `crates/adapters/gedo-store/tests/wal_torn.rs`
-- [ ] T026 [P] [US3] Write durability and lock tests: an appended record is durable within 100 ms (observed through a second handle after the window), `sync` is immediate, a second writer gets `WalBusy` after at most 2 s and succeeds once the first is dropped, a crashed writer process leaves no stale lock, in `crates/adapters/gedo-store/tests/wal_durability.rs`
+- [ ] T025 [P] [US3] Write torn and corruption tests: truncate the last record at every byte offset, flip bytes inside earlier records, truncate the header; open returns every good record, drops and reports a torn tail, returns `Corrupted { offset }` for other damage; simulate a failing write in the middle of an append (disk full, through a writer that errors after N bytes) and check the partial record is never returned and earlier records stay intact, in `crates/adapters/gedo-store/tests/wal_torn.rs`
+- [ ] T026 [P] [US3] Write durability and lock tests: an appended record is durable within 100 ms (observed through a second handle after the window), `sync` is immediate, a second writer gets `WalBusy` after at most 2 s and succeeds once the first is dropped, a crashed writer process leaves no stale lock, the lock wait emits a `tracing` event; on Windows only, a log file held open by another handle without sharing is retried for up to 2 s and then fails with context, in `crates/adapters/gedo-store/tests/wal_durability.rs`
 - [ ] T027 [P] [US3] Write the benchmark `wal_append` (1 KiB payloads, report p50, p95, p99) in `crates/adapters/gedo-store/benches/wal_append.rs`
 
 ### Implementation for User Story 3
@@ -156,7 +156,7 @@ description: "Tasks for the store foundation (v0.1.0)"
 
 ### Tests for User Story 4
 
-- [ ] T036 [P] [US4] Write rebuild tests: missing file, corrupted file (random bytes), schema version 0 and 2; each opens as `Rebuilt { reason }`, emits a `tracing` event, and answers the same lookups as before, in `crates/adapters/gedo-store/tests/cache_rebuild.rs`
+- [ ] T036 [P] [US4] Write rebuild tests: missing file, corrupted file (random bytes), schema version 0 and 2; each opens as `Rebuilt { reason }`, emits a `tracing` event, and answers the same lookups as before; a rebuild interrupted by a write failure leaves no cache that opens as `Ready` with partial content (the next open rebuilds again); on Windows only, a cache file held by another handle is retried for up to 2 s then fails with context, in `crates/adapters/gedo-store/tests/cache_rebuild.rs`
 
 ### Implementation for User Story 4
 
@@ -186,6 +186,8 @@ description: "Tasks for the store foundation (v0.1.0)"
 - [ ] T044 [P] Write `README.md` with `user-docs`: what Gedo is, status (v0.1.0, library only), build and test commands, the `git log --all` note, license
 - [ ] T045 Run `architecture-docs/build_index.py`, `architecture-docs/check_docs.py`, `software-design/check_design.py`, `user-docs/check_readme.py`, all tests and `cargo deny check`; fix everything reported
 - [ ] T046 Walk through `quickstart.md` steps 1 to 7 and fix any drift between the guide and the code
+- [ ] T047 Run `cargo bench -p gedo-store --bench wal_append` on the reference machine (4 cores, SSD) on Windows and Linux and record p50, p95 and p99 in `docs/plans/gedo_store_foundation.md` (SC-003: p95 under 1 ms)
+- [ ] T048 Write `docs/ci/branch-protection.md` with the exact required checks for `main` (both matrix jobs, MSRV, deny, arch-check) and ask the repository owner to enable them in the GitHub settings; verify with a deliberately failing draft pull request that merging is blocked (SC-008)
 
 ---
 
@@ -193,7 +195,7 @@ description: "Tasks for the store foundation (v0.1.0)"
 
 - **Setup (T001–T007)** → **Foundational (T008–T014)** → stories.
 - **US1 (T015–T019)** first; **US2 (T020–T024)** depends on US1's object store (chains write commits); **US3 (T025–T029)** depends only on Foundational and can run in parallel with US1 and US2; **US5 (T030–T032)** depends on US2 (chains and `merge_remote`); **US7 (T033–T035)** can start after Setup and must be green before the pull request; **US4 (T036–T038)** depends only on Foundational; **US6 (T039–T040)** depends on US2 and US5.
-- **Polish (T041–T046)** after all stories.
+- **Polish (T041–T048)** after all stories; T048 needs the repository owner.
 
 ### Parallel Opportunities
 
