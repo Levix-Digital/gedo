@@ -75,17 +75,17 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### FEAT-009: Neutral syntax tree model and parser port
 - **Priority**: high
 - **Epic**: EPIC-002
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_syntax_model
 - **Description**: Language-independent syntax tree in gedo-core and the parser port implemented by gedo-parse.
 
 ### FEAT-010: Trivia normalization and structural hash
 - **Priority**: high
 - **Epic**: EPIC-002
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_syntax_model
 - **Description**: Separate significant syntax from trivia and compute the BLAKE3 structural hash with line endings normalized.
 
 ### FEAT-011: Three-tier node matching
@@ -131,9 +131,9 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### FEAT-016: Rust support
 - **Priority**: high
 - **Epic**: EPIC-003
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_syntax_model
 - **Description**: Grammar mapping, qualified paths and conformance suite for Rust.
 
 ### FEAT-017: TypeScript support
