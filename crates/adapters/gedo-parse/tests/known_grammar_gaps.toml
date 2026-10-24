@@ -1,0 +1,92 @@
+# Files that `cargo xtask parse-sweep` finds with syntax errors although rustc or a macro accepts
+# them: constructs tree-sitter-rust 0.24 does not parse. `path` is a prefix of
+# `<package>-<version>/<file>`; the error stays local to the entities around the construct
+# (research R8). Every gap is tracked by IMP-001 in docs/BACKLOG.md.
+
+[[gap]]
+path = "web-sys-0.3.106/src/features/"
+construct = "`pub type Name;` inside an `extern` block (wasm-bindgen foreign types)"
+
+[[gap]]
+path = "js-sys-0.3.106/src/"
+construct = "`pub type Name;` inside an `extern` block (wasm-bindgen foreign types)"
+
+[[gap]]
+path = "wasm-bindgen-0.2.129/src/sys.rs"
+construct = "`pub type Name;` inside an `extern` block (wasm-bindgen foreign types)"
+
+[[gap]]
+path = "getrandom-0.4.3/src/backends/wasi_p2_3.rs"
+construct = "`unsafe extern \"C\" { safe fn ... }` (Rust 1.82)"
+
+[[gap]]
+path = "zerocopy-derive-0.8.63/src/output_tests/expected/"
+construct = "`(): Trait` bound on the unit type in a `where` clause"
+
+[[gap]]
+path = "typenum-1.20.1/src/uint.rs"
+construct = "`(): Trait` bound on the unit type in a `where` clause"
+
+[[gap]]
+path = "zerocopy-derive-0.8.63/src/repr.rs"
+construct = "binding with a parenthesized or-pattern: `name @ (A | B)`"
+
+[[gap]]
+path = "syn-2.0.119/src/error.rs"
+construct = "`where` clause on a unit struct: `struct S where T: Send;`"
+
+[[gap]]
+path = "syn-3.0.9/src/error.rs"
+construct = "`where` clause on a unit struct: `struct S where T: Send;`"
+
+[[gap]]
+path = "syn-2.0.119/src/custom_punctuation.rs"
+construct = "`$` or `,` as a literal token in a `macro_rules!` matcher"
+
+[[gap]]
+path = "syn-2.0.119/src/token.rs"
+construct = "`$` or `,` as a literal token in a `macro_rules!` matcher"
+
+[[gap]]
+path = "syn-3.0.9/src/custom_punctuation.rs"
+construct = "`$` or `,` as a literal token in a `macro_rules!` matcher"
+
+[[gap]]
+path = "syn-3.0.9/src/token.rs"
+construct = "`$` or `,` as a literal token in a `macro_rules!` matcher"
+
+[[gap]]
+path = "cfg_aliases-0.2.2/src/lib.rs"
+construct = "`$` or `,` as a literal token in a `macro_rules!` matcher"
+
+[[gap]]
+path = "winnow-1.0.4/"
+construct = "raw string inside a nested macro token tree: `str![[r#\"...\"#]]`"
+
+[[gap]]
+path = "toml_parser-1.1.5+spec-1.1.0/src/"
+construct = "raw string inside a nested macro token tree: `str![[r#\"...\"#]]`"
+
+[[gap]]
+path = "proc-macro2-1.0.107/src/fallback.rs"
+construct = "attribute on a field of a struct expression or pattern: `S { #[cfg(x)] field }`"
+
+[[gap]]
+path = "portable-atomic-1.15.0/src/imp/detect/aarch64_aa64reg.rs"
+construct = "attribute on a field of a struct expression or pattern: `S { #[cfg(x)] field }`"
+
+[[gap]]
+path = "jiff-0.2.38/src/error/tz/db.rs"
+construct = "attribute on a field of a struct expression or pattern: `S { #[cfg(x)] field }`"
+
+[[gap]]
+path = "quick-error-1.2.3/"
+construct = "the `try!` macro of edition 2015 (`try` is a keyword since edition 2018)"
+
+[[gap]]
+path = "autocfg-1.5.1/src/"
+construct = "the `try!` macro of edition 2015 (`try` is a keyword since edition 2018)"
+
+[[gap]]
+path = "serde_json-1.0.154/tests/ui/parse_expr.rs"
+construct = "a compile-fail UI test: invalid on purpose"

@@ -1,0 +1,19 @@
+[package]
+name = "gedo-ast"
+description = "Gedo's syntax algorithms: normalization and structural hashing of code entities, free of I/O."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+gedo-core.workspace = true
+blake3.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

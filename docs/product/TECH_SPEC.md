@@ -37,8 +37,9 @@ Gedo is a set of native command-line tools written in Rust: the `gedo` CLI, whic
 | `petgraph` | 0.8 | `gedo-graph` | Graph structures and algorithms |
 | `proptest`, `insta` | 1.12, 1.49 | tests | Property-based and snapshot tests |
 | `tempfile` | 3.27 | tests, `xtask` | Scratch repositories and directories |
-| `criterion` | 0.8 | benchmarks | Write-ahead log append latency (SC-003) |
-| `cargo_metadata` | 0.23 | `xtask` | Dependency graph for the architecture check |
+| `criterion` | 0.8 | benchmarks | Write-ahead log append and parse latency |
+| `libfuzzer-sys` (`cargo-fuzz`) | 0.4 | `fuzz/` | Coverage-guided fuzzing of the parser and decoders, on nightly, outside the workspace |
+| `cargo_metadata` | 0.23 | `xtask` | Dependency graph for the architecture check and the parser sweep |
 
 ## Architecture Overview
 

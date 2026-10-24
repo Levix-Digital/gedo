@@ -15,13 +15,25 @@ Keeps a stable identity for each code entity across edits, renames and moves.
 - Matches the entities of a new version of a file against the previous version and keeps their `AstNodeId`s.
 - Emits semantic deltas for what changed.
 - Derives identities deterministically, so the same history gives the same ids on every machine (ADR-0007), and reconciles two ids found for one entity at merge time.
-- Does not parse source text; it receives trees from the parser port (`gedo-parse`).
+- Does not parse source text; it receives a `ParsedFile` from the parser port (`gedo-parse`).
 
 ## Structure
 
-Pure functions over core types: normalization, hashing, matching and delta emission. No I/O.
+Pure functions over core types, no I/O. `gedo_ast::normalize` turns a `ParsedFile` into a `SyntaxMap` (feature 002):
+
+| Module | Role |
+|---|---|
+| `validate.rs` | Checks the structural rules of a `ParsedFile`; a violation is a parser bug (`ParseError::Internal`) |
+| `normalize.rs` | Keeps the significant tokens, with line endings normalized to LF |
+| `hash.rs` | Signature, body and structural hash of each entity |
+
+Matching and delta emission come with feature 003.
 
 ## Behavior
+
+**Normalization** keeps the significant tokens: comments, documentation comments and optional punctuation (a token class the parser gives to what a formatter adds or removes) are dropped, and so is a separator directly before a closing delimiter. CRLF and lone CR become LF; invalid UTF-8 is decoded lossily.
+
+**Structural hash** (`HashFormat::V1`): BLAKE3 in derive-key mode with the context `gedo structural hash v1`. Each token is its class code, its length (`u32`, little endian) and its text. The signature hash covers the tokens before the body; the body hash covers the body, where each nested entity is replaced by its own structural hash, so a change reaches only the entity and its containers. The children of a module without a body and imports are hashed in sorted order, so their order carries no meaning. The structural hash combines the signature and body hashes. The format is stored with each syntax map, and a reader refuses a format it does not know.
 
 **3-tier matching**, for each entity of the new version:
 
@@ -36,6 +48,7 @@ The result is a new `BlobAstMap` plus the list of deltas. The similarity thresho
 ## Interfaces
 
 - Called by `gedo-app` when a file changes (from the daemon or the CLI).
+- `normalize(&ParsedFile, &[u8]) -> Result<SyntaxMap, ParseError>` and `HASH_FORMAT`.
 - Calls nothing outside the core; uses `gedo-core` types.
 
 ## Decisions
@@ -43,3 +56,4 @@ The result is a new `BlobAstMap` plus the list of deltas. The similarity thresho
 - [ADR-0001](../adr/0001-hexagonal-architecture-over-a-bottom-up-crate-stack.md): matching is pure core logic, tested with property-based tests.
 - [ADR-0002](../adr/0002-rust-workspace-with-gitoxide-tree-sitter-blake3-and-postcard.md): BLAKE3 structural hash.
 - [ADR-0007](../adr/0007-deterministic-node-identity-derived-from-history.md): deterministic identities and alias reconciliation.
+- `specs/002-syntax-model/research.md` (R4 to R6): normalization and hash format V1.

@@ -1,0 +1,32 @@
+name: Fuzz
+
+# Coverage-guided fuzzing of the parser (SC-007), run by hand before each release candidate.
+on:
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: Fuzzing time in seconds
+        default: "600"
+
+permissions:
+  contents: read
+
+jobs:
+  parse_rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: fuzz
+      - run: cargo install cargo-fuzz --locked
+      - name: Fuzz the Rust parser
+        working-directory: fuzz
+        run: cargo +nightly fuzz run parse_rust -- -max_total_time=${{ inputs.seconds }} -rss_limit_mb=2048
+      - name: Keep the crashing inputs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-artifacts
+          path: fuzz/artifacts/
