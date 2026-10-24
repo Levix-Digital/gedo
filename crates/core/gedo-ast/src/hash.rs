@@ -169,7 +169,7 @@ fn collect(file: &ParsedFile, hashed: Vec<Option<HashedEntity>>) -> Vec<CodeEnti
             occurrence: entity.occurrence,
             byte_range: entity.byte_range,
             // Containers precede their children, so the container's new index is known; an
-            // import never contains an entity.
+            // import contains only imports.
             container: entity
                 .container
                 .and_then(|container| new_index[container as usize]),

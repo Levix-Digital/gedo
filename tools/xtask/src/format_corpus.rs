@@ -40,6 +40,7 @@ pub fn run(workspace_root: &Path) -> Result<(), String> {
     let mut sources = vec![
         (fixtures.join("src/lib.rs"), "src/lib.rs".to_owned()),
         (fixtures.join("src/a/mod.rs"), "src/a/mod.rs".to_owned()),
+        (fixtures.join("src/review.rs"), "src/review.rs".to_owned()),
     ];
     sources.extend(
         WORKSPACE_SOURCES

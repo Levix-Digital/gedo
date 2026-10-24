@@ -32,6 +32,13 @@ pub fn module_path(file_path: &str) -> String {
     if is_own_crate_root {
         return "crate".to_owned();
     }
+    // Cargo builds every directory of `src/bin/` as one binary rooted in its `main.rs`, so its
+    // other files are modules of that binary. Below `tests/`, `benches/` and `examples/` a
+    // directory may also be shared modules (`tests/common/`), which one file cannot tell apart.
+    let below = match (components[root], below) {
+        ("src", ["bin", _, rest @ ..]) => rest,
+        _ => below,
+    };
     let mut modules: Vec<&str> = below.to_vec();
     if let Some(last) = modules.pop() {
         let stem = last.strip_suffix(".rs").unwrap_or(last);
@@ -138,6 +145,13 @@ mod tests {
         );
         assert_eq!(module_path("tests/common/mod.rs"), "crate::common");
         assert_eq!(module_path("tests/common/repo.rs"), "crate::common::repo");
+    }
+
+    #[test]
+    fn files_of_a_multi_file_binary_are_its_modules() {
+        assert_eq!(module_path("src/bin/tool/helper.rs"), "crate::helper");
+        assert_eq!(module_path("src/bin/tool/cli/mod.rs"), "crate::cli");
+        assert_eq!(module_path("src/bin/tool/cli/args.rs"), "crate::cli::args");
     }
 
     #[test]

@@ -101,3 +101,37 @@ fn removing_comments_keeps_every_hash() {
         );
     }
 }
+
+fn first_hashes(source: &str) -> Vec<String> {
+    fingerprint(&common::syntax_map("src/lib.rs", source.as_bytes()))
+}
+
+#[test]
+fn the_order_of_use_list_items_keeps_every_hash() {
+    for (unsorted, sorted) in [
+        (
+            "mod m { use std::{io, fmt}; fn f() {} }",
+            "mod m { use std::{fmt, io}; fn f() {} }",
+        ),
+        (
+            "fn f() { use std::{io::{Write, self}, fmt}; }",
+            "fn f() { use std::{fmt, io::{self, Write}}; }",
+        ),
+        (
+            "mod m { use std::{\n    io, // input\n    fmt,\n}; }",
+            "mod m { use std::{fmt, io /* input */}; }",
+        ),
+    ] {
+        assert_eq!(first_hashes(unsorted), first_hashes(sorted), "{unsorted}");
+    }
+}
+
+#[test]
+fn the_semicolon_of_a_jump_that_ends_a_block_keeps_every_hash() {
+    for (with, without) in [
+        ("fn f() { if x { return; } }", "fn f() { if x { return } }"),
+        ("fn f() { return g(); // done\n}", "fn f() { return g() }"),
+    ] {
+        assert_eq!(first_hashes(with), first_hashes(without), "{with}");
+    }
+}

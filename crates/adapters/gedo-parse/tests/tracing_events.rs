@@ -47,7 +47,18 @@ fn refusals_and_syntax_errors_are_logged() {
         assert!(parser.parse("src/lib.rs", &too_large).is_err());
         assert!(parser.parse("README.md", b"# Gedo").is_err());
         assert!(parser.parse("src/lib.rs", b"fn broken( {}").is_ok());
+        let impatient = TreeSitterParser::with_timeout(std::time::Duration::ZERO);
+        assert!(impatient.parse("src/lib.rs", b"fn f() {}").is_err());
     });
+    let refusals = messages
+        .0
+        .lock()
+        .expect("not poisoned")
+        .iter()
+        .filter(|message| *message == "file refused")
+        .count();
+    // The file over the size limit and the file over the time limit.
+    assert_eq!(refusals, 2);
     let logged = messages.0.lock().expect("not poisoned").join("\n");
     assert!(logged.contains("file refused"), "{logged}");
     assert!(logged.contains("no supported language"), "{logged}");

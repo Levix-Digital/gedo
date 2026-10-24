@@ -137,3 +137,28 @@ fn a_signature_change_keeps_the_body_hash_and_the_reverse() {
     assert_eq!(original.signature_hash, body.signature_hash);
     assert_ne!(original.body_hash, body.body_hash);
 }
+
+fn first_hash(source: &str) -> gedo_core::syntax::StructuralHash {
+    map(source).entities[0].structural_hash
+}
+
+#[test]
+fn the_comma_of_a_one_element_tuple_is_significant() {
+    for (tuple, parenthesized) in [
+        ("fn f() { let x = (a,); }", "fn f() { let x = (a); }"),
+        ("type A = (u8,);", "type A = (u8);"),
+        ("fn f() { let (a,) = t; }", "fn f() { let (a) = t; }"),
+    ] {
+        assert_ne!(first_hash(tuple), first_hash(parenthesized), "{tuple}");
+    }
+}
+
+#[test]
+fn the_semicolon_of_a_jump_inside_a_block_is_significant() {
+    for (with, without) in [
+        ("fn f() { return; g() }", "fn f() { return g() }"),
+        ("fn f() { loop { break; x } }", "fn f() { loop { break x } }"),
+    ] {
+        assert_ne!(first_hash(with), first_hash(without), "{with}");
+    }
+}

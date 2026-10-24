@@ -5,11 +5,11 @@
 use std::collections::{HashMap, HashSet};
 
 use gedo_core::ports::ParseError;
-use gedo_core::syntax::{ByteRange, EntityKind, RawEntity, Token, TokenRange};
+use gedo_core::syntax::{ByteRange, EntityKind, RawEntity, Token, TokenClass, TokenRange};
 use tree_sitter::{Node, Tree};
 
-use crate::MAX_NESTING_DEPTH;
 use crate::rust::{kinds, paths, tokens};
+use crate::{Deadline, MAX_NESTING_DEPTH};
 
 /// An entity whose node is still being walked.
 struct OpenEntity {
@@ -26,7 +26,20 @@ struct Prefix {
     parent_id: Option<usize>,
     token: u32,
     byte: u32,
+    /// Whether one of the attached nodes contains a syntax error.
+    has_error: bool,
 }
+
+/// The `;` of a `return`, `break` or `continue` statement, optional only if no other code follows
+/// the statement in its block (research R5).
+#[derive(Clone, Copy)]
+struct PendingJump {
+    block_id: usize,
+    token: usize,
+}
+
+/// How many nodes the walk visits between two looks at the clock.
+const NODES_PER_DEADLINE_CHECK: usize = 4_096;
 
 struct Collector<'source> {
     code: &'source [u8],
@@ -38,15 +51,19 @@ struct Collector<'source> {
     prefix: Option<Prefix>,
     optional_braces: HashSet<usize>,
     occurrences: HashMap<(EntityKind, String), u32>,
+    /// The node of the last token pushed, with the token's index.
+    last_leaf: Option<(usize, usize)>,
+    pending_jump: Option<PendingJump>,
 }
 
 /// Collects the tokens and entities of `tree`, parsed from `code`; byte ranges are shifted by
-/// `offset` (a byte order mark before `code`).
+/// `offset` (a byte order mark before `code`). Fails with `Timeout` once `deadline` has passed.
 pub fn collect(
     tree: &Tree,
     code: &[u8],
     offset: u32,
     path: &str,
+    deadline: Deadline,
 ) -> Result<(Vec<Token>, Vec<RawEntity>), ParseError> {
     let mut collector = Collector {
         code,
@@ -58,12 +75,19 @@ pub fn collect(
         prefix: None,
         optional_braces: HashSet::new(),
         occurrences: HashMap::new(),
+        last_leaf: None,
+        pending_jump: None,
     };
     let mut cursor = tree.walk();
     // The ancestors of the cursor's node: asking Tree-sitter for a node's parent walks down from
     // the root each time, which made the walk quadratic in depth.
     let mut ancestors: Vec<Node<'_>> = Vec::new();
+    let mut visited = 0usize;
     loop {
+        if visited.is_multiple_of(NODES_PER_DEADLINE_CHECK) && deadline.has_passed() {
+            return Err(deadline.error(path));
+        }
+        visited += 1;
         if ancestors.len() > MAX_NESTING_DEPTH as usize {
             return Err(ParseError::TooDeep {
                 path: path.to_owned(),
@@ -77,10 +101,14 @@ pub fn collect(
             continue;
         }
         loop {
-            collector.leave(cursor.node());
+            let node = cursor.node();
+            collector.leave(node, ancestors.last().copied());
             if cursor.goto_next_sibling() {
                 break;
             }
+            // Asking Tree-sitter for a node's next sibling walks the parent's children from the
+            // first one; the cursor tells it here for free.
+            collector.leave_last_child(node);
             if !cursor.goto_parent() {
                 return Ok((collector.tokens, collector.entities));
             }
@@ -97,6 +125,13 @@ impl Collector<'_> {
     /// Visits a node on the way down; returns whether its children are skipped.
     fn enter(&mut self, node: Node<'_>, parent: Option<Node<'_>>) -> bool {
         self.track_prefix(node, parent);
+        if let Some(pending) = self.pending_jump
+            && parent.is_some_and(|parent| parent.id() == pending.block_id)
+            && !matches!(node.kind(), "line_comment" | "block_comment" | "}")
+        {
+            // Code follows the jump statement: its `;` stays (research R5).
+            self.pending_jump = None;
+        }
         if let Some(top) = self.open.last()
             && top.body_id == Some(node.id())
         {
@@ -104,7 +139,9 @@ impl Collector<'_> {
             self.entities[index].body_start = Some(self.tokens.len() as u32);
         }
         let enclosing = self.open.last().map(|top| self.entities[top.index].kind);
-        if let Some(kind) = kinds::entity_kind(node.kind(), enclosing) {
+        if let Some(kind) = kinds::entity_kind(node.kind(), enclosing)
+            .or_else(|| kinds::is_use_list_item(node, parent).then_some(EntityKind::Import))
+        {
             self.open_entity(node, parent, kind);
         }
         if kinds::is_optional_block(node, parent) {
@@ -117,7 +154,26 @@ impl Collector<'_> {
         is_leaf
     }
 
-    fn leave(&mut self, node: Node<'_>) {
+    fn leave(&mut self, node: Node<'_>, parent: Option<Node<'_>>) {
+        if let Some(pending) = self.pending_jump
+            && pending.block_id == node.id()
+        {
+            // Nothing but comments followed the jump statement in its block.
+            self.tokens[pending.token].class = TokenClass::OptionalPunctuation;
+            self.pending_jump = None;
+        }
+        if kinds::is_jump_statement(node)
+            && let (Some(parent), Some((leaf_id, token))) = (parent, self.last_leaf)
+            && node
+                .child(node.child_count().saturating_sub(1))
+                .is_some_and(|last| last.id() == leaf_id)
+            && &self.code[node.end_byte().saturating_sub(1)..node.end_byte()] == b";"
+        {
+            self.pending_jump = Some(PendingJump {
+                block_id: parent.id(),
+                token,
+            });
+        }
         if self.open.last().is_some_and(|top| top.node_id == node.id())
             && let Some(top) = self.open.pop()
         {
@@ -129,6 +185,17 @@ impl Collector<'_> {
         }
     }
 
+    /// Called after `leave` when `node` is the last child of its parent: a `,` that ends its list
+    /// without a closing delimiter after it (`where` clauses) is optional (research R5).
+    fn leave_last_child(&mut self, node: Node<'_>) {
+        if let Some((leaf_id, token)) = self.last_leaf
+            && leaf_id == node.id()
+            && self.tokens[token].class == TokenClass::Separator
+        {
+            self.tokens[token].class = TokenClass::OptionalPunctuation;
+        }
+    }
+
     /// Outer attributes and comments directly before an item are part of it: they start a prefix
     /// that the next sibling takes if it is an entity and that any other sibling discards. Nodes
     /// below the prefix's level (the attribute's own children) leave it alone.
@@ -137,14 +204,22 @@ impl Collector<'_> {
         let is_attachable = matches!(node.kind(), "attribute_item" | "line_comment" | "block_comment");
         let same_level = self.prefix.is_some_and(|prefix| prefix.parent_id == parent_id);
         if is_attachable {
-            if !same_level {
+            if same_level {
+                if let Some(prefix) = &mut self.prefix {
+                    prefix.has_error |= node.has_error();
+                }
+            } else {
                 self.prefix = Some(Prefix {
                     parent_id,
                     token: self.tokens.len() as u32,
                     byte: self.shifted(node.start_byte()),
+                    has_error: node.has_error(),
                 });
             }
-        } else if same_level && kinds::entity_kind(node.kind(), None).is_none() {
+        } else if same_level
+            && kinds::entity_kind(node.kind(), None).is_none()
+            && !kinds::is_use_list_item(node, parent)
+        {
             self.prefix = None;
         }
     }
@@ -190,7 +265,7 @@ impl Collector<'_> {
                 end: self.tokens.len() as u32,
             },
             body_start: None,
-            has_error: node.has_error(),
+            has_error: node.has_error() || prefix.is_some_and(|prefix| prefix.has_error),
         };
         *occurrence += 1;
         self.open.push(OpenEntity {
@@ -210,9 +285,69 @@ impl Collector<'_> {
         }
         let optional_brace = parent.is_some_and(|parent| self.optional_braces.contains(&parent.id()));
         let class = tokens::classify(node, parent, &self.code[range.clone()], optional_brace);
+        self.last_leaf = Some((node.id(), self.tokens.len()));
         self.tokens.push(Token {
             class,
             byte_range: ByteRange::new(self.shifted(range.start), self.shifted(range.end)),
         });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use super::*;
+
+    fn tree(code: &[u8]) -> Tree {
+        let mut parser = tree_sitter::Parser::new();
+        parser
+            .set_language(&tree_sitter_rust::LANGUAGE.into())
+            .expect("grammar loads");
+        parser.parse(code, None).expect("parses")
+    }
+
+    fn comma_classes(code: &[u8]) -> Vec<TokenClass> {
+        let (tokens, _) = collect(
+            &tree(code),
+            code,
+            0,
+            "src/lib.rs",
+            Deadline::starting_now(Duration::from_secs(60)),
+        )
+        .expect("walks");
+        tokens
+            .iter()
+            .filter(|token| &code[token.byte_range.as_usize()] == b",")
+            .map(|token| token.class)
+            .collect()
+    }
+
+    #[test]
+    fn a_comma_that_ends_its_list_is_optional() {
+        assert_eq!(
+            comma_classes(b"fn f<T, U>(a: u8, b: u8) where T: Copy, U: Copy, {}"),
+            [
+                TokenClass::Separator,
+                TokenClass::Separator,
+                TokenClass::Separator,
+                TokenClass::OptionalPunctuation,
+            ]
+        );
+    }
+
+    #[test]
+    fn the_walk_stops_at_the_deadline() {
+        let code = b"fn f() {}";
+        assert!(matches!(
+            collect(
+                &tree(code),
+                code,
+                0,
+                "src/lib.rs",
+                Deadline::starting_now(Duration::ZERO)
+            ),
+            Err(ParseError::Timeout { limit_ms: 0, .. })
+        ));
     }
 }
