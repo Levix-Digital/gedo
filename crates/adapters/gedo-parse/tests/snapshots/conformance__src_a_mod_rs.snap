@@ -1,0 +1,27 @@
+---
+source: crates/adapters/gedo-parse/tests/conformance.rs
+expression: "common::render(&common::syntax_map(&path, &source))"
+---
+language: rust
+hash_format: 1
+entities:
+  - kind: module
+    language_kind: mod_item
+    qualified_path: crate::a::b
+    occurrence: 0
+    byte_range: 0..10
+    container: -
+    has_error: false
+    structural_hash: 590dea276b26bd7a266911f1a1115e018b681c43771dc1ace8beecdb3a59c247
+    signature_hash: eefeb284623a01631fc9f688a6864c5f75250c184484a67a57f2ef6e70f6877a
+    body_hash: d9abe1b8c1bb4a04ee0a822f65493d2e52eabfcded5b99b9f959be98ee53b437
+  - kind: function
+    language_kind: function_item
+    qualified_path: crate::a::in_a
+    occurrence: 0
+    byte_range: 12..28
+    container: -
+    has_error: false
+    structural_hash: 057285a875a4e5b91a724b021451fdd67efdf1cd2908249f2c0adb4c054d6c2d
+    signature_hash: 44096c6640fdacc535f4739684f982adc220fab39bfbeabdb730a191c93f3ebd
+    body_hash: 489750275a6d1a0ae92b88d78aca993a008f8d1abb490088eea9e3a3df55d7a6

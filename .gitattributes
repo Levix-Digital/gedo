@@ -1,0 +1,2 @@
+# Parser fixtures are tested byte for byte on every platform (specs/002-syntax-model).
+crates/adapters/gedo-parse/tests/fixtures/** -text

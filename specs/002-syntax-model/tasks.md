@@ -24,11 +24,11 @@ description: "Tasks for the syntax model (v0.2.0, first feature)"
 
 **Purpose**: new crates and dependencies
 
-- [ ] T001 Add `crates/core/gedo-ast` and `crates/adapters/gedo-parse` to the workspace members in `Cargo.toml` and pin `tree-sitter = "0.27"`, `tree-sitter-rust = "0.24"`, `blake3 = "1.8"`, `insta = { version = "1", features = ["yaml"] }` in `[workspace.dependencies]`
-- [ ] T002 [P] Create the crate `crates/core/gedo-ast` (`Cargo.toml` depending on `gedo-core` and `blake3`; dev-dependencies `gedo-core` with `memory`, `proptest`; `src/lib.rs` with crate docs)
-- [ ] T003 [P] Create the crate `crates/adapters/gedo-parse` (`Cargo.toml` depending on `gedo-core`, `gedo-ast`, `tree-sitter`, `tree-sitter-rust`, `thiserror`, `tracing`; dev-dependencies `insta`, `proptest`, `criterion`; `src/lib.rs` with crate docs)
-- [ ] T004 [P] Add `.gitattributes` entries so `crates/adapters/gedo-parse/tests/fixtures/**` is checked out byte-exact (`-text`)
-- [ ] T005 Verify the setup: `cargo build --workspace`, `cargo deny check` and `cargo xtask arch-check` pass, and `gedo-ast` is accepted as a core crate without Tree-sitter
+- [X] T001 Add `crates/core/gedo-ast` and `crates/adapters/gedo-parse` to the workspace members in `Cargo.toml` and pin `tree-sitter = "0.27"`, `tree-sitter-rust = "0.24"`, `blake3 = "1.8"`, `insta = { version = "1", features = ["yaml"] }` in `[workspace.dependencies]`
+- [X] T002 [P] Create the crate `crates/core/gedo-ast` (`Cargo.toml` depending on `gedo-core` and `blake3`; dev-dependencies `gedo-core` with `memory`, `proptest`; `src/lib.rs` with crate docs)
+- [X] T003 [P] Create the crate `crates/adapters/gedo-parse` (`Cargo.toml` depending on `gedo-core`, `gedo-ast`, `tree-sitter`, `tree-sitter-rust`, `thiserror`, `tracing`; dev-dependencies `insta`, `proptest`, `criterion`; `src/lib.rs` with crate docs)
+- [X] T004 [P] Add `.gitattributes` entries so `crates/adapters/gedo-parse/tests/fixtures/**` is checked out byte-exact (`-text`)
+- [X] T005 Verify the setup: `cargo build --workspace`, `cargo deny check` and `cargo xtask arch-check` pass, and `gedo-ast` is accepted as a core crate without Tree-sitter
 
 ---
 
@@ -38,13 +38,13 @@ description: "Tasks for the syntax model (v0.2.0, first feature)"
 
 **⚠️ CRITICAL**: no user story starts before this phase is complete
 
-- [ ] T006 [P] Implement `Language`, `EntityKind`, `TokenClass`, `Token`, `RawEntity`, `ParsedFile`, `CodeEntity`, `SyntaxMap`, `StructuralHash` (32 bytes, lowercase hex display) and `HashFormat` in `crates/core/gedo-core/src/syntax.rs` as in `data-model.md`
-- [ ] T007 [P] Define the `Parser` port and `ParseError` (`UnsupportedLanguage`, `TooLarge`, `TooDeep`, `Timeout`, `Internal`, each with the path) in `crates/core/gedo-core/src/ports/parser.rs` as in `contracts/parser-port.md`
-- [ ] T008 Implement `FixedParser` (returns prepared `ParsedFile`s by path, `UnsupportedLanguage` otherwise) behind the `memory` feature in `crates/core/gedo-core/src/memory/parser.rs`
-- [ ] T009 Implement `ParsedFile` validation (nested token ranges, containers before children, ranges within the source) in `crates/core/gedo-ast/src/validate.rs`, with tests for each violation
-- [ ] T010 Write property tests in `crates/core/gedo-ast/tests/properties.rs`: inserting, removing or editing `Comment` and `DocComment` tokens never changes a hash; changing the text or class of any significant token changes the hashes of its entity and containers and no other; permuting the `Import` entities of a container never changes its hash; a trailing `Separator` before a `CloseDelimiter` never changes a hash; CRLF and CR in token text hash like LF
-- [ ] T011 Implement normalization (drop trivia, line endings, trailing separators, order-insensitive `Import` groups) in `crates/core/gedo-ast/src/normalize.rs` (research R4, R5)
-- [ ] T012 Implement `HashFormat::V1` hashing (derive-key context, class byte, `u32` length, text; structural, signature and body hashes) in `crates/core/gedo-ast/src/hash.rs` (research R6) and the public `normalize(&ParsedFile, &[u8]) -> Result<SyntaxMap, ParseError>`; T010 passes
+- [X] T006 [P] Implement `Language`, `EntityKind`, `TokenClass`, `Token`, `RawEntity`, `ParsedFile`, `CodeEntity`, `SyntaxMap`, `StructuralHash` (32 bytes, lowercase hex display) and `HashFormat` in `crates/core/gedo-core/src/syntax.rs` as in `data-model.md`
+- [X] T007 [P] Define the `Parser` port and `ParseError` (`UnsupportedLanguage`, `TooLarge`, `TooDeep`, `Timeout`, `Internal`, each with the path) in `crates/core/gedo-core/src/ports/parser.rs` as in `contracts/parser-port.md`
+- [X] T008 Implement `FixedParser` (returns prepared `ParsedFile`s by path, `UnsupportedLanguage` otherwise) behind the `memory` feature in `crates/core/gedo-core/src/memory/parser.rs`
+- [X] T009 Implement `ParsedFile` validation (nested token ranges, containers before children, ranges within the source) in `crates/core/gedo-ast/src/validate.rs`, with tests for each violation
+- [X] T010 Write property tests in `crates/core/gedo-ast/tests/properties.rs`: inserting, removing or editing `Comment` and `DocComment` tokens never changes a hash; changing the text or class of any significant token changes the hashes of its entity and containers and no other; permuting the `Import` entities of a container never changes its hash; a trailing `Separator` before a `CloseDelimiter` never changes a hash; CRLF and CR in token text hash like LF
+- [X] T011 Implement normalization (drop trivia, line endings, trailing separators, order-insensitive `Import` groups) in `crates/core/gedo-ast/src/normalize.rs` (research R4, R5)
+- [X] T012 Implement `HashFormat::V1` hashing (derive-key context, class byte, `u32` length, text; structural, signature and body hashes) in `crates/core/gedo-ast/src/hash.rs` (research R6) and the public `normalize(&ParsedFile, &[u8]) -> Result<SyntaxMap, ParseError>`; T010 passes
 
 **Checkpoint**: the core turns any valid `ParsedFile` into a `SyntaxMap`, tested without a grammar
 
@@ -56,14 +56,14 @@ description: "Tasks for the syntax model (v0.2.0, first feature)"
 
 **Independent Test**: `crates/adapters/gedo-parse/tests/conformance.rs`
 
-- [ ] T013 [P] [US1] Write the conformance fixtures in `crates/adapters/gedo-parse/tests/fixtures/rust/` (every entity kind, nested and inline modules, inherent, trait and generic impls, trait items, items in function bodies, `#[cfg]` duplicates, raw and non-ASCII identifiers, a byte order mark) laid out to exercise every module path rule (`src/lib.rs`, `src/main.rs`, `src/a/mod.rs`, `src/a/b.rs`, `tests/`, `benches/`, `examples/`, `build.rs`)
-- [ ] T014 [P] [US1] Write unit tests for module paths from file paths and for impl and method paths in `crates/adapters/gedo-parse/src/rust/paths.rs` (research R7)
-- [ ] T015 [US1] Implement language detection, the size limit and the parse call with the timeout in `crates/adapters/gedo-parse/src/lib.rs` (`TreeSitterParser`, byte order mark skipped, ranges against the original bytes)
-- [ ] T016 [US1] Implement the iterative walk producing tokens, entities, containers, body starts and occurrence indices, with the depth limit, in `crates/adapters/gedo-parse/src/walk.rs`
-- [ ] T017 [P] [US1] Implement the Rust token classification in `crates/adapters/gedo-parse/src/rust/tokens.rs` and the node-to-kind mapping in `src/rust/kinds.rs` (research R7 table)
-- [ ] T018 [US1] Implement Rust module, impl and method paths in `crates/adapters/gedo-parse/src/rust/paths.rs`; T014 passes
-- [ ] T019 [US1] Write `crates/adapters/gedo-parse/tests/conformance.rs`: parse and normalize every fixture and assert `insta` snapshots in the format of `contracts/parser-port.md`; review and commit the snapshots; assert `UnsupportedLanguage` for other extensions
-- [ ] T020 [P] [US1] Write `crates/adapters/gedo-parse/examples/syntax_map.rs` (prints one line per entity, quickstart step 2)
+- [X] T013 [P] [US1] Write the conformance fixtures in `crates/adapters/gedo-parse/tests/fixtures/rust/` (every entity kind, nested and inline modules, inherent, trait and generic impls, trait items, items in function bodies, `#[cfg]` duplicates, raw and non-ASCII identifiers, a byte order mark) laid out to exercise every module path rule (`src/lib.rs`, `src/main.rs`, `src/a/mod.rs`, `src/a/b.rs`, `tests/`, `benches/`, `examples/`, `build.rs`)
+- [X] T014 [P] [US1] Write unit tests for module paths from file paths and for impl and method paths in `crates/adapters/gedo-parse/src/rust/paths.rs` (research R7)
+- [X] T015 [US1] Implement language detection, the size limit and the parse call with the timeout in `crates/adapters/gedo-parse/src/lib.rs` (`TreeSitterParser`, byte order mark skipped, ranges against the original bytes)
+- [X] T016 [US1] Implement the iterative walk producing tokens, entities, containers, body starts and occurrence indices, with the depth limit, in `crates/adapters/gedo-parse/src/walk.rs`
+- [X] T017 [P] [US1] Implement the Rust token classification in `crates/adapters/gedo-parse/src/rust/tokens.rs` and the node-to-kind mapping in `src/rust/kinds.rs` (research R7 table)
+- [X] T018 [US1] Implement Rust module, impl and method paths in `crates/adapters/gedo-parse/src/rust/paths.rs`; T014 passes
+- [X] T019 [US1] Write `crates/adapters/gedo-parse/tests/conformance.rs`: parse and normalize every fixture and assert `insta` snapshots in the format of `contracts/parser-port.md`; review and commit the snapshots; assert `UnsupportedLanguage` for other extensions
+- [X] T020 [P] [US1] Write `crates/adapters/gedo-parse/examples/syntax_map.rs` (prints one line per entity, quickstart step 2)
 
 **Checkpoint**: User Story 1 works alone
 
