@@ -27,6 +27,7 @@ proptest = "1.12"
 tempfile = "3.27"
 criterion = "0.8"
 cargo_metadata = "0.23"
+serde_json = "1.0"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

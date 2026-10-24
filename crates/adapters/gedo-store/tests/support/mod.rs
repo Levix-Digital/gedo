@@ -2,6 +2,9 @@
 //! tooling only; the store itself never runs `git`).
 #![allow(dead_code)]
 
+pub mod ssh;
+
+use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -10,13 +13,22 @@ use tempfile::TempDir;
 /// A temporary directory holding repositories, with its own empty global Git configuration.
 pub struct Sandbox {
     root: TempDir,
+    ssh_command: RefCell<Option<String>>,
 }
 
 impl Sandbox {
     pub fn new() -> Self {
         let root = tempfile::tempdir().expect("temporary directory");
         std::fs::write(root.path().join("global.gitconfig"), "").expect("global config");
-        Sandbox { root }
+        Sandbox {
+            root,
+            ssh_command: RefCell::new(None),
+        }
+    }
+
+    /// Makes every later `git` invocation reach SSH remotes with `command`.
+    pub fn set_ssh_command(&self, command: String) {
+        *self.ssh_command.borrow_mut() = Some(command);
     }
 
     pub fn path(&self) -> &Path {
@@ -47,6 +59,9 @@ impl Sandbox {
             .env_remove("GIT_AUTHOR_EMAIL")
             .env_remove("GIT_COMMITTER_NAME")
             .env_remove("GIT_COMMITTER_EMAIL");
+        if let Some(ssh) = self.ssh_command.borrow().as_ref() {
+            command.env("GIT_SSH_COMMAND", ssh);
+        }
         command
     }
 

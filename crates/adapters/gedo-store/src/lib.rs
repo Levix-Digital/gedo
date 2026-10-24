@@ -6,6 +6,7 @@ mod convert;
 pub mod fs;
 pub mod objects;
 pub mod refs;
+pub mod remote;
 pub mod repository;
 pub mod wal;
 
