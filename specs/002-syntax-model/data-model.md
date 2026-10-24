@@ -13,15 +13,18 @@ Language-neutral category of a code entity: `Module`, `Function`, `Method`, `Str
 
 ## TokenClass and Token
 
-- `TokenClass`: `Identifier`, `Keyword`, `Literal`, `Punctuation`, `OpenDelimiter`, `CloseDelimiter`, `Separator`, `Comment`, `DocComment`.
-- `Token { class, byte_range: (u32, u32) }`: a leaf of the source, located in the original bytes.
+- `TokenClass`: `Identifier`, `Keyword`, `Literal`, `Punctuation`, `OpenDelimiter`, `CloseDelimiter`, `Separator`, `OptionalPunctuation`, `Comment`, `DocComment`, with fixed hash codes 1 to 10 (`code()`). `is_significant()` is false for `OptionalPunctuation`, `Comment` and `DocComment`.
+- `ByteRange { start: u32, end: u32 }`: a half-open range of the original bytes.
+- `Token { class, byte_range: ByteRange }`: a leaf of the source, located in the original bytes.
+- `TokenRange { start: u32, end: u32 }`: a half-open range of token indices.
 
 ## ParsedFile (adapter output, normalization input)
 
 - `language`, `path` (repository-relative, `/`-separated).
 - `tokens`: every token of the file in source order.
 - `entities`: `RawEntity` list in source order.
-- `RawEntity { kind, language_kind, name, qualified_path, occurrence, byte_range, container: Option<usize>, tokens: (start, end), body_start: Option<usize>, has_error }`: `container` is the index of the enclosing entity; `tokens` is the half-open range of token indices; `body_start` is the token index where the body starts (none for entities without a body).
+- `has_error`: whether the file contains a syntax error anywhere, inside an entity or between them.
+- `RawEntity { kind, language_kind, name, qualified_path, occurrence, byte_range: ByteRange, container: Option<u32>, tokens: TokenRange, body_start: Option<u32>, has_error }`: `container` is the index of the enclosing entity; `body_start` is the token index where the body starts (none for entities without a body).
 
 Validation (checked by `gedo-ast` before normalizing; a violation is an adapter bug reported as `ParseError::Internal`): token ranges are nested and inside the file; containers precede their children; byte ranges are within the source length.
 
@@ -29,13 +32,14 @@ Validation (checked by `gedo-ast` before normalizing; a violation is an adapter 
 
 - `language`, `path`, `hash_format: HashFormat`.
 - `entities: Vec<CodeEntity>`, in source order, without `Import` entities.
+- `has_error`: copied from the `ParsedFile`.
 
 ## CodeEntity
 
 - `kind: EntityKind`, `language_kind: String` (`function_item`, ...), `name: String`, `qualified_path: String`, `occurrence: u32`.
-- `byte_range: (u32, u32)`, `container: Option<usize>` (index in `entities`).
+- `byte_range: ByteRange`, `container: Option<u32>` (index in `entities`).
 - `has_error: bool`.
-- `signature_tokens` and `body_tokens`: the normalized significant tokens as `(TokenClass, String)` pairs, for the similarity of feature 003.
+- `signature_tokens` and `body_tokens`: `Vec<NormalizedToken { class, text }>`, the significant tokens with line endings normalized, nested entities excluded, for the similarity of feature 003.
 - `structural_hash`, `signature_hash`, `body_hash`: `StructuralHash([u8; 32])`.
 
 Relationship: one `SyntaxMap` per (file path, file content); `AnchoredAstNode` of feature 003 is a `CodeEntity` plus an `AstNodeId`.

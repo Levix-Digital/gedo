@@ -105,3 +105,12 @@ Taken from the phases of `tasks.md`:
 |---|---:|---:|---|
 | Linux container, 4 vCPUs, nightly 2026-10-24 | 644,590 | 601 s | no crash, hang or out-of-memory |
 
+
+## Benchmark results
+
+`cargo bench -p gedo-parse --bench parse_rust`, parse, normalization and hash of a 2,000-line file, 500 runs (SC-001: p95 under 10 ms):
+
+| Machine | p50 | p95 | p99 |
+|---|---:|---:|---:|
+| Linux container, 4 vCPUs | 7.9 ms | 8.3 ms | 11.3 ms |
+| Reference machine, Windows | pending | pending | pending |

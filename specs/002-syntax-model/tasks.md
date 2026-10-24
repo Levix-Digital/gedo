@@ -128,11 +128,11 @@ description: "Tasks for the syntax model (v0.2.0, first feature)"
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T034 [P] Edit `docs/architecture/parsing.md` in place: Rust mapping, token classes, qualified path rules, limits, error tolerance, known grammar gaps
-- [ ] T035 [P] Edit `docs/architecture/identity.md` (normalization rules and hash format in `gedo-ast`) and `docs/architecture/core.md` (syntax model types, `Parser` port, `FixedParser`) in place
-- [ ] T036 [P] Update `docs/product/TECH_SPEC.md` (library table: `insta`, `cargo-fuzz`) and `README.md` (C compiler prerequisite, status); regenerate the constitution if its sources changed
+- [X] T034 [P] Edit `docs/architecture/parsing.md` in place: Rust mapping, token classes, qualified path rules, limits, error tolerance, known grammar gaps
+- [X] T035 [P] Edit `docs/architecture/identity.md` (normalization rules and hash format in `gedo-ast`) and `docs/architecture/core.md` (syntax model types, `Parser` port, `FixedParser`) in place
+- [X] T036 [P] Update `docs/product/TECH_SPEC.md` (library table: `insta`, `cargo-fuzz`) and `README.md` (C compiler prerequisite, status); regenerate the constitution if its sources changed
 - [ ] T037 Run `architecture-docs/build_index.py`, `architecture-docs/check_docs.py`, `software-design/check_design.py`, `user-docs/check_readme.py`, all tests, `cargo clippy` and `cargo deny check`; fix everything reported
-- [ ] T038 Walk through `quickstart.md` steps 1 to 6 and fix any drift between the guide and the code
+- [X] T038 Walk through `quickstart.md` steps 1 to 6 and fix any drift between the guide and the code
 - [ ] T039 Run `cargo bench -p gedo-parse --bench parse_rust` on the reference machine on Windows and Linux and record p50, p95 and p99 in `docs/plans/gedo_syntax_model.md` (SC-001: p95 under 10 ms)
 
 ---

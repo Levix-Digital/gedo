@@ -27,7 +27,7 @@ Expected: one line per entity with kind, qualified path (`crate::ids::GitOid::fr
 
 ```sh
 cp crates/core/gedo-core/src/ids.rs /tmp/ids.rs
-rustfmt --config max_width=60,trailing_comma=Never /tmp/ids.rs
+rustfmt --edition 2024 --config max_width=60,trailing_comma=Never /tmp/ids.rs
 cargo run -p gedo-parse --example syntax_map -- /tmp/ids.rs
 ```
 
