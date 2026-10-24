@@ -24,13 +24,13 @@ description: "Tasks for the store foundation (v0.1.0)"
 
 **Purpose**: workspace, toolchain and quality tooling
 
-- [ ] T001 Create the workspace manifest `Cargo.toml` with members `crates/core/gedo-core`, `crates/adapters/gedo-store`, `tools/xtask`, `edition = "2024"`, `rust-version = "1.95"`, `license = "MIT OR Apache-2.0"`, version `0.1.0`, and `[workspace.dependencies]` pinning `gix = { version = "0.90", default-features = false }`, `redb = "4.4"`, `postcard = { version = "1.1", features = ["alloc"] }`, `serde = { version = "1.0", features = ["derive"] }`, `crc32fast = "1.5"`, `thiserror = "2.0"`, `tracing = "0.1"`, `proptest = "1.12"`, `tempfile = "3.27"`, `criterion = "0.8"`, `cargo_metadata = "0.23"`
-- [ ] T002 [P] Create the crate `crates/core/gedo-core` (`Cargo.toml` with features `memory` and `contract-tests`, empty `src/lib.rs` with `#![forbid(unsafe_code)]` and crate docs)
-- [ ] T003 [P] Create the crate `crates/adapters/gedo-store` (`Cargo.toml` depending on `gedo-core`, `gix`, `redb`, `postcard`, `crc32fast`, `thiserror`, `tracing`; dev-dependencies `gedo-core` with `memory` and `contract-tests`, `proptest`, `tempfile`, `criterion`; empty `src/lib.rs`)
-- [ ] T004 [P] Create `tools/xtask` (binary crate, `cargo_metadata` dependency) and the alias `xtask = "run --package xtask --"` in `.cargo/config.toml`
-- [ ] T005 [P] Add `rustfmt.toml` (edition 2024, max width 110) and workspace lints in `Cargo.toml` (`unsafe_code = "forbid"`, clippy `unwrap_used = "deny"` outside tests)
-- [ ] T006 [P] Add `deny.toml`: licenses allowed `MIT`, `Apache-2.0`, `Apache-2.0 WITH LLVM-exception`, `BSD-2-Clause`, `BSD-3-Clause`, `ISC`, `Zlib`, `Unicode-3.0`, `MPL-2.0` only if a dependency needs it (document why); advisories deny; bans warn on duplicates
-- [ ] T007 Verify the setup: `cargo build --workspace` and `cargo fmt --check` pass on the empty crates
+- [X] T001 Create the workspace manifest `Cargo.toml` with members `crates/core/gedo-core`, `crates/adapters/gedo-store`, `tools/xtask`, `edition = "2024"`, `rust-version = "1.95"`, `license = "MIT OR Apache-2.0"`, version `0.1.0`, and `[workspace.dependencies]` pinning `gix = { version = "0.90", default-features = false }`, `redb = "4.4"`, `postcard = { version = "1.1", features = ["alloc"] }`, `serde = { version = "1.0", features = ["derive"] }`, `crc32fast = "1.5"`, `thiserror = "2.0"`, `tracing = "0.1"`, `proptest = "1.12"`, `tempfile = "3.27"`, `criterion = "0.8"`, `cargo_metadata = "0.23"`
+- [X] T002 [P] Create the crate `crates/core/gedo-core` (`Cargo.toml` with features `memory` and `contract-tests`, empty `src/lib.rs` with `#![forbid(unsafe_code)]` and crate docs)
+- [X] T003 [P] Create the crate `crates/adapters/gedo-store` (`Cargo.toml` depending on `gedo-core`, `gix`, `redb`, `postcard`, `crc32fast`, `thiserror`, `tracing`; dev-dependencies `gedo-core` with `memory` and `contract-tests`, `proptest`, `tempfile`, `criterion`; empty `src/lib.rs`)
+- [X] T004 [P] Create `tools/xtask` (binary crate, `cargo_metadata` dependency) and the alias `xtask = "run --package xtask --"` in `.cargo/config.toml`
+- [X] T005 [P] Add `rustfmt.toml` (edition 2024, max width 110) and workspace lints in `Cargo.toml` (`unsafe_code = "forbid"`, clippy `unwrap_used = "deny"` outside tests)
+- [X] T006 [P] Add `deny.toml`: licenses allowed `MIT`, `Apache-2.0`, `Apache-2.0 WITH LLVM-exception`, `BSD-2-Clause`, `BSD-3-Clause`, `ISC`, `Zlib`, `Unicode-3.0`, `MPL-2.0` only if a dependency needs it (document why); advisories deny; bans warn on duplicates
+- [X] T007 Verify the setup: `cargo build --workspace` and `cargo fmt --check` pass on the empty crates
 
 ---
 
