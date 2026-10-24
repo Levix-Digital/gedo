@@ -4,10 +4,10 @@ project: gedo
 title: Store foundation
 kind: feature
 version: v0.1.0
-status: active
+status: completed
 author: Levi Silveira
 created_at: '2026-10-24T03:22:28'
-updated_at: '2026-10-24T03:44:22'
+updated_at: '2026-10-24T20:06:45'
 session_id: null
 tags:
 - store
@@ -30,21 +30,37 @@ backlog_items:
 spec_dir: specs/001-store-foundation
 milestones:
 - name: M1 Setup and core
-  done: false
+  done: true
+  done_at: '2026-10-24'
+  by: Levi Silveira
 - name: M2 Objects and references
-  done: false
+  done: true
+  done_at: '2026-10-24'
+  by: Levi Silveira
 - name: M3 Write-ahead log
-  done: false
+  done: true
+  done_at: '2026-10-24'
+  by: Levi Silveira
 - name: M4 Transport
-  done: false
+  done: true
+  done_at: '2026-10-24'
+  by: Levi Silveira
 - name: M5 CI
-  done: false
+  done: true
+  done_at: '2026-10-24'
+  by: Levi Silveira
 - name: M6 Cache
-  done: false
+  done: true
+  done_at: '2026-10-24'
+  by: Levi Silveira
 - name: M7 Scale study
-  done: false
+  done: true
+  done_at: '2026-10-24'
+  by: Levi Silveira
 - name: M8 Documentation and acceptance
-  done: false
+  done: true
+  done_at: '2026-10-24'
+  by: Levi Silveira
 status_log:
 - at: '2026-10-24T03:22:28'
   by: Levi Silveira
@@ -54,6 +70,34 @@ status_log:
   by: Levi Silveira
   status: active
   note: Plan updated
+- at: '2026-10-24T20:06:37'
+  by: Levi Silveira
+  note: 'Milestone ''M1 Setup and core'' completed: Delivered in PR #2'
+- at: '2026-10-24T20:06:38'
+  by: Levi Silveira
+  note: 'Milestone ''M2 Objects and references'' completed: Delivered in PR #2'
+- at: '2026-10-24T20:06:40'
+  by: Levi Silveira
+  note: 'Milestone ''M3 Write-ahead log'' completed: Delivered in PR #2'
+- at: '2026-10-24T20:06:40'
+  by: Levi Silveira
+  note: 'Milestone ''M4 Transport'' completed: Delivered in PR #2'
+- at: '2026-10-24T20:06:41'
+  by: Levi Silveira
+  note: 'Milestone ''M5 CI'' completed: Delivered in PR #2'
+- at: '2026-10-24T20:06:42'
+  by: Levi Silveira
+  note: 'Milestone ''M6 Cache'' completed: Delivered in PR #2'
+- at: '2026-10-24T20:06:43'
+  by: Levi Silveira
+  note: 'Milestone ''M7 Scale study'' completed: Delivered in PR #2'
+- at: '2026-10-24T20:06:45'
+  by: Levi Silveira
+  note: 'Milestone ''M8 Documentation and acceptance'' completed: Delivered in PR #2'
+- at: '2026-10-24T20:06:45'
+  by: Levi Silveira
+  status: completed
+  note: All milestones completed
 ---
 
 # Store foundation

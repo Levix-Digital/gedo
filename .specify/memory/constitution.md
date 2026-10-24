@@ -1,7 +1,7 @@
 <!-- dev-cycle-constitution
 generated-by: dev-cycle-protocol/constitution.py (do not edit; change a source and regenerate)
-sources-sha256: 2a9dc77fd857192b31957dba8b04c621f5b99bc048c54b2d516bfb8b26e8473f
-content-sha256: 8cbf4d70e2ef1a12a9aaa9acb367c5a6b587d552bac4ab5340af912747c0e3b1
+sources-sha256: 2009bc44debce4f08153f21d47cfcb4416e39f40ab8ce45311765ad20608d3e1
+content-sha256: e41c6e122c98ab13d6089418ea34e07e25186e8878958014e411bd368e80345d
 -->
 # gedo Constitution
 
@@ -205,4 +205,4 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - Amendments change the source, not this file: an ADR for decisions, the technical specification for requirements and constraints, `.dev-cycle.json` for the architecture style, the skills for principles. Then run `constitution.py generate` and commit the result with the change.
 - Gate 3 of the development cycle blocks a plan while this file is stale or edited by hand.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-24
+**Version**: 1.2.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-24

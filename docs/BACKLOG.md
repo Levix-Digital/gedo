@@ -6,63 +6,15 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 
 ## Bugs
 
+### BUG-001: Rust parse benchmark over 10 ms p95 on Windows
+- **Severity**: medium
+- **Epic**: EPIC-003
+- **Status**: open
+- **Found**: 2026-10-24, PR #3 CI bench, windows-latest
+- **Plan**: -
+- **Description**: parse_rust (2,000 lines) measured p95 14.1 ms on GitHub Actions windows-latest against 8.0 ms on ubuntu-latest and 8.3 ms in a 4-vCPU Linux container (SC-001 of specs/002-syntax-model: under 10 ms on the reference machine). On Linux, Tree-sitter's own parse is about 3.3 ms of 8 ms; the walk and normalization (many small String allocations) take the rest, which points at the Windows allocator. Measure on the reference machine first, then reduce allocations in the walk and normalization if it misses.
+
 ## Features
-
-### FEAT-001: Object store and reference ports with in-memory adapters
-- **Priority**: high
-- **Epic**: EPIC-001
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_store_foundation
-- **Description**: Ports in gedo-core for objects, references, WAL and cache, each with an in-memory adapter for core tests.
-
-### FEAT-002: gitoxide blob and tree adapter
-- **Priority**: high
-- **Epic**: EPIC-001
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_store_foundation
-- **Description**: Read and write blobs and trees in .git/objects with gix, without spawning git or touching the working tree.
-
-### FEAT-003: refs/gedo reference store with compare-and-swap
-- **Priority**: high
-- **Epic**: EPIC-001
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_store_foundation
-- **Description**: Create, list and update references under refs/gedo/* atomically, safe for concurrent CLI and daemon writes.
-
-### FEAT-004: Crash-safe write-ahead log adapter
-- **Priority**: high
-- **Epic**: EPIC-001
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_store_foundation
-- **Description**: Append-only .git/gedo/wal.log with a checksum per record, fsync on consolidation and torn-record recovery.
-
-### FEAT-005: redb symbol cache with rebuild
-- **Priority**: high
-- **Epic**: EPIC-001
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_store_foundation
-- **Description**: Local symbol_cache.db with a schema version, rebuilt from refs/gedo/* on mismatch or corruption (ADR-0004).
-
-### FEAT-006: Refspec setup and transport validation
-- **Priority**: high
-- **Epic**: EPIC-001
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_store_foundation
-- **Description**: Refspecs for refs/gedo/* and validation of push and fetch against GitHub, GitLab and plain remotes, including host retention of custom references.
-
-### FEAT-007: Reference packing measurement and consolidation
-- **Priority**: medium
-- **Epic**: EPIC-001
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_store_foundation
-- **Description**: Measure how many refs/gedo/* references hosts and fetch tolerate and consolidate into index trees if needed.
 
 ### FEAT-008: SHA-256 repository support
 - **Priority**: low
@@ -71,22 +23,6 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Found**: 2026-10-24
 - **Plan**: -
 - **Description**: Support repositories using the SHA-256 object format (open question in the vision).
-
-### FEAT-009: Neutral syntax tree model and parser port
-- **Priority**: high
-- **Epic**: EPIC-002
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_syntax_model
-- **Description**: Language-independent syntax tree in gedo-core and the parser port implemented by gedo-parse.
-
-### FEAT-010: Trivia normalization and structural hash
-- **Priority**: high
-- **Epic**: EPIC-002
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_syntax_model
-- **Description**: Separate significant syntax from trivia and compute the BLAKE3 structural hash with line endings normalized.
 
 ### FEAT-011: Three-tier node matching
 - **Priority**: high
@@ -127,14 +63,6 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Found**: 2026-10-24
 - **Plan**: -
 - **Description**: Index existing repositories and commits made by teammates without Gedo, with the same ids on every machine.
-
-### FEAT-016: Rust support
-- **Priority**: high
-- **Epic**: EPIC-003
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_syntax_model
-- **Description**: Grammar mapping, qualified paths and conformance suite for Rust.
 
 ### FEAT-017: TypeScript support
 - **Priority**: medium
@@ -952,14 +880,6 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: A lightweight extension over the Gedo language server.
 
-### FEAT-119: CI on Windows and Linux
-- **Priority**: high
-- **Epic**: EPIC-018
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_store_foundation
-- **Description**: Build, tests, benchmarks, check_design.py, cargo-deny and cargo-audit on every pull request on both platforms.
-
 ### FEAT-120: Release pipeline and crate name reservation
 - **Priority**: high
 - **Epic**: EPIC-018
@@ -1153,3 +1073,102 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Description**: Live collaboration on the same symbols, built on the control plane, much later (scope 19).
 
 ## Closed
+
+### FEAT-009: Neutral syntax tree model and parser port
+- **Priority**: high
+- **Epic**: EPIC-002
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_syntax_model
+- **Closed**: 2026-10-24, plan gedo_syntax_model
+- **Description**: Language-independent syntax tree in gedo-core and the parser port implemented by gedo-parse.
+
+### FEAT-010: Trivia normalization and structural hash
+- **Priority**: high
+- **Epic**: EPIC-002
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_syntax_model
+- **Closed**: 2026-10-24, plan gedo_syntax_model
+- **Description**: Separate significant syntax from trivia and compute the BLAKE3 structural hash with line endings normalized.
+
+### FEAT-016: Rust support
+- **Priority**: high
+- **Epic**: EPIC-003
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_syntax_model
+- **Closed**: 2026-10-24, plan gedo_syntax_model
+- **Description**: Grammar mapping, qualified paths and conformance suite for Rust.
+
+### FEAT-001: Object store and reference ports with in-memory adapters
+- **Priority**: high
+- **Epic**: EPIC-001
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_store_foundation
+- **Closed**: 2026-10-24, plan gedo_store_foundation
+- **Description**: Ports in gedo-core for objects, references, WAL and cache, each with an in-memory adapter for core tests.
+
+### FEAT-002: gitoxide blob and tree adapter
+- **Priority**: high
+- **Epic**: EPIC-001
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_store_foundation
+- **Closed**: 2026-10-24, plan gedo_store_foundation
+- **Description**: Read and write blobs and trees in .git/objects with gix, without spawning git or touching the working tree.
+
+### FEAT-003: refs/gedo reference store with compare-and-swap
+- **Priority**: high
+- **Epic**: EPIC-001
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_store_foundation
+- **Closed**: 2026-10-24, plan gedo_store_foundation
+- **Description**: Create, list and update references under refs/gedo/* atomically, safe for concurrent CLI and daemon writes.
+
+### FEAT-004: Crash-safe write-ahead log adapter
+- **Priority**: high
+- **Epic**: EPIC-001
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_store_foundation
+- **Closed**: 2026-10-24, plan gedo_store_foundation
+- **Description**: Append-only .git/gedo/wal.log with a checksum per record, fsync on consolidation and torn-record recovery.
+
+### FEAT-005: redb symbol cache with rebuild
+- **Priority**: high
+- **Epic**: EPIC-001
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_store_foundation
+- **Closed**: 2026-10-24, plan gedo_store_foundation
+- **Description**: Local symbol_cache.db with a schema version, rebuilt from refs/gedo/* on mismatch or corruption (ADR-0004).
+
+### FEAT-006: Refspec setup and transport validation
+- **Priority**: high
+- **Epic**: EPIC-001
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_store_foundation
+- **Closed**: 2026-10-24, plan gedo_store_foundation
+- **Description**: Refspecs for refs/gedo/* and validation of push and fetch against GitHub, GitLab and plain remotes, including host retention of custom references.
+
+### FEAT-007: Reference packing measurement and consolidation
+- **Priority**: medium
+- **Epic**: EPIC-001
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_store_foundation
+- **Closed**: 2026-10-24, plan gedo_store_foundation
+- **Description**: Measure how many refs/gedo/* references hosts and fetch tolerate and consolidate into index trees if needed.
+
+### FEAT-119: CI on Windows and Linux
+- **Priority**: high
+- **Epic**: EPIC-018
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_store_foundation
+- **Closed**: 2026-10-24, plan gedo_store_foundation
+- **Description**: Build, tests, benchmarks, check_design.py, cargo-deny and cargo-audit on every pull request on both platforms.
