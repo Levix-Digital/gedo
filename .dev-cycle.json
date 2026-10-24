@@ -1,0 +1,42 @@
+{
+  "project_name": "gedo",
+  "docs": {
+    "user_doc": "README.md"
+  },
+  "devops": {
+    "branching": "trunk",
+    "production_branch": "main",
+    "version_files": []
+  },
+  "architecture": {
+    "style": "hexagonal",
+    "core_path": "crates/core",
+    "surfaces": [
+      "cli",
+      "daemon"
+    ],
+    "canonical_datastore": "git object store (refs/gedo/*) + local WAL (.git/gedo/wal.log)",
+    "forbidden_core_imports": [
+      "gix",
+      "tree_sitter",
+      "redb",
+      "tokio",
+      "notify",
+      "gedo_store",
+      "gedo_parse",
+      "gedo_net",
+      "gedo_cli",
+      "gedod"
+    ]
+  },
+  "architecture_docs": {
+    "language": "en"
+  },
+  "speckit": {
+    "enabled": true,
+    "version": "v1.2.3",
+    "integration": "claude",
+    "script": "py",
+    "branch_prefix": "feat"
+  }
+}

@@ -1,0 +1,25 @@
+schema_version: "1.0"
+
+preset:
+  id: "dev-cycle"
+  name: "Dev Cycle Protocol"
+  version: "1.0.0"
+  description: "Adds the dev-cycle-protocol sections (tests, documentation, CI and release, security and rollback) to Spec Kit plans."
+  author: "Levi Silveira"
+  repository: "https://github.com/Levix-Digital/ai-code-agent-skills"
+  license: "UNLICENSED"
+
+requires:
+  speckit_version: ">=1.2.0"
+
+provides:
+  templates:
+    - type: "template"
+      name: "plan-template"
+      file: "templates/plan-addendum.md"
+      description: "The protocol sections Spec Kit's plan does not cover"
+      strategy: "append"
+
+tags:
+  - "dev-cycle"
+  - "workflow"
