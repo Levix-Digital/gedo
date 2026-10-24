@@ -4,12 +4,17 @@ project: gedo
 title: Store foundation
 kind: feature
 version: v0.1.0
-status: draft
+status: active
 author: Levi Silveira
 created_at: '2026-10-24T03:22:28'
-updated_at: '2026-10-24T03:22:28'
+updated_at: '2026-10-24T03:44:22'
 session_id: null
-tags: []
+tags:
+- store
+- gitoxide
+- wal
+- redb
+- ci
 supersedes: null
 superseded_by: null
 parent_plan_id: null
@@ -22,17 +27,51 @@ backlog_items:
 - FEAT-006
 - FEAT-007
 - FEAT-119
-milestones: []
+spec_dir: specs/001-store-foundation
+milestones:
+- name: M1 Setup and core
+  done: false
+- name: M2 Objects and references
+  done: false
+- name: M3 Write-ahead log
+  done: false
+- name: M4 Transport
+  done: false
+- name: M5 CI
+  done: false
+- name: M6 Cache
+  done: false
+- name: M7 Scale study
+  done: false
+- name: M8 Documentation and acceptance
+  done: false
 status_log:
 - at: '2026-10-24T03:22:28'
   by: Levi Silveira
   status: draft
   note: Plan created
+- at: '2026-10-24T03:44:22'
+  by: Levi Silveira
+  status: active
+  note: Plan updated
 ---
 
 # Store foundation
 
-Plan for the backlog items below (`dev-cycle-protocol` Phases 1 and 2). Replace every instruction paragraph with the plan.
+Envelope of the Spec Kit feature [`specs/001-store-foundation/`](../../specs/001-store-foundation/): the specification, plan, research, data model, contracts, quickstart and tasks live there and are read with this plan (`get_plan.py`, search, drift detection). This body holds only the goal, the decisions and the milestones.
+
+## Goal
+
+Release v0.1.0 Store foundation: the Rust workspace and Gedo's persistence foundation. Gedo data is written to and read from the Git object store under `refs/gedo/*` atomically, without touching the working tree, the index or branches; it travels through plain `git push` and `git fetch`; local work survives crashes; the local cache can always be rebuilt; and every pull request is checked on Windows and Linux.
+
+## Decisions
+
+- **Commit-chain collections** (ADR-0011, proposed with this plan): one reference per collection pointing to a chain of commits with fan-out trees, because a spike showed that remote references to blobs or trees can only be updated with a forced push.
+- **Fetch into `refs/gedo-remote/<remote>/*`**, union-merged into the local chains; **no push refspec**; the push of `refs/gedo/*` runs from the pre-push hook (v0.4.0), fast-forward only (clarification 3; ADR-0011 amends ADR-0009's subprocess scope).
+- **WAL**: framed records with CRC-32 and format version, 100 ms group commit, single writer with an OS lock and a 2 s wait (clarification 1).
+- **Host validation**: file remote on every pull request (Windows and Linux), SSH remote on Linux, GitHub and GitLab in a manual and weekly workflow against private test repositories (clarification 2).
+- **Architecture check in CI** from `cargo metadata` (`cargo xtask arch-check`); `check_design.py` run locally before the pull request.
+- **Advisories through `cargo deny`** instead of a separate `cargo-audit` run (justified in the plan's Complexity Tracking).
 
 ## Backlog items
 
@@ -76,32 +115,17 @@ Plan for the backlog items below (`dev-cycle-protocol` Phases 1 and 2). Replace 
 - **Found**: 2026-10-24
 - **Description**: Build, tests, benchmarks, check_design.py, cargo-deny and cargo-audit on every pull request on both platforms.
 
-## 1. Goal and decisions
+## Milestones
 
-What changes and why; decisions with alternatives become ADRs (`architecture-docs`).
+Taken from the phases of `tasks.md`:
 
-## 2. Design (`software-design`)
-
-Where each piece lives, interfaces, data flow, error strategy, dependencies, what is deliberately not abstracted.
-
-## 3. Affected surfaces and files
-
-Interfaces in `architecture.surfaces` that change; files and modules.
-
-## 4. Tests (`quality-assurance`)
-
-Automated tests to add, manual tests to add, change or remove, acceptance criteria.
-
-## 5. Documentation (`architecture-docs`, `user-docs`)
-
-Subsystem pages and ADRs, README sections.
-
-## 6. CI, release and observability (`devops-release`)
-
-Workflow changes, version impact, logs, diagnostics and telemetry to add and how they are tested.
-
-## 7. Security, migration and rollback
-
-Secrets, data migrations (backward compatible), how to roll back.
-
-## 8. Execution steps and milestones
+| Milestone | Tasks |
+|---|---|
+| M1 Setup and core | T001–T014 |
+| M2 Objects and references | T015–T024 (US1, US2) |
+| M3 Write-ahead log | T025–T029 (US3) |
+| M4 Transport | T030–T032 (US5) |
+| M5 CI | T033–T035 (US7) |
+| M6 Cache | T036–T038 (US4) |
+| M7 Scale study | T039–T040 (US6) |
+| M8 Documentation and acceptance | T041–T048 |
