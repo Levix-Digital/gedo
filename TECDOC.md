@@ -50,7 +50,7 @@ pushed). Source files and `refs/heads/*` stay untouched.
 | [Core Model and Ports](docs/architecture/core.md) | Shared domain model and the ports every adapter implements. |
 | [Developer Surfaces](docs/architecture/surfaces.md) | The gedo CLI, the gedod daemon and the use cases they call. |
 | [Event Log and Convergence](docs/architecture/events.md) | Records semantic events and converges concurrent changes deterministically. |
-| [Git Object Store Adapter](docs/architecture/store.md) | Persists Gedo data in the Git object store, the local WAL and the redb cache. |
+| [Git Object Store Adapter](docs/architecture/store.md) | Persists Gedo data as commit chains in the Git object store, with a local WAL and redb cache. |
 | [Node Identity](docs/architecture/identity.md) | Keeps a stable identity for each code entity across edits, renames and moves. |
 | [Parsing Adapter](docs/architecture/parsing.md) | Turns source files into the core's neutral syntax tree with Tree-sitter. |
 | [Symbol Graph](docs/architecture/graph.md) | Dependencies between symbols, minimum-cut graft and contract checks. |
@@ -62,6 +62,7 @@ pushed). Source files and `refs/heads/*` stay untouched.
 <!-- architecture-docs:adrs:start -->
 | ADR | Title | Status | Version | Date |
 |---|---|---|---|---|
+| [ADR-0011](docs/adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md) | Gedo references as commit chains with a separate fetch namespace | proposed | v0.1.0 | 2026-10-24 |
 | [ADR-0010](docs/adr/0010-three-tiers-of-real-time-coordination-and-merge-queue-comple.md) | Three tiers of real-time coordination and merge queue complement | accepted | v0.1.0 | 2026-10-24 |
 | [ADR-0009](docs/adr/0009-semantic-merge-driver-and-shadow-merge.md) | Semantic merge driver and shadow merge | accepted | v0.1.0 | 2026-10-24 |
 | [ADR-0008](docs/adr/0008-gedo-data-robust-to-history-rewrites.md) | Gedo data robust to history rewrites | accepted | v0.1.0 | 2026-10-24 |

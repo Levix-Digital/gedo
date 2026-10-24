@@ -28,6 +28,7 @@ Gedo is a set of native command-line tools written in Rust: the `gedo` CLI, whic
 | `postcard` + `serde` | 1.1 + 1.0 | core, `gedo-store` | Compact, versioned binary records |
 | `uuid` (`v4`, `v7`, `serde`) | 1.29 | core | `AstNodeId`, `event_id` |
 | `redb` | 4.4 | `gedo-store` | Local symbol cache (ADR-0004) |
+| `crc32fast` | 1.5 | `gedo-store` | Checksum of each write-ahead log frame |
 | `notify` | 8.2 | `gedod` | Cross-platform file-system watcher |
 | `tokio` | 1.54 | `gedod`, `gedo-net` | Async runtime, kept out of the core |
 | `clap` | 4.6 | `gedo-cli` | Argument parsing for Gedo commands |
@@ -35,6 +36,9 @@ Gedo is a set of native command-line tools written in Rust: the `gedo` CLI, whic
 | `tracing` + `tracing-subscriber` | 0.1 + 0.3 | apps, adapters | Structured logs |
 | `petgraph` | 0.8 | `gedo-graph` | Graph structures and algorithms |
 | `proptest`, `insta` | 1.12, 1.49 | tests | Property-based and snapshot tests |
+| `tempfile` | 3.27 | tests, `xtask` | Scratch repositories and directories |
+| `criterion` | 0.8 | benchmarks | Write-ahead log append latency (SC-003) |
+| `cargo_metadata` | 0.23 | `xtask` | Dependency graph for the architecture check |
 
 ## Architecture Overview
 
@@ -76,7 +80,7 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 - Everything fetched under `refs/gedo/*` is untrusted input: decoding enforces size limits and format versions, never panics on malformed data, and the decoders are fuzzed. Nothing fetched is ever executed.
 - Hooks installed by `gedo init` contain only a call to `gedo`; existing hooks are chained, never removed or rewritten.
 - `author_fingerprint` is the BLAKE3 hash of the Git author identity, not the identity itself.
-- Supply chain: `cargo-deny` (licenses, advisories, duplicate versions) and `cargo-audit` run in CI; new dependencies need a reason in the pull request.
+- Supply chain: `cargo-deny` runs in CI and checks licenses, duplicate versions and RustSec advisories; new dependencies need a reason in the pull request.
 - No personal data beyond what Git already records; no regulation beyond the licenses applies.
 
 ### Availability and Recovery

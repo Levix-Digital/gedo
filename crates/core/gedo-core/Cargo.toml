@@ -1,0 +1,28 @@
+[package]
+name = "gedo-core"
+description = "Gedo's core: domain types, ports and pure logic, free of I/O and infrastructure libraries."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+# In-memory adapters of every port, for the core's own tests and for adapter crates' tests.
+memory = []
+# The shared contract suite every adapter of a port must pass.
+contract-tests = ["memory"]
+
+[dependencies]
+postcard.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+gedo-core = { workspace = true, features = ["memory", "contract-tests"] }
+proptest.workspace = true
+
+[lints]
+workspace = true

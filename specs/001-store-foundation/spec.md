@@ -1,0 +1,210 @@
+# Feature Specification: Store Foundation
+
+**Feature Branch**: `feat/001-store-foundation`
+
+**Created**: 2026-10-24
+
+**Status**: Draft
+
+**Input**: User description: "Store foundation (release v0.1.0, backlog items FEAT-001, FEAT-002, FEAT-003, FEAT-004, FEAT-005, FEAT-006, FEAT-007, FEAT-119): the workspace skeleton and the persistence foundation of Gedo: object, reference, write-ahead log and symbol cache ports with in-memory adapters; Git object store access without spawning git or touching the working tree; atomic compare-and-swap references under refs/gedo/*; a crash-safe local write-ahead log; a rebuildable local symbol cache; refspec setup and validation that the data travels through plain push and fetch to GitHub, GitLab and plain remotes; measurement of how many references hosts and fetch tolerate; CI on Windows and Linux for every pull request."
+
+## Context
+
+This is the first release of the bottom-up roadmap (v0.1.0). It has no end-user commands yet: its users are the **higher layers of Gedo** (identity, events, merge, CLI and daemon, built in later releases) and the **Levix developers** who build them. It must prove the riskiest storage assumptions of the product baseline before anything is built on top: that Gedo data can live inside a standard Git repository, travel with standard Git commands and be kept by the hosts, without ever touching source files or `refs/heads/*`.
+
+## Clarifications
+
+### Session 2026-10-24
+
+- Q: How often must local log records become durable? → A: In small groups within at most 100 ms of being appended, and immediately on publish or commit.
+- Q: Where are GitHub and GitLab validated, and how often? → A: File and SSH remotes on every pull request; GitHub and GitLab in a manual and weekly scheduled run against dedicated private test repositories, with tokens as CI secrets.
+- Q: Should a plain `git push` send Gedo data automatically along with the branch? → A: Yes, through Gedo's pre-push hook, without a push refspec in the remote configuration; fetch brings remote Gedo references into a separate per-remote namespace that Gedo merges with the local ones, never overwriting unpushed local data.
+
+## User Scenarios & Testing *(mandatory)*
+
+### User Story 1 - Store and read Gedo data inside a Git repository (Priority: P1)
+
+A higher layer of Gedo stores an opaque piece of data (for example a syntax map or an event tape) in the repository's object store, points a Gedo reference at it, and later reads it back, while the developer's working tree, index and branches stay exactly as they were.
+
+**Why this priority**: every later capability (identity, events, merge, trace) persists through this; nothing else in Gedo can be built without it.
+
+**Independent Test**: in a scratch repository with uncommitted changes, write data and a reference under `refs/gedo/`, read them back, and compare the working tree, index and every `refs/heads/*` value before and after.
+
+**Acceptance Scenarios**:
+
+1. **Given** a repository with uncommitted edits, **When** Gedo stores data and creates a reference under `refs/gedo/`, **Then** the data reads back byte for byte and the working tree, index and `refs/heads/*` are unchanged.
+2. **Given** stored data, **When** a standard Git client inspects the repository (`git status`, `git log`, `git fsck`), **Then** it reports a healthy repository and no difference visible to the developer.
+3. **Given** no `git` executable on the machine, **When** Gedo stores and reads data, **Then** both succeed (Gedo does not depend on spawning Git for storage).
+
+---
+
+### User Story 2 - Concurrent writers never lose an update (Priority: P1)
+
+The CLI and the background daemon (both in later releases) update the same Gedo reference at the same time. Each update states which value it expects to replace; only one wins, the other is told that the reference moved and can retry.
+
+**Why this priority**: the daemon and the CLI run side by side on every developer machine; a lost update silently corrupts the overlay.
+
+**Independent Test**: many concurrent writers repeatedly update the same reference with compare-and-swap; at the end, the number of successful updates equals the number of distinct values the reference went through, and the reference log shows no gap.
+
+**Acceptance Scenarios**:
+
+1. **Given** a reference at value A, **When** two writers both try to replace A with different values, **Then** exactly one succeeds and the other receives a "reference moved" result carrying the current value.
+2. **Given** a writer that expects the reference not to exist, **When** it already exists, **Then** the update is refused without changing it.
+3. **Given** a crash in the middle of an update, **When** the repository is opened again, **Then** the reference holds either the old or the new value, never a partial one.
+
+---
+
+### User Story 3 - Local work survives crashes (Priority: P1)
+
+Micro-events produced while a developer edits (from later releases) are appended to a local log inside `.git/gedo/`. If the machine or the process dies, everything recorded up to the last durability point is still there when Gedo starts again, and a half-written last record is detected and dropped instead of corrupting the log.
+
+**Why this priority**: "never lose work" is part of the product promise, and the log is the source of truth for unpublished work.
+
+**Independent Test**: append records, cut the log file at every possible byte offset of the last record (simulating a torn write), reopen, and check that all complete records are returned and the torn one is dropped and reported.
+
+**Acceptance Scenarios**:
+
+1. **Given** a log with complete records, **When** it is reopened, **Then** all records are returned in order with their checksums verified.
+2. **Given** a log whose last record was cut mid-write, **When** it is reopened, **Then** all earlier records are returned, the torn record is dropped, and the event is logged for diagnostics.
+3. **Given** a record whose content was altered on disk, **When** the log is read, **Then** the corruption is detected and reported with its position instead of returning wrong data.
+4. **Given** an acknowledged durability point, **When** the power is lost right after, **Then** every record before that point is present on restart. Records become durable in small groups within at most 100 ms of being appended, and immediately when work is published or committed.
+
+---
+
+### User Story 4 - The local cache can always be rebuilt (Priority: P2)
+
+Gedo keeps a local index (`.git/gedo/symbol_cache.db`) for fast lookups. If it is deleted, corrupted or written by an incompatible version, Gedo detects it and rebuilds it from the data in the repository, with the same lookup results as before.
+
+**Why this priority**: the cache only speeds things up; correctness must never depend on it, but a broken cache must never block the developer.
+
+**Independent Test**: populate data, build the cache, then delete it, corrupt it and change its schema version in three separate runs; each time the cache is rebuilt and answers the same lookups.
+
+**Acceptance Scenarios**:
+
+1. **Given** a missing cache, **When** a lookup is requested, **Then** the cache is rebuilt from the repository and the lookup answers correctly.
+2. **Given** a cache with an older or newer schema version, **When** Gedo opens it, **Then** it is discarded and rebuilt, and the rebuild is reported in diagnostics.
+3. **Given** a corrupted cache file, **When** Gedo opens it, **Then** it is discarded and rebuilt instead of failing.
+
+---
+
+### User Story 5 - Gedo data travels with plain Git push and fetch (Priority: P1)
+
+A developer pushes and fetches with their usual Git commands. After the repository is configured once, Gedo references and their objects travel to and from the remote alongside the branches, and a teammate who clones without Gedo sees a normal repository. Pushing Gedo data happens alongside the branch push, from Gedo's pre-push hook (which Git runs just before it transfers the branches; Gedo data is content-addressed, so pushing it even when the branch push is then rejected is harmless) (the hooks arrive in v0.4.0; this release validates the same push the hook will run); the remote configuration never gets a push refspec, so what a plain `git push` sends for branches is unchanged. Fetching brings the remote's Gedo references into a separate per-remote namespace, and Gedo merges them with the local ones.
+
+**Why this priority**: serverless operation (ADR-0005) depends entirely on hosts accepting, keeping and serving custom references; if they do not, the architecture must change before anything else is built.
+
+**Independent Test**: configure a repository, create Gedo data, push to each kind of remote, clone the remote into an empty directory, fetch, and compare the Gedo references and objects; repeat after the host's garbage collection has had a chance to run.
+
+**Acceptance Scenarios**:
+
+1. **Given** a configured repository, **When** the developer pushes (the branch push plus the Gedo push the pre-push hook runs) and a teammate runs a plain `git fetch`, **Then** the teammate has the remote's Gedo references in the per-remote namespace with all their objects.
+2. **Given** a configured repository, **When** the developer runs a plain `git push`, **Then** exactly the same branches are pushed as without Gedo (the push behavior for branches is unchanged).
+3. **Given** local Gedo references not yet pushed, **When** the developer fetches, **Then** no local Gedo reference is overwritten.
+4. **Given** a plain clone without the Gedo configuration, **When** the teammate works normally, **Then** nothing about Gedo appears in their branches, working tree or command output.
+5. **Given** data pushed to the host, **When** the host's maintenance runs and the data is fetched again later, **Then** the objects referenced only by `refs/gedo/*` are still there.
+6. **Given** the configuration step, **When** it is run twice, **Then** the remote configuration is not duplicated and existing settings are not altered.
+
+Remotes covered: GitHub, GitLab, a plain file remote and a plain SSH remote. The file remote (Windows and Linux) and the SSH remote (Linux) are validated on every pull request; GitHub and GitLab are validated by a manual and weekly scheduled run against dedicated private test repositories (one on GitHub in the Levix-Digital organization, one on gitlab.com) whose access tokens are stored as CI secrets.
+
+---
+
+### User Story 6 - Know the storage limits before building on them (Priority: P2)
+
+Before the identity and event layers store one entry per blob or per commit, the team measures how push, fetch and the hosts behave as Gedo collections grow, and confirms from the numbers that the chosen layout (one commit chain per collection, ADR-0011) holds, compared with one reference per stored object.
+
+**Why this priority**: a layout that collapses at a few thousand entries would force a data migration later; measuring now is cheap.
+
+**Independent Test**: generate repositories whose collections hold growing numbers of entries (and, for comparison, the same entries as one reference each), measure push, fetch and clone times and sizes against each remote, and record the results and the layout decision.
+
+**Acceptance Scenarios**:
+
+1. **Given** collections holding from 100 up to 100,000 entries, **When** initial and incremental push, fetch and clone are measured on each remote, **Then** the results are recorded in a reproducible report, side by side with one reference per entry.
+2. **Given** the measurements, **When** the chain layout exceeds the thresholds in SC-007, **Then** a different layout is designed and recorded in an ADR superseding ADR-0011 before v0.2.0 starts; otherwise ADR-0011 records the confirmation.
+
+---
+
+### User Story 7 - Every change is checked on Windows and Linux (Priority: P1)
+
+Every pull request is built and tested on Windows and Linux; architecture rules, dependency licenses and security advisories are checked; performance benchmarks are run and reported.
+
+**Why this priority**: Windows is a first-class platform from the start (line endings, paths, locking) and the rules of the constitution must be enforced mechanically.
+
+**Independent Test**: open a pull request that breaks a test on one platform only, and another that imports an adapter library from the core; both are blocked.
+
+**Acceptance Scenarios**:
+
+1. **Given** a pull request, **When** it is opened or updated, **Then** build and tests run on Windows and Linux and the result is reported on the pull request.
+2. **Given** code in the core that imports a forbidden adapter or infrastructure library, **When** CI runs, **Then** the pull request is blocked by the architecture check.
+3. **Given** a new dependency with an incompatible license or a known advisory, **When** CI runs, **Then** the pull request is blocked.
+4. **Given** the benchmarks, **When** CI runs, **Then** their results are published with the run.
+
+---
+
+### Edge Cases
+
+- The repository is a bare repository, a worktree, or uses a non-default object directory or `core.hooksPath`: storage must still target the right `.git` location.
+- The repository uses the SHA-256 object format: Gedo refuses clearly (SHA-256 support is FEAT-008, release v0.13.0) instead of writing wrong data.
+- Two Gedo processes start at the same time and both try to create `.git/gedo/` and the log: one wins, the other uses what exists.
+- The disk is full during an append or a cache rebuild: the error is reported, no partial record is left as valid, and earlier data stays intact.
+- On Windows, another process (an antivirus, an IDE) holds the log or cache file briefly: Gedo retries within a bounded time and then reports a clear error.
+- A reference name contains characters invalid on Windows or case-insensitive file systems: names are produced so that they are valid and distinct on every supported platform.
+- A remote rejects custom references or deletes them: the validation reports it explicitly per host.
+- Records written by a future format version: reading reports "unsupported format version" instead of misreading them.
+- Very large data (tens of megabytes): stored and read without loading unnecessary copies; an upper size limit is enforced for data read from the remote (untrusted input).
+
+## Requirements *(mandatory)*
+
+### Functional Requirements
+
+- **FR-001**: The project MUST be organized so that the core (domain model, ports, later algorithms and use cases) depends on no adapter or infrastructure library, as defined in ADR-0001, and this rule MUST be checked automatically.
+- **FR-002**: The core MUST define ports for object storage, reference storage, the write-ahead log and the symbol cache, each with an in-memory implementation that behaves like the real one for the core's tests.
+- **FR-003**: Gedo MUST read and write blobs and trees in the repository's object store without spawning the `git` executable and without modifying the working tree, the index or `refs/heads/*`.
+- **FR-004**: Gedo MUST write (create, update, delete) references only under `refs/gedo/` and MUST refuse any request to write outside that namespace; it reads references under `refs/gedo/` and the remote mirrors under `refs/gedo-remote/<remote>/`, which only `git fetch` writes.
+- **FR-005**: Every reference update MUST be a compare-and-swap: it succeeds only when the reference still holds the expected value (or does not exist, when that is expected), and otherwise returns the current value without changing anything.
+- **FR-006**: Reference updates MUST be atomic and recorded in Git's reference log, so a crash leaves either the old or the new value.
+- **FR-007**: The write-ahead log MUST live in `.git/gedo/` (never pushed), be append-only, carry a checksum and a format version per record, and on opening MUST return every complete record in order, drop a torn last record, and report any other corruption with its position.
+- **FR-008**: Records MUST become durable within at most 100 ms of being appended (group commit) and immediately when work is published or committed; records that became durable MUST survive a crash or power loss, so a crash loses at most the last 100 ms of appended records.
+- **FR-009**: Only one process at a time MUST append to the log; a second writer MUST wait up to 2 seconds and then receive a clear "log busy" result; a writer that crashes MUST NOT leave the log locked.
+- **FR-010**: The symbol cache MUST live in `.git/gedo/`, store its schema version, and be discarded and rebuilt from the repository data when it is missing, corrupted or of another schema version.
+- **FR-011**: All Gedo records (stored data, log records, cache entries) MUST carry a format version, and reading a record of an unknown version MUST fail clearly instead of misreading it.
+- **FR-012**: Data read from the object store under `refs/gedo/` MUST be treated as untrusted: decoding MUST enforce size limits and MUST NOT crash the process on malformed input.
+- **FR-013**: Gedo MUST be able to configure a repository's remotes, idempotently and without changing other remote settings, so that a plain `git fetch` brings each remote's `refs/gedo/*` into a separate per-remote namespace (never overwriting local Gedo references), and MUST provide the push of `refs/gedo/*` to a remote that the pre-push hook runs alongside the branch push; no push refspec is ever added to the remote configuration.
+- **FR-014**: The validation of FR-013 MUST cover a plain file remote (on Windows and Linux) and a plain SSH remote (on Linux) on every pull request, and GitHub and GitLab in a manual and weekly scheduled run against dedicated private test repositories, including retention of data pushed in earlier runs; its results MUST be recorded.
+- **FR-015**: Push, fetch and clone times and transferred sizes (initial and incremental) MUST be measured for collections of 100 to 100,000 entries on the covered remotes, compared with one reference per entry, and the layout decision MUST be recorded in ADR-0011 or a superseding ADR.
+- **FR-016**: Every pull request MUST be built and tested on Windows and Linux, with the architecture check, the license and advisory checks and the benchmarks, and MUST be blocked when the build, a test, the architecture check or the license and advisory checks fail.
+- **FR-017**: Failures MUST be reported with context (operation, path or reference, cause) and logged; no failure may be swallowed or replaced by a silent fallback.
+- **FR-018**: Repositories in the SHA-256 object format MUST be detected and refused with a clear message until SHA-256 support is delivered.
+
+### Key Entities
+
+- **Object id**: the identity of a stored object in the repository (SHA-1 now; the model already allows SHA-256).
+- **Stored object**: an opaque blob or a tree of named entries written by Gedo into the repository's object store.
+- **Gedo collection**: a named reference `refs/gedo/<collection>` pointing to the head of a chain of commits whose trees hold the collection's entries by id; updated only by compare-and-swap; divergent chains are joined by a union merge; its history is kept in the reference log (ADR-0011).
+- **Remote mirror**: the read-only copy of a remote's collections under `refs/gedo-remote/<remote>/`, written only by `git fetch`.
+- **Log record**: one entry of the local write-ahead log, with a format version, a payload and a checksum; ordered; local to the machine.
+- **Cache entry**: a derived lookup entry in the local symbol cache, tagged with the cache schema version.
+- **Remote validation result**: per remote, whether references were pushed, fetched, cloned and retained, with timings and sizes.
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+- **SC-001**: Storing and reading data never changes the developer's working tree, index or branches, verified on 100% of the storage test scenarios on Windows and Linux.
+- **SC-002**: In a stress test with at least 8 concurrent writers and 10,000 updates of the same reference, zero updates are lost and every refusal reports the current value.
+- **SC-003**: Appending one record to the local log takes under 1 ms at the 95th percentile on the reference machine (technical specification).
+- **SC-004**: Cutting the log at every byte offset of its last record always yields all earlier records and never returns a corrupted one.
+- **SC-005**: Rebuilding the cache after deletion, corruption or a schema change answers 100% of the reference lookups identically to before.
+- **SC-006**: Gedo references survive a round trip (push, fresh clone with the configuration, fetch) and a retention check on each of the 4 covered remotes, or the failing remote is documented with its cause.
+- **SC-007**: The scaling report covers at least 5 collection sizes between 100 and 100,000 entries on each covered remote, and the layout decision is recorded before v0.2.0 starts; the layout must change if fetching a collection of 10,000 entries adds more than 5 seconds or 50 MB over a fetch without it.
+- **SC-008**: 100% of pull requests run the full check set on both platforms, and a deliberately broken test or architecture rule on either platform blocks the pull request.
+
+## Assumptions
+
+- No end-user command is delivered in this release; the storage capabilities are exercised through automated tests and validation tools, and the user-facing `gedo init` arrives in v0.4.0.
+- "Concurrent writers" are processes on the same machine (CLI and daemon); multi-machine coordination happens through push and fetch.
+- A single writer per log is enough: the daemon and the CLI coordinate through a lock, and the CLI writes through the daemon when it runs.
+- Benchmark results in CI are published for trend tracking but do not block pull requests, because shared CI runners are too noisy for hard limits; the latency requirement is verified on the reference machine.
+- The reference machine of the technical specification (4 cores, SSD) is used for the performance criteria.
+- The GitHub and GitLab test repositories and their tokens are created by the repository owner before the first scheduled host validation; until then that run reports "not configured" instead of failing.
+- Only SHA-1 repositories are supported in this release (FR-018).
+- The reference repository for measurements is about 100,000 lines in about 1,000 files, as in the technical specification.

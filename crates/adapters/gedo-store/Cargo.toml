@@ -1,0 +1,32 @@
+[package]
+name = "gedo-store"
+description = "Gedo's persistence adapter: the Git object store, refs/gedo references, the write-ahead log and the symbol cache."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+gedo-core.workspace = true
+# SHA-256 is compiled in only to detect and refuse such repositories (FR-018).
+gix = { workspace = true, features = ["sha1", "sha256"] }
+redb.workspace = true
+postcard.workspace = true
+crc32fast.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+gedo-core = { workspace = true, features = ["memory", "contract-tests"] }
+proptest.workspace = true
+tempfile.workspace = true
+criterion.workspace = true
+
+[lints]
+workspace = true
+
+[[bench]]
+name = "wal_append"
+harness = false

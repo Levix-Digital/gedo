@@ -8,7 +8,7 @@ subsystems: [events, surfaces, store]
 supersedes: []
 superseded_by: []
 amends: [6]
-amended_by: []
+amended_by: [11]
 ---
 
 # ADR-0009: Semantic merge driver and shadow merge

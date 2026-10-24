@@ -1,0 +1,27 @@
+name: Host validation
+
+# Push and fetch Gedo data against the private GitHub and GitLab test repositories and check that
+# data pushed by earlier runs is retained (FR-014). Hosts without secrets report "not configured".
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Validate hosts
+        env:
+          GEDO_TEST_GITHUB_URL: ${{ secrets.GEDO_TEST_GITHUB_URL }}
+          GEDO_TEST_GITHUB_TOKEN: ${{ secrets.GEDO_TEST_GITHUB_TOKEN }}
+          GEDO_TEST_GITLAB_URL: ${{ secrets.GEDO_TEST_GITLAB_URL }}
+          GEDO_TEST_GITLAB_TOKEN: ${{ secrets.GEDO_TEST_GITLAB_TOKEN }}
+        run: cargo xtask host-validate

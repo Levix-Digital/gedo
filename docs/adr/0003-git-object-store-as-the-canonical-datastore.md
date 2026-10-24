@@ -8,7 +8,7 @@ subsystems: [store, events]
 supersedes: []
 superseded_by: []
 amends: []
-amended_by: [8]
+amended_by: [8, 11]
 ---
 
 # ADR-0003: Git object store as the canonical datastore

@@ -11,57 +11,57 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### FEAT-001: Object store and reference ports with in-memory adapters
 - **Priority**: high
 - **Epic**: EPIC-001
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_store_foundation
 - **Description**: Ports in gedo-core for objects, references, WAL and cache, each with an in-memory adapter for core tests.
 
 ### FEAT-002: gitoxide blob and tree adapter
 - **Priority**: high
 - **Epic**: EPIC-001
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_store_foundation
 - **Description**: Read and write blobs and trees in .git/objects with gix, without spawning git or touching the working tree.
 
 ### FEAT-003: refs/gedo reference store with compare-and-swap
 - **Priority**: high
 - **Epic**: EPIC-001
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_store_foundation
 - **Description**: Create, list and update references under refs/gedo/* atomically, safe for concurrent CLI and daemon writes.
 
 ### FEAT-004: Crash-safe write-ahead log adapter
 - **Priority**: high
 - **Epic**: EPIC-001
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_store_foundation
 - **Description**: Append-only .git/gedo/wal.log with a checksum per record, fsync on consolidation and torn-record recovery.
 
 ### FEAT-005: redb symbol cache with rebuild
 - **Priority**: high
 - **Epic**: EPIC-001
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_store_foundation
 - **Description**: Local symbol_cache.db with a schema version, rebuilt from refs/gedo/* on mismatch or corruption (ADR-0004).
 
 ### FEAT-006: Refspec setup and transport validation
 - **Priority**: high
 - **Epic**: EPIC-001
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_store_foundation
 - **Description**: Refspecs for refs/gedo/* and validation of push and fetch against GitHub, GitLab and plain remotes, including host retention of custom references.
 
 ### FEAT-007: Reference packing measurement and consolidation
 - **Priority**: medium
 - **Epic**: EPIC-001
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_store_foundation
 - **Description**: Measure how many refs/gedo/* references hosts and fetch tolerate and consolidate into index trees if needed.
 
 ### FEAT-008: SHA-256 repository support
@@ -955,9 +955,9 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### FEAT-119: CI on Windows and Linux
 - **Priority**: high
 - **Epic**: EPIC-018
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_store_foundation
 - **Description**: Build, tests, benchmarks, check_design.py, cargo-deny and cargo-audit on every pull request on both platforms.
 
 ### FEAT-120: Release pipeline and crate name reservation
