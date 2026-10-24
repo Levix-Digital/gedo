@@ -129,3 +129,14 @@ Taken from the phases of `tasks.md`:
 | M6 Cache | T036–T038 (US4) |
 | M7 Scale study | T039–T040 (US6) |
 | M8 Documentation and acceptance | T041–T048 |
+
+## Benchmark results
+
+`cargo bench -p gedo-store --bench wal_append`, 1 KiB records, 10,000 appends (SC-003: p95 under 1 ms):
+
+| Machine | p50 | p95 | p99 | SC-003 |
+|---|---:|---:|---:|---|
+| Linux container, 4 vCPUs, Git 2.43 (2026-10-24) | 1.3 µs | 23.8 µs | 30.3 µs | pass |
+| Windows reference machine (4 cores, SSD) | pending | pending | pending | pending |
+
+The Linux numbers come from a cloud container rather than the reference machine; the Windows run and a run on the reference hardware are still to be recorded. The CI bench job uploads the same report on both platforms once GitHub Actions runs.

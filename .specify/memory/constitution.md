@@ -154,7 +154,7 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 - Everything fetched under `refs/gedo/*` is untrusted input: decoding enforces size limits and format versions, never panics on malformed data, and the decoders are fuzzed. Nothing fetched is ever executed.
 - Hooks installed by `gedo init` contain only a call to `gedo`; existing hooks are chained, never removed or rewritten.
 - `author_fingerprint` is the BLAKE3 hash of the Git author identity, not the identity itself.
-- Supply chain: `cargo-deny` (licenses, advisories, duplicate versions) and `cargo-audit` run in CI; new dependencies need a reason in the pull request.
+- Supply chain: `cargo-deny` runs in CI and checks licenses, duplicate versions and RustSec advisories; new dependencies need a reason in the pull request.
 - No personal data beyond what Git already records; no regulation beyond the licenses applies.
 
 #### Availability and Recovery

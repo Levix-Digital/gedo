@@ -21,7 +21,7 @@ Expected: all tests pass, including the contract suite run against both the in-m
 
 ```text
 cargo xtask arch-check
-python <skills_root>/software-design/check_design.py
+python <skills_root>/software-design/check_design.py   # when the dev-cycle tools are installed
 ```
 
 Expected: no core crate depends on `gix`, `redb`, `tokio`, `notify`, `tree_sitter` or an adapter crate.
@@ -30,7 +30,7 @@ Expected: no core crate depends on `gix`, `redb`, `tokio`, `notify`, `tree_sitte
 
 ```text
 cargo test -p gedo-store --test transport -- --include-ignored file_remote
-cargo test -p gedo-store --test transport -- --include-ignored ssh_remote      # Linux
+GEDO_TEST_SSH=1 cargo test -p gedo-store --test transport -- --include-ignored ssh_remote      # Linux
 ```
 
 Expected: Gedo chains survive push, fresh clone with the remote setup and fetch; branches pushed are the same as without Gedo; unpushed local chains are not overwritten by a fetch; running the setup twice leaves one fetch refspec.
@@ -45,7 +45,7 @@ Run the `host-validation` workflow from the Actions tab (or wait for the weekly 
 cargo xtask scale-study --remote file --entries 100,1000,10000,50000,100000
 ```
 
-Expected: a Markdown report in `target/scale-study/` with fetch and push times and sizes per entry count, for chains and for one reference per object; the decision is copied into ADR-0011.
+Expected: a Markdown report in `target/scale-study/` with fetch and push times and sizes per entry count, for chains and for one reference per entry, plus the SC-007 verdict at 10,000 entries; the decision is copied into ADR-0011.
 
 ## 6. Benchmarks (SC-003)
 
