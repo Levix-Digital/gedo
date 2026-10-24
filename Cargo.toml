@@ -2,7 +2,9 @@
 resolver = "3"
 members = [
     "crates/core/gedo-core",
+    "crates/core/gedo-ast",
     "crates/adapters/gedo-store",
+    "crates/adapters/gedo-parse",
     "tools/xtask",
 ]
 
@@ -16,6 +18,8 @@ publish = false
 
 [workspace.dependencies]
 gedo-core = { path = "crates/core/gedo-core" }
+gedo-ast = { path = "crates/core/gedo-ast" }
+gedo-parse = { path = "crates/adapters/gedo-parse" }
 gix = { version = "0.90", default-features = false }
 redb = "4.4"
 postcard = { version = "1.1", features = ["alloc"] }
@@ -28,6 +32,10 @@ tempfile = "3.27"
 criterion = "0.8"
 cargo_metadata = "0.23"
 serde_json = "1.0"
+tree-sitter = "0.27"
+tree-sitter-rust = "0.24"
+blake3 = "1.8"
+insta = { version = "1.49", features = ["yaml"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

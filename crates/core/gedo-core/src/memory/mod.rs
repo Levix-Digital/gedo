@@ -4,11 +4,13 @@
 
 mod cache;
 mod objects;
+mod parser;
 mod refs;
 mod wal;
 
 pub use cache::MemoryCache;
 pub use objects::MemoryObjectStore;
+pub use parser::FixedParser;
 pub use refs::MemoryRefStore;
 pub use wal::MemoryWal;
 

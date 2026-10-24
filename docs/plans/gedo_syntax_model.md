@@ -4,10 +4,10 @@ project: gedo
 title: Syntax model
 kind: feature
 version: v0.2.0
-status: draft
+status: active
 author: Levi Silveira
 created_at: '2026-10-24T17:40:00'
-updated_at: '2026-10-24T17:40:00'
+updated_at: '2026-10-24T17:30:00'
 session_id: null
 tags:
 - parsing
@@ -24,9 +24,9 @@ backlog_items:
 spec_dir: specs/002-syntax-model
 milestones:
 - name: M1 Setup and core model
-  done: false
+  done: true
 - name: M2 Rust entities
-  done: false
+  done: true
 - name: M3 Formatting invariance
   done: false
 - name: M4 Determinism
@@ -42,6 +42,10 @@ status_log:
   by: Levi Silveira
   status: draft
   note: Plan created
+- at: '2026-10-24T17:30:00'
+  by: Levi Silveira
+  status: active
+  note: Plan approved
 ---
 
 # Syntax model
