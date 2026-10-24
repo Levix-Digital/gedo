@@ -40,3 +40,11 @@ mod collections {
         )
     });
 }
+
+mod wal {
+    use gedo_store::FileWal;
+    gedo_core::wal_contract!(|| {
+        let directory = Box::leak(Box::new(tempfile::tempdir().expect("temporary directory")));
+        FileWal::open(directory.path()).expect("opens")
+    });
+}

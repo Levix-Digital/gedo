@@ -3,10 +3,13 @@
 #![forbid(unsafe_code)]
 
 mod convert;
+pub mod fs;
 pub mod objects;
 pub mod refs;
 pub mod repository;
+pub mod wal;
 
 pub use objects::GitObjectStore;
 pub use refs::GitRefStore;
 pub use repository::{GitRepository, Identity};
+pub use wal::FileWal;

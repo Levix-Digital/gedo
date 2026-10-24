@@ -102,14 +102,14 @@ description: "Tasks for the store foundation (v0.1.0)"
 
 ### Tests for User Story 3
 
-- [ ] T025 [P] [US3] Write torn and corruption tests: truncate the last record at every byte offset, flip bytes inside earlier records, truncate the header; open returns every good record, drops and reports a torn tail, returns `Corrupted { offset }` for other damage; simulate a failing write in the middle of an append (disk full, through a writer that errors after N bytes) and check the partial record is never returned and earlier records stay intact, in `crates/adapters/gedo-store/tests/wal_torn.rs`
-- [ ] T026 [P] [US3] Write durability and lock tests: an appended record is durable within 100 ms (observed through a second handle after the window), `sync` is immediate, a second writer gets `WalBusy` after at most 2 s and succeeds once the first is dropped, a crashed writer process leaves no stale lock, the lock wait emits a `tracing` event; on Windows only, a log file held open by another handle without sharing is retried for up to 2 s and then fails with context, in `crates/adapters/gedo-store/tests/wal_durability.rs`
-- [ ] T027 [P] [US3] Write the benchmark `wal_append` (1 KiB payloads, report p50, p95, p99) in `crates/adapters/gedo-store/benches/wal_append.rs`
+- [X] T025 [P] [US3] Write torn and corruption tests: truncate the last record at every byte offset, flip bytes inside earlier records, truncate the header; open returns every good record, drops and reports a torn tail, returns `Corrupted { offset }` for other damage; simulate a failing write in the middle of an append (disk full, through a writer that errors after N bytes) and check the partial record is never returned and earlier records stay intact, in `crates/adapters/gedo-store/tests/wal_torn.rs`
+- [X] T026 [P] [US3] Write durability and lock tests: an appended record is durable within 100 ms (observed through a second handle after the window), `sync` is immediate, a second writer gets `WalBusy` after at most 2 s and succeeds once the first is dropped, a crashed writer process leaves no stale lock, the lock wait emits a `tracing` event; on Windows only, a log file held open by another handle without sharing is retried for up to 2 s and then fails with context, in `crates/adapters/gedo-store/tests/wal_durability.rs`
+- [X] T027 [P] [US3] Write the benchmark `wal_append` (1 KiB payloads, report p50, p95, p99) in `crates/adapters/gedo-store/benches/wal_append.rs`
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] Implement `FileWal` in `crates/adapters/gedo-store/src/wal.rs`: header magic `GEDOWAL\0` and file format `u16 LE` = 1; frames `length u32 LE | crc32 u32 LE (crc32fast over version and payload) | version u16 LE | payload`; exclusive `std::fs::File::lock` on `.git/gedo/wal.lock` with a 2 s bounded wait; flusher thread calling `sync_data` when unsynced records are older than 100 ms; `sync`; `read_all`; torn-tail truncation on open with a `tracing` warning; `truncate_through` via temporary file and atomic rename; Windows sharing-violation retries up to 2 s
-- [ ] T029 [US3] Run the WAL contract tests against `FileWal` in `crates/adapters/gedo-store/tests/contract.rs`
+- [X] T028 [US3] Implement `FileWal` in `crates/adapters/gedo-store/src/wal.rs`: header magic `GEDOWAL\0` and file format `u16 LE` = 1; frames `length u32 LE | crc32 u32 LE (crc32fast over version and payload) | version u16 LE | payload`; exclusive `std::fs::File::lock` on `.git/gedo/wal.lock` with a 2 s bounded wait; flusher thread calling `sync_data` when unsynced records are older than 100 ms; `sync`; `read_all`; torn-tail truncation on open with a `tracing` warning; `truncate_through` via temporary file and atomic rename; Windows sharing-violation retries up to 2 s
+- [X] T029 [US3] Run the WAL contract tests against `FileWal` in `crates/adapters/gedo-store/tests/contract.rs`
 
 **Checkpoint**: US1 to US3 pass
 
