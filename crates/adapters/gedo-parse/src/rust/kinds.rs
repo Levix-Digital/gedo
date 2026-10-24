@@ -119,20 +119,32 @@ pub fn is_use_list_item(node: Node<'_>, parent: Option<Node<'_>>) -> bool {
         && parent.is_some_and(|parent| parent.kind() == "use_list")
 }
 
-/// Whether a node is a tuple expression, type or pattern with a single element, whose comma is
-/// significant: `(a,)` is a tuple, `(a)` is not.
-pub fn is_one_element_tuple(node: Node<'_>) -> bool {
-    if !matches!(node.kind(), "tuple_expression" | "tuple_type" | "tuple_pattern") {
-        return false;
-    }
-    // Comments are named children too; a short tuple is cheap to look through.
-    let named = node.named_child_count();
-    if named == 0 || named > 4 {
-        return false;
-    }
+/// A list with a single element, whose punctuation follows its own rules (research R5).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SingleElement {
+    /// A tuple expression, type or pattern: its comma is significant, `(a,)` is a tuple and `(a)`
+    /// is not.
+    Tuple,
+    /// A `use` list other than `{self}`: `rustfmt` removes its braces and comma, `std::{io}`
+    /// becomes `std::io`, so they are optional and the item is not an import of its own.
+    UseList,
+}
+
+/// Whether `node` is a list with a single element. It looks through the node's children once, so
+/// the walk asks it once per node.
+pub fn single_element(node: Node<'_>) -> Option<SingleElement> {
+    let shape = match node.kind() {
+        "tuple_expression" | "tuple_type" | "tuple_pattern" => SingleElement::Tuple,
+        "use_list" => SingleElement::UseList,
+        _ => return None,
+    };
     let mut cursor = node.walk();
-    node.named_children(&mut cursor)
-        .filter(|child| !matches!(child.kind(), "line_comment" | "block_comment" | "attribute_item"))
-        .count()
-        == 1
+    let mut elements = node
+        .named_children(&mut cursor)
+        .filter(|child| !matches!(child.kind(), "line_comment" | "block_comment" | "attribute_item"));
+    let only = elements.next()?;
+    if elements.next().is_some() || (shape == SingleElement::UseList && only.kind() == "self") {
+        return None;
+    }
+    Some(shape)
 }

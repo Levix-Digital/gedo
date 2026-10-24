@@ -3,8 +3,6 @@
 use gedo_core::syntax::TokenClass;
 use tree_sitter::Node;
 
-use super::kinds;
-
 /// Strict and reserved keywords, including those the grammar exposes as named leaves (`self`,
 /// `crate`, `mut`).
 const KEYWORDS: &[&str] = &[
@@ -78,8 +76,6 @@ pub fn classify(node: Node<'_>, parent: Option<Node<'_>>, text: &[u8], optional_
         b")" | b"]" | b"}" => TokenClass::CloseDelimiter,
         b"<" if is_generic_list(parent_kind) => TokenClass::OpenDelimiter,
         b">" if is_generic_list(parent_kind) => TokenClass::CloseDelimiter,
-        // The comma of a one-element tuple is what makes it a tuple.
-        b"," if parent.is_some_and(kinds::is_one_element_tuple) => TokenClass::Punctuation,
         // A comma that separates match arms. A comma that ends its list without a closing
         // delimiter after it (`where` clauses) is made optional by the walk, which knows it is
         // the last child, and so is the `;` of a jump statement that ends its block.

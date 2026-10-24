@@ -121,6 +121,10 @@ fn the_order_of_use_list_items_keeps_every_hash() {
             "mod m { use std::{\n    io, // input\n    fmt,\n}; }",
             "mod m { use std::{fmt, io /* input */}; }",
         ),
+        // `rustfmt` removes the braces of a single item.
+        ("mod m { use std::{io}; }", "mod m { use std::io; }"),
+        ("mod m { use std::{io,}; }", "mod m { use std::io; }"),
+        ("mod m { use b::{c::{d}, e}; }", "mod m { use b::{e, c::d}; }"),
     ] {
         assert_eq!(first_hashes(unsorted), first_hashes(sorted), "{unsorted}");
     }

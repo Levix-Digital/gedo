@@ -148,6 +148,10 @@ fn the_comma_of_a_one_element_tuple_is_significant() {
         ("fn f() { let x = (a,); }", "fn f() { let x = (a); }"),
         ("type A = (u8,);", "type A = (u8);"),
         ("fn f() { let (a,) = t; }", "fn f() { let (a) = t; }"),
+        (
+            "fn f() { let x = (/*1*/ /*2*/ /*3*/ /*4*/ a,); }",
+            "fn f() { let x = (/*1*/ /*2*/ /*3*/ /*4*/ a); }",
+        ),
     ] {
         assert_ne!(first_hash(tuple), first_hash(parenthesized), "{tuple}");
     }

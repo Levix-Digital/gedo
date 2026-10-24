@@ -50,6 +50,8 @@ struct Collector<'source> {
     root_scope: String,
     prefix: Option<Prefix>,
     optional_braces: HashSet<usize>,
+    /// Lists with a single element (`kinds::single_element`), by node id.
+    single_elements: HashMap<usize, kinds::SingleElement>,
     occurrences: HashMap<(EntityKind, String), u32>,
     /// The node of the last token pushed, with the token's index.
     last_leaf: Option<(usize, usize)>,
@@ -74,6 +76,7 @@ pub fn collect(
         root_scope: paths::module_path(path),
         prefix: None,
         optional_braces: HashSet::new(),
+        single_elements: HashMap::new(),
         occurrences: HashMap::new(),
         last_leaf: None,
         pending_jump: None,
@@ -138,9 +141,12 @@ impl Collector<'_> {
             let index = top.index;
             self.entities[index].body_start = Some(self.tokens.len() as u32);
         }
+        if let Some(single) = kinds::single_element(node) {
+            self.single_elements.insert(node.id(), single);
+        }
         let enclosing = self.open.last().map(|top| self.entities[top.index].kind);
         if let Some(kind) = kinds::entity_kind(node.kind(), enclosing)
-            .or_else(|| kinds::is_use_list_item(node, parent).then_some(EntityKind::Import))
+            .or_else(|| self.is_import_item(node, parent).then_some(EntityKind::Import))
         {
             self.open_entity(node, parent, kind);
         }
@@ -185,6 +191,12 @@ impl Collector<'_> {
         }
     }
 
+    /// Whether `node` is an item of a `use` list with several items, an import of its own.
+    fn is_import_item(&self, node: Node<'_>, parent: Option<Node<'_>>) -> bool {
+        kinds::is_use_list_item(node, parent)
+            && parent.is_some_and(|parent| !self.single_elements.contains_key(&parent.id()))
+    }
+
     /// Called after `leave` when `node` is the last child of its parent: a `,` that ends its list
     /// without a closing delimiter after it (`where` clauses) is optional (research R5).
     fn leave_last_child(&mut self, node: Node<'_>) {
@@ -218,7 +230,7 @@ impl Collector<'_> {
             }
         } else if same_level
             && kinds::entity_kind(node.kind(), None).is_none()
-            && !kinds::is_use_list_item(node, parent)
+            && !self.is_import_item(node, parent)
         {
             self.prefix = None;
         }
@@ -284,7 +296,13 @@ impl Collector<'_> {
             return;
         }
         let optional_brace = parent.is_some_and(|parent| self.optional_braces.contains(&parent.id()));
-        let class = tokens::classify(node, parent, &self.code[range.clone()], optional_brace);
+        let text = &self.code[range.clone()];
+        let single = parent.and_then(|parent| self.single_elements.get(&parent.id()).copied());
+        let class = match (single, text) {
+            (Some(kinds::SingleElement::Tuple), b",") => TokenClass::Punctuation,
+            (Some(kinds::SingleElement::UseList), b"," | b"{" | b"}") => TokenClass::OptionalPunctuation,
+            _ => tokens::classify(node, parent, text, optional_brace),
+        };
         self.last_leaf = Some((node.id(), self.tokens.len()));
         self.tokens.push(Token {
             class,
@@ -333,6 +351,40 @@ mod tests {
                 TokenClass::Separator,
                 TokenClass::OptionalPunctuation,
             ]
+        );
+    }
+
+    /// Walk time of a flat array of `elements` numbers, the best of two runs; the parse is not
+    /// timed.
+    fn array_walk_time(elements: usize) -> Duration {
+        let code = format!("const A: [u8; 0] = [{}];\n", "0,".repeat(elements)).into_bytes();
+        let tree = tree(&code);
+        (0..2)
+            .map(|_| {
+                let started = std::time::Instant::now();
+                collect(
+                    &tree,
+                    &code,
+                    0,
+                    "src/lib.rs",
+                    Deadline::starting_now(Duration::from_secs(600)),
+                )
+                .expect("walks");
+                started.elapsed()
+            })
+            .min()
+            .expect("two runs")
+    }
+
+    #[test]
+    fn the_walk_takes_linear_time() {
+        // 64 times the elements take about 64 times as long. Asking each comma for its next
+        // sibling made the walk quadratic: about 170 times as long at these sizes.
+        let small = array_walk_time(6_250);
+        let large = array_walk_time(400_000);
+        assert!(
+            large < small * 110,
+            "6,250 elements: {small:?}, 400,000 elements: {large:?}"
         );
     }
 

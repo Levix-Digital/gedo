@@ -198,34 +198,6 @@ fn trees_over_the_depth_limit_are_refused() {
     );
 }
 
-/// Parse time of a flat array of `elements` numbers, the best of two runs.
-fn array_parse_time(elements: usize) -> std::time::Duration {
-    let source = format!("const A: [u8; 0] = [{}];\n", "0,".repeat(elements));
-    (0..2)
-        .map(|_| {
-            let started = std::time::Instant::now();
-            // Debug builds are slow; the time limit is not what this measures.
-            TreeSitterParser::with_timeout(std::time::Duration::from_secs(600))
-                .parse("src/lib.rs", source.as_bytes())
-                .expect("parses");
-            started.elapsed()
-        })
-        .min()
-        .expect("two runs")
-}
-
-#[test]
-fn long_lists_take_linear_time() {
-    // Sixteen times the elements take about sixteen times as long; the quadratic walk took about
-    // forty times as long.
-    let small = array_parse_time(25_000);
-    let large = array_parse_time(400_000);
-    assert!(
-        large < small * 25,
-        "25,000 elements: {small:?}, 400,000 elements: {large:?}"
-    );
-}
-
 #[test]
 fn parses_over_the_time_limit_are_refused() {
     let parser = TreeSitterParser::with_timeout(std::time::Duration::ZERO);

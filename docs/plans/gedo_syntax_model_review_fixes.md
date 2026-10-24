@@ -199,7 +199,8 @@ One branch `fix/syntax-model-review` from `main`, one pull request into `main`.
 
 ## Results
 
-- Regression tests: each new test failed on `main` and passes with the fixes (`tests/changes.rs`, `tests/formatting.rs`, `tests/errors.rs`, `tests/tracing_events.rs`, unit tests in `walk.rs` and `paths.rs`). The long-list test parses 25,000 and 400,000 elements: 16 times the size took 31 times as long before the fix, and about 16 times after it.
+- Regression tests: each new test failed on `main` and passes with the fixes (`tests/changes.rs`, `tests/formatting.rs`, `tests/errors.rs`, `tests/tracing_events.rs`, unit tests in `walk.rs` and `paths.rs`). The walk test (`walk::tests::the_walk_takes_linear_time`) walks 6,250 and 400,000 elements: 64 times the size takes about 66 times as long, against about 170 times with the per-comma `next_sibling()` call put back.
+- The protocol review of this pull request found that a single-item `use` list (`std::{io}`, which `rustfmt` writes `std::io`) still changed the hash, and that the tuple check gave up on tuples with several comments; both are fixed with tests, and the residual macro case is documented in research R5.
 - New fixture `src/review.rs` (unsorted use lists, one-element tuples, jump statements) with its snapshot and its `rustfmt` variants; `formatter_variants_keep_every_hash` passes on it.
 - `cargo xtask parse-sweep`: 238 packages, 8,602 files, 3,342,061 lines; 0 crashes, 0 refused, 1,517 files with syntax errors, all known grammar gaps (unchanged).
 - Fuzzing, `cargo +nightly fuzz run parse_rust -- -max_total_time=600`, Linux container, 4 vCPUs: 238,902 runs in 601 s, no crash, hang or out-of-memory.
