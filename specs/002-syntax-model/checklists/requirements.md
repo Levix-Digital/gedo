@@ -32,4 +32,4 @@
 ## Notes
 
 - Gedo is a code tool: source files, Rust entity kinds, qualified paths and formatters are the product's domain, not implementation details. The parsing library and crate names are kept out of the spec and belong to the plan.
-- Open for clarification with the user: whether documentation comments are trivia, whether enum variants and struct fields are entities, and how crates of a workspace are told apart in qualified paths. The spec records a default for each in its Assumptions and Requirements.
+- Clarifications resolved with the user: documentation comments are trivia, enum variants and struct fields are not entities, qualified paths start with `crate::` without the crate name.
