@@ -91,7 +91,7 @@ description: "Tasks for the syntax model (v0.2.0, first feature)"
 **Independent Test**: the snapshots of T019 on both CI platforms and `tests/determinism.rs`
 
 - [X] T025 [P] [US3] Write `crates/adapters/gedo-parse/tests/determinism.rs`: all fixtures parsed on 8 threads in a seeded random order, twice, equal to a sequential run; the snapshot hashes include `hash_format`
-- [ ] T026 [US3] Run the conformance suite on the Windows and Linux CI jobs and fix any platform difference (paths with `\`, line endings, ordering)
+- [X] T026 [US3] Run the conformance suite on the Windows and Linux CI jobs and fix any platform difference (paths with `\`, line endings, ordering)
 
 **Checkpoint**: User Stories 1 to 3 work
 

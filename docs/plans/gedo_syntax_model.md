@@ -30,7 +30,7 @@ milestones:
 - name: M3 Formatting invariance
   done: true
 - name: M4 Determinism
-  done: false
+  done: true
 - name: M5 Error tolerance
   done: true
 - name: M6 Rust support
