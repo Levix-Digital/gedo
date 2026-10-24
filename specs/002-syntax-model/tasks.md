@@ -75,10 +75,10 @@ description: "Tasks for the syntax model (v0.2.0, first feature)"
 
 **Independent Test**: `tests/formatting.rs` and `tests/changes.rs`
 
-- [ ] T021 [US2] Implement `cargo xtask format-corpus` in `tools/xtask/src/format_corpus.rs`: runs `rustfmt` with the configurations of research R5 on the fixtures and on a copy of the workspace sources, writes the variants to `crates/adapters/gedo-parse/tests/fixtures/rust/formatted/`; generate and commit them
-- [ ] T022 [P] [US2] Write `crates/adapters/gedo-parse/tests/formatting.rs`: every entity keeps its three hashes across the formatter variants, CRLF conversion, re-indentation and rewritten comments and doc comments (SC-002)
-- [ ] T023 [P] [US2] Write `crates/adapters/gedo-parse/tests/changes.rs`: one significant token changed per case for every token class, swapped statements, changed attributes; the entity and its containers change hash and its siblings keep theirs (SC-003)
-- [ ] T024 [US2] Fix the Rust token classification until T022 and T023 pass (separators that the formatter touches classified as `Separator`, delimiters as `OpenDelimiter` and `CloseDelimiter`, `use` declarations as `Import`)
+- [X] T021 [US2] Implement `cargo xtask format-corpus` in `tools/xtask/src/format_corpus.rs`: runs `rustfmt` with the configurations of research R5 on the fixtures and on a copy of the workspace sources, writes the variants to `crates/adapters/gedo-parse/tests/fixtures/rust/formatted/`; generate and commit them
+- [X] T022 [P] [US2] Write `crates/adapters/gedo-parse/tests/formatting.rs`: every entity keeps its three hashes across the formatter variants, CRLF conversion, re-indentation and rewritten comments and doc comments (SC-002)
+- [X] T023 [P] [US2] Write `crates/adapters/gedo-parse/tests/changes.rs`: one significant token changed per case for every token class, swapped statements, changed attributes; the entity and its containers change hash and its siblings keep theirs (SC-003)
+- [X] T024 [US2] Fix the Rust token classification until T022 and T023 pass (separators that the formatter touches classified as `Separator`, delimiters as `OpenDelimiter` and `CloseDelimiter`, `use` declarations as `Import`)
 
 **Checkpoint**: User Stories 1 and 2 work
 
@@ -90,7 +90,7 @@ description: "Tasks for the syntax model (v0.2.0, first feature)"
 
 **Independent Test**: the snapshots of T019 on both CI platforms and `tests/determinism.rs`
 
-- [ ] T025 [P] [US3] Write `crates/adapters/gedo-parse/tests/determinism.rs`: all fixtures parsed on 8 threads in a seeded random order, twice, equal to a sequential run; the snapshot hashes include `hash_format`
+- [X] T025 [P] [US3] Write `crates/adapters/gedo-parse/tests/determinism.rs`: all fixtures parsed on 8 threads in a seeded random order, twice, equal to a sequential run; the snapshot hashes include `hash_format`
 - [ ] T026 [US3] Run the conformance suite on the Windows and Linux CI jobs and fix any platform difference (paths with `\`, line endings, ordering)
 
 **Checkpoint**: User Stories 1 to 3 work

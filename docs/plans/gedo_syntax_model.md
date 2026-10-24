@@ -28,7 +28,7 @@ milestones:
 - name: M2 Rust entities
   done: true
 - name: M3 Formatting invariance
-  done: false
+  done: true
 - name: M4 Determinism
   done: false
 - name: M5 Error tolerance
