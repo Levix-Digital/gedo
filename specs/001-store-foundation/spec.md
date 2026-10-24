@@ -12,6 +12,14 @@
 
 This is the first release of the bottom-up roadmap (v0.1.0). It has no end-user commands yet: its users are the **higher layers of Gedo** (identity, events, merge, CLI and daemon, built in later releases) and the **Levix developers** who build them. It must prove the riskiest storage assumptions of the product baseline before anything is built on top: that Gedo data can live inside a standard Git repository, travel with standard Git commands and be kept by the hosts, without ever touching source files or `refs/heads/*`.
 
+## Clarifications
+
+### Session 2026-10-24
+
+- Q: How often must local log records become durable? → A: In small groups within at most 100 ms of being appended, and immediately on publish or commit.
+- Q: Where are GitHub and GitLab validated, and how often? → A: File and SSH remotes on every pull request; GitHub and GitLab in a manual and weekly scheduled run against dedicated private test repositories, with tokens as CI secrets.
+- Q: Should a plain `git push` send Gedo data automatically along with the branch? → A: Yes, through Gedo's pre-push hook, without a push refspec in the remote configuration; fetch brings remote Gedo references into a separate per-remote namespace that Gedo merges with the local ones, never overwriting unpushed local data.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Store and read Gedo data inside a Git repository (Priority: P1)
@@ -81,7 +89,7 @@ Gedo keeps a local index (`.git/gedo/symbol_cache.db`) for fast lookups. If it i
 
 ### User Story 5 - Gedo data travels with plain Git push and fetch (Priority: P1)
 
-A developer pushes and fetches with their usual Git commands. After the repository is configured once, Gedo references and their objects travel to and from the remote alongside the branches, and a teammate who clones without Gedo sees a normal repository.
+A developer pushes and fetches with their usual Git commands. After the repository is configured once, Gedo references and their objects travel to and from the remote alongside the branches, and a teammate who clones without Gedo sees a normal repository. Pushing Gedo data happens right after the branch push, from Gedo's pre-push hook (the hooks arrive in v0.4.0; this release validates the same push the hook will run); the remote configuration never gets a push refspec, so what a plain `git push` sends for branches is unchanged. Fetching brings the remote's Gedo references into a separate per-remote namespace, and Gedo merges them with the local ones.
 
 **Why this priority**: serverless operation (ADR-0005) depends entirely on hosts accepting, keeping and serving custom references; if they do not, the architecture must change before anything else is built.
 
@@ -89,10 +97,12 @@ A developer pushes and fetches with their usual Git commands. After the reposito
 
 **Acceptance Scenarios**:
 
-1. **Given** a configured repository, **When** the developer runs a plain `git push` and a teammate a plain `git fetch`, **Then** the teammate has the same `refs/gedo/*` references and their objects.
-2. **Given** a plain clone without the Gedo configuration, **When** the teammate works normally, **Then** nothing about Gedo appears in their branches, working tree or command output.
-3. **Given** data pushed to the host, **When** the host's maintenance runs and the data is fetched again later, **Then** the objects referenced only by `refs/gedo/*` are still there.
-4. **Given** the configuration step, **When** it is run twice, **Then** the remote configuration is not duplicated and existing settings are not altered.
+1. **Given** a configured repository, **When** the developer pushes (branch push followed by the Gedo push the pre-push hook runs) and a teammate runs a plain `git fetch`, **Then** the teammate has the remote's Gedo references in the per-remote namespace with all their objects.
+2. **Given** a configured repository, **When** the developer runs a plain `git push`, **Then** exactly the same branches are pushed as without Gedo (the push behavior for branches is unchanged).
+3. **Given** local Gedo references not yet pushed, **When** the developer fetches, **Then** no local Gedo reference is overwritten.
+4. **Given** a plain clone without the Gedo configuration, **When** the teammate works normally, **Then** nothing about Gedo appears in their branches, working tree or command output.
+5. **Given** data pushed to the host, **When** the host's maintenance runs and the data is fetched again later, **Then** the objects referenced only by `refs/gedo/*` are still there.
+6. **Given** the configuration step, **When** it is run twice, **Then** the remote configuration is not duplicated and existing settings are not altered.
 
 Remotes covered: GitHub, GitLab, a plain file remote and a plain SSH remote. The file and SSH remotes are validated on every pull request; GitHub and GitLab are validated by a manual and weekly scheduled run against dedicated private test repositories (one on GitHub in the Levix-Digital organization, one on gitlab.com) whose access tokens are stored as CI secrets.
 
@@ -158,7 +168,7 @@ Every pull request is built and tested on Windows and Linux; architecture rules,
 - **FR-010**: The symbol cache MUST live in `.git/gedo/`, store its schema version, and be discarded and rebuilt from the repository data when it is missing, corrupted or of another schema version.
 - **FR-011**: All Gedo records (stored data, log records, cache entries) MUST carry a format version, and reading a record of an unknown version MUST fail clearly instead of misreading it.
 - **FR-012**: Data read from the object store under `refs/gedo/` MUST be treated as untrusted: decoding MUST enforce size limits and MUST NOT crash the process on malformed input.
-- **FR-013**: Gedo MUST be able to configure a repository's remotes so that plain `git push` and `git fetch` carry `refs/gedo/*`, idempotently and without changing other remote settings.
+- **FR-013**: Gedo MUST be able to configure a repository's remotes, idempotently and without changing other remote settings, so that a plain `git fetch` brings each remote's `refs/gedo/*` into a separate per-remote namespace (never overwriting local Gedo references), and MUST provide the push of `refs/gedo/*` to a remote that the pre-push hook runs after the branch push; no push refspec is ever added to the remote configuration.
 - **FR-014**: The validation of FR-013 MUST cover a plain file remote and a plain SSH remote on every pull request, and GitHub and GitLab in a manual and weekly scheduled run against dedicated private test repositories, including retention of data pushed in earlier runs; its results MUST be recorded.
 - **FR-015**: Push, fetch and clone times and transferred sizes MUST be measured for reference counts from 100 to 100,000 on the covered remotes, and the reference layout decision MUST be recorded in an ADR.
 - **FR-016**: Every pull request MUST be built and tested on Windows and Linux, with the architecture check, the license and advisory checks and the benchmarks, and MUST be blocked when the build, a test, the architecture check or the license and advisory checks fail.
