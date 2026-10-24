@@ -62,6 +62,7 @@ pushed). Source files and `refs/heads/*` stay untouched.
 <!-- architecture-docs:adrs:start -->
 | ADR | Title | Status | Version | Date |
 |---|---|---|---|---|
+| [ADR-0011](docs/adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md) | Gedo references as commit chains with a separate fetch namespace | proposed | v0.1.0 | 2026-10-24 |
 | [ADR-0010](docs/adr/0010-three-tiers-of-real-time-coordination-and-merge-queue-comple.md) | Three tiers of real-time coordination and merge queue complement | accepted | v0.1.0 | 2026-10-24 |
 | [ADR-0009](docs/adr/0009-semantic-merge-driver-and-shadow-merge.md) | Semantic merge driver and shadow merge | accepted | v0.1.0 | 2026-10-24 |
 | [ADR-0008](docs/adr/0008-gedo-data-robust-to-history-rewrites.md) | Gedo data robust to history rewrites | accepted | v0.1.0 | 2026-10-24 |
