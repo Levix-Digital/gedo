@@ -8,7 +8,7 @@ subsystems: [net, store]
 supersedes: []
 superseded_by: []
 amends: []
-amended_by: []
+amended_by: [10]
 ---
 
 # ADR-0005: Serverless operation with Git remotes as the only transport

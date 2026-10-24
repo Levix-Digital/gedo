@@ -62,6 +62,10 @@ pushed). Source files and `refs/heads/*` stay untouched.
 <!-- architecture-docs:adrs:start -->
 | ADR | Title | Status | Version | Date |
 |---|---|---|---|---|
+| [ADR-0010](docs/adr/0010-three-tiers-of-real-time-coordination-and-merge-queue-comple.md) | Three tiers of real-time coordination and merge queue complement | accepted | v0.1.0 | 2026-10-24 |
+| [ADR-0009](docs/adr/0009-semantic-merge-driver-and-shadow-merge.md) | Semantic merge driver and shadow merge | accepted | v0.1.0 | 2026-10-24 |
+| [ADR-0008](docs/adr/0008-gedo-data-robust-to-history-rewrites.md) | Gedo data robust to history rewrites | accepted | v0.1.0 | 2026-10-24 |
+| [ADR-0007](docs/adr/0007-deterministic-node-identity-derived-from-history.md) | Deterministic node identity derived from history | accepted | v0.1.0 | 2026-10-24 |
 | [ADR-0006](docs/adr/0006-git-command-pass-through-with-hook-based-augmentation.md) | Git command pass-through with hook-based augmentation | accepted | v0.1.0 | 2026-10-23 |
 | [ADR-0005](docs/adr/0005-serverless-operation-with-git-remotes-as-the-only-transport.md) | Serverless operation with Git remotes as the only transport | accepted | v0.1.0 | 2026-10-23 |
 | [ADR-0004](docs/adr/0004-redb-for-the-local-symbol-cache.md) | redb for the local symbol cache | accepted | v0.1.0 | 2026-10-23 |

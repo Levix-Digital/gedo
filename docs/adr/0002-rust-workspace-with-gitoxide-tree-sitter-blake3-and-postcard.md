@@ -8,7 +8,7 @@ subsystems: [core, store, parsing, events, surfaces]
 supersedes: []
 superseded_by: []
 amends: []
-amended_by: [6]
+amended_by: [6, 7]
 ---
 
 # ADR-0002: Rust workspace with gitoxide, Tree-sitter, BLAKE3 and Postcard

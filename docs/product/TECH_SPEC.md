@@ -44,7 +44,7 @@ crates/adapters/   gedo-store (gix, WAL, redb), gedo-parse (Tree-sitter), gedo-n
 crates/apps/       gedo-cli (`gedo`), gedod (daemon)
 ```
 
-The core has no I/O and imports no adapter or infrastructure crate (`check_design.py` enforces it). The CLI dispatches Gedo commands to use cases and passes every other command to the user's Git; Git hooks installed by `gedo init` keep the overlay in step when `git` is called directly (ADR-0006). Shared state lives in `refs/gedo/*`, local state in `.git/gedo/` (ADR-0003). Details: [TECDOC.md](../../TECDOC.md).
+The core has no I/O and imports no adapter or infrastructure crate (`check_design.py` enforces it). The CLI dispatches Gedo commands to use cases and passes every other command to the user's Git; Git hooks installed by `gedo init` keep the overlay in step when `git` is called directly (ADR-0006). A semantic merge driver registered in the local Git configuration takes part in every merge, and the daemon runs a background shadow merge against the team's branches (ADR-0009). Node identities are deterministic (ADR-0007) and Gedo data survives rebases and server-side squashes (ADR-0008). Real-time coordination comes in three tiers, the first needing no server (ADR-0010). Shared state lives in `refs/gedo/*`, local state in `.git/gedo/` (ADR-0003). Details: [TECDOC.md](../../TECDOC.md).
 
 ## Non-Functional Requirements
 
@@ -61,8 +61,13 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 | `gedo init` on the reference repository | under 30 s |
 | Pass-through overhead of `gedo <git command>` over `git <git command>` | under 20 ms |
 | Overhead of all Gedo hooks on one `git commit` | under 100 ms |
+| Merge driver on one file of 2,000 lines | under 200 ms (p95) |
+| Shadow merge cycle after a background fetch | under 5 s |
+| Re-attachment of one fetched commit | under 100 ms (p95) |
 | `gedod` resident memory on the reference repository | under 200 MB |
 | Identity accuracy on the reference corpus (renames, moves, formatters) | at least 95% of identities preserved |
+| Identity determinism | the same history indexed on different machines and in different orders gives identical ids |
+| Merge safety | on replayed real merge histories, the driver never produces a result without conflict markers that differs from the committed resolution in behavior; any doubt falls back to Git's textual merge |
 
 ### Security and Privacy
 
@@ -94,7 +99,10 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 | System | Direction | When unavailable |
 |---|---|---|
 | User's Git installation | Gedo calls it (pass-through) and Git calls Gedo (hooks) | `gedo` reports that Git is missing; Gedo commands that need only the object store still work |
-| Git hosts (GitHub, GitLab, plain SSH or file remotes) | Through the user's Git: push and fetch of `refs/gedo/*` via refspecs | Work continues offline; data syncs on the next push or fetch |
+| Git hosts (GitHub, GitLab, plain SSH or file remotes) | Through the user's Git: push and fetch of `refs/gedo/*` via refspecs; background fetch by `gedod` | Work continues offline; data syncs on the next push or fetch; the shadow merge reports how old its last fetch is |
+| Git merge machinery | Git calls `gedo merge-driver` for supported languages | Any driver error falls back to Git's textual merge; Git never fails because of Gedo |
+| GitHub Actions (after the MVP; GitLab CI later) | A Gedo Action reads pull requests and the merge queue, posts semantic diffs and contract checks, re-attaches data after server-side merges | Pull requests work as without Gedo; data is re-attached on the next local fetch |
+| Optional relay (after the MVP) | Daemons publish and receive intents, leases and threads | Falls back to tier 1 (Git remotes) |
 | File system events (OS APIs through `notify`) | OS to `gedod` | The daemon falls back to a periodic scan and logs it; `gedo` commands still work without the daemon |
 | Language servers (after the MVP) | `gedo-graph` asks for types and diagnostics | The graph uses syntax-only references |
 | crates.io, GitHub Releases, winget (distribution) | Releases published from CI | No impact on installed copies |
@@ -104,14 +112,16 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 | Entity | Where | Notes |
 |---|---|---|
 | `BlobAstMap` (nodes of one blob) | `refs/gedo/ast-map/<blob-sha>` | Immutable per blob |
-| Event tape (events of one canonical commit) | `refs/gedo/tapes/<commit-sha>` | Immutable per commit |
+| Event | `refs/gedo/tapes/` (content-addressed by event id) | Immutable; reconstructed deterministically for commits made without Gedo |
+| Tape and commit index | `refs/gedo/tapes/` | A tape groups the events of one publish; the index maps commits to tapes and is rebuilt after rewrites |
+| Identity alias | `refs/gedo/` (alias table) | Records `IdentityMerged` reconciliations |
 | Thread (intents and negotiation of a symbol) | `refs/gedo/threads/<thread-uuid>` | Append-only |
 | WAL (unconsolidated micro-events) | `.git/gedo/wal.log` | Local; truncated after `gedo publish` |
 | Symbol cache | `.git/gedo/symbol_cache.db` | Local, derived, rebuildable |
 | Logs | `.git/gedo/logs/` | Local, rotated |
 
-- Relations: a tape references the `AstNodeId`s it changes; an ast-map anchors `AstNodeId`s to byte ranges of one blob; a thread is about one `AstNodeId`.
-- Retention: shared data follows the life of the Git history (tapes of unreachable commits are pruned by `gedo gc`); the WAL lives until it is published.
+- Relations: an event targets one `AstNodeId`; a tape groups events; an ast-map anchors `AstNodeId`s to byte ranges of one blob; a thread is about one `AstNodeId`.
+- Retention: shared data follows the life of the Git history; events no longer reachable from any indexed commit are kept for 90 days, then pruned by `gedo gc`; the WAL lives until it is published.
 - Formats: Postcard records prefixed with a format version. Migrations are additive: every release reads all earlier format versions; a format change is an ADR.
 - Object format: SHA-1 repositories in the MVP; `GitOid` already carries SHA-256 (see Open Questions).
 
@@ -119,8 +129,10 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 
 - **Non-negotiable principles** (blueprint): no metadata in source files or the working tree; `git clone` and `git push` without Gedo keep working and `refs/heads/*` stay canonical; all Gedo data travels in `refs/gedo/*`; no upper layer is built before the lower one is deterministic, offline-first and covered by unit and property-based tests.
 - **Bottom-up delivery**: Phase 1 store, Phase 2 identity, Phase 3 events, Phase 4 graph, CLI and daemon (the MVP).
-- **Git subprocess** only in the CLI pass-through (ADR-0006); the core and the store never spawn `git`.
-- **No server**, mandatory or operated by the project (ADR-0005).
+- **Git subprocess** only in the CLI pass-through (ADR-0006) and the daemon's background fetch (ADR-0009); the core, the store and the merge driver never spawn `git`.
+- **Command names**: a command with a Git name keeps Git's behavior and output (`init` and `gc` run Git's command first, then the overlay step); Gedo-specific commands use names Git does not have.
+- **Merges never hide conflicts**: when the semantic merge is not certain, Git's textual merge is the result.
+- **No mandatory server** (ADR-0005, ADR-0010); the relay tier is optional, self-hostable, and Git stays the canonical store.
 - **Licenses**: the project is MIT OR Apache-2.0; dependencies must be permissive and compatible (MIT, Apache-2.0, BSD, ISC, Zlib, Unicode-3.0), enforced by `cargo-deny`.
 - **Quality**: property-based tests for the core algorithms, snapshot tests for outputs, fuzzing for decoders, an end-to-end suite that compares `git` and `gedo` on the same scenarios, and CI on Windows and Linux for every pull request.
 - **Team and budget**: one developer plus the agent; private GitHub repository, so CI minutes are paid (Windows counts double); no paid infrastructure.

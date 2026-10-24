@@ -1,7 +1,7 @@
 <!-- dev-cycle-constitution
 generated-by: dev-cycle-protocol/constitution.py (do not edit; change a source and regenerate)
-sources-sha256: 74f6e62be017a3c7d541f8fb8a0306049200197453a676335dfafe7c85765020
-content-sha256: 8d7cd93b7e20027ecf20584bd8fa2bb87a18b8fd11e06e22ca27c00e05690a7c
+sources-sha256: 2a9dc77fd857192b31957dba8b04c621f5b99bc048c54b2d516bfb8b26e8473f
+content-sha256: 8cbf4d70e2ef1a12a9aaa9acb367c5a6b587d552bac4ab5340af912747c0e3b1
 -->
 # gedo Constitution
 
@@ -139,8 +139,13 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 | `gedo init` on the reference repository | under 30 s |
 | Pass-through overhead of `gedo <git command>` over `git <git command>` | under 20 ms |
 | Overhead of all Gedo hooks on one `git commit` | under 100 ms |
+| Merge driver on one file of 2,000 lines | under 200 ms (p95) |
+| Shadow merge cycle after a background fetch | under 5 s |
+| Re-attachment of one fetched commit | under 100 ms (p95) |
 | `gedod` resident memory on the reference repository | under 200 MB |
 | Identity accuracy on the reference corpus (renames, moves, formatters) | at least 95% of identities preserved |
+| Identity determinism | the same history indexed on different machines and in different orders gives identical ids |
+| Merge safety | on replayed real merge histories, the driver never produces a result without conflict markers that differs from the committed resolution in behavior; any doubt falls back to Git's textual merge |
 
 #### Security and Privacy
 
@@ -171,8 +176,10 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 
 - **Non-negotiable principles** (blueprint): no metadata in source files or the working tree; `git clone` and `git push` without Gedo keep working and `refs/heads/*` stay canonical; all Gedo data travels in `refs/gedo/*`; no upper layer is built before the lower one is deterministic, offline-first and covered by unit and property-based tests.
 - **Bottom-up delivery**: Phase 1 store, Phase 2 identity, Phase 3 events, Phase 4 graph, CLI and daemon (the MVP).
-- **Git subprocess** only in the CLI pass-through (ADR-0006); the core and the store never spawn `git`.
-- **No server**, mandatory or operated by the project (ADR-0005).
+- **Git subprocess** only in the CLI pass-through (ADR-0006) and the daemon's background fetch (ADR-0009); the core, the store and the merge driver never spawn `git`.
+- **Command names**: a command with a Git name keeps Git's behavior and output (`init` and `gc` run Git's command first, then the overlay step); Gedo-specific commands use names Git does not have.
+- **Merges never hide conflicts**: when the semantic merge is not certain, Git's textual merge is the result.
+- **No mandatory server** (ADR-0005, ADR-0010); the relay tier is optional, self-hostable, and Git stays the canonical store.
 - **Licenses**: the project is MIT OR Apache-2.0; dependencies must be permissive and compatible (MIT, Apache-2.0, BSD, ISC, Zlib, Unicode-3.0), enforced by `cargo-deny`.
 - **Quality**: property-based tests for the core algorithms, snapshot tests for outputs, fuzzing for decoders, an end-to-end suite that compares `git` and `gedo` on the same scenarios, and CI on Windows and Linux for every pull request.
 - **Team and budget**: one developer plus the agent; private GitHub repository, so CI minutes are paid (Windows counts double); no paid infrastructure.
@@ -187,6 +194,10 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - ADR-0004: redb for the local symbol cache (`docs/adr/0004-redb-for-the-local-symbol-cache.md`)
 - ADR-0005: Serverless operation with Git remotes as the only transport (`docs/adr/0005-serverless-operation-with-git-remotes-as-the-only-transport.md`)
 - ADR-0006: Git command pass-through with hook-based augmentation (`docs/adr/0006-git-command-pass-through-with-hook-based-augmentation.md`)
+- ADR-0007: Deterministic node identity derived from history (`docs/adr/0007-deterministic-node-identity-derived-from-history.md`)
+- ADR-0008: Gedo data robust to history rewrites (`docs/adr/0008-gedo-data-robust-to-history-rewrites.md`)
+- ADR-0009: Semantic merge driver and shadow merge (`docs/adr/0009-semantic-merge-driver-and-shadow-merge.md`)
+- ADR-0010: Three tiers of real-time coordination and merge queue complement (`docs/adr/0010-three-tiers-of-real-time-coordination-and-merge-queue-comple.md`)
 
 ## Governance
 
@@ -194,4 +205,4 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - Amendments change the source, not this file: an ADR for decisions, the technical specification for requirements and constraints, `.dev-cycle.json` for the architecture style, the skills for principles. Then run `constitution.py generate` and commit the result with the change.
 - Gate 3 of the development cycle blocks a plan while this file is stale or edited by hand.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-23
+**Version**: 1.1.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-24

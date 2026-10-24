@@ -8,7 +8,7 @@ subsystems: [surfaces, store]
 supersedes: []
 superseded_by: []
 amends: [1, 2]
-amended_by: []
+amended_by: [9]
 ---
 
 # ADR-0006: Git command pass-through with hook-based augmentation
