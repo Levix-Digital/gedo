@@ -59,7 +59,7 @@ Micro-events produced while a developer edits (from later releases) are appended
 1. **Given** a log with complete records, **When** it is reopened, **Then** all records are returned in order with their checksums verified.
 2. **Given** a log whose last record was cut mid-write, **When** it is reopened, **Then** all earlier records are returned, the torn record is dropped, and the event is logged for diagnostics.
 3. **Given** a record whose content was altered on disk, **When** the log is read, **Then** the corruption is detected and reported with its position instead of returning wrong data.
-4. **Given** an acknowledged durability point, **When** the power is lost right after, **Then** every record before that point is present on restart. [NEEDS CLARIFICATION: how often must records become durable — every single append, or in small groups within a bounded window?]
+4. **Given** an acknowledged durability point, **When** the power is lost right after, **Then** every record before that point is present on restart. Records become durable in small groups within at most 100 ms of being appended, and immediately when work is published or committed.
 
 ---
 
@@ -94,7 +94,7 @@ A developer pushes and fetches with their usual Git commands. After the reposito
 3. **Given** data pushed to the host, **When** the host's maintenance runs and the data is fetched again later, **Then** the objects referenced only by `refs/gedo/*` are still there.
 4. **Given** the configuration step, **When** it is run twice, **Then** the remote configuration is not duplicated and existing settings are not altered.
 
-Remotes covered: GitHub, GitLab, a plain file remote and a plain SSH remote. [NEEDS CLARIFICATION: where are the GitHub and GitLab test repositories, and should the host checks run in CI on every pull request or as a manual, on-demand validation?]
+Remotes covered: GitHub, GitLab, a plain file remote and a plain SSH remote. The file and SSH remotes are validated on every pull request; GitHub and GitLab are validated by a manual and weekly scheduled run against dedicated private test repositories (one on GitHub in the Levix-Digital organization, one on gitlab.com) whose access tokens are stored as CI secrets.
 
 ---
 
@@ -153,13 +153,13 @@ Every pull request is built and tested on Windows and Linux; architecture rules,
 - **FR-005**: Every reference update MUST be a compare-and-swap: it succeeds only when the reference still holds the expected value (or does not exist, when that is expected), and otherwise returns the current value without changing anything.
 - **FR-006**: Reference updates MUST be atomic and recorded in Git's reference log, so a crash leaves either the old or the new value.
 - **FR-007**: The write-ahead log MUST live in `.git/gedo/` (never pushed), be append-only, carry a checksum and a format version per record, and on opening MUST return every complete record in order, drop a torn last record, and report any other corruption with its position.
-- **FR-008**: Records acknowledged as durable MUST survive a crash or power loss.
+- **FR-008**: Records MUST become durable within at most 100 ms of being appended (group commit) and immediately when work is published or committed; records that became durable MUST survive a crash or power loss, so a crash loses at most the last 100 ms of appended records.
 - **FR-009**: Only one process at a time MUST append to the log; a second writer MUST wait or receive a clear "log busy" result.
 - **FR-010**: The symbol cache MUST live in `.git/gedo/`, store its schema version, and be discarded and rebuilt from the repository data when it is missing, corrupted or of another schema version.
 - **FR-011**: All Gedo records (stored data, log records, cache entries) MUST carry a format version, and reading a record of an unknown version MUST fail clearly instead of misreading it.
 - **FR-012**: Data read from the object store under `refs/gedo/` MUST be treated as untrusted: decoding MUST enforce size limits and MUST NOT crash the process on malformed input.
 - **FR-013**: Gedo MUST be able to configure a repository's remotes so that plain `git push` and `git fetch` carry `refs/gedo/*`, idempotently and without changing other remote settings.
-- **FR-014**: The validation of FR-013 MUST cover GitHub, GitLab, a plain file remote and a plain SSH remote, including retention after host maintenance, and its results MUST be recorded.
+- **FR-014**: The validation of FR-013 MUST cover a plain file remote and a plain SSH remote on every pull request, and GitHub and GitLab in a manual and weekly scheduled run against dedicated private test repositories, including retention of data pushed in earlier runs; its results MUST be recorded.
 - **FR-015**: Push, fetch and clone times and transferred sizes MUST be measured for reference counts from 100 to 100,000 on the covered remotes, and the reference layout decision MUST be recorded in an ADR.
 - **FR-016**: Every pull request MUST be built and tested on Windows and Linux, with the architecture check, the license and advisory checks and the benchmarks, and MUST be blocked when the build, a test, the architecture check or the license and advisory checks fail.
 - **FR-017**: Failures MUST be reported with context (operation, path or reference, cause) and logged; no failure may be swallowed or replaced by a silent fallback.
@@ -194,5 +194,6 @@ Every pull request is built and tested on Windows and Linux; architecture rules,
 - A single writer per log is enough: the daemon and the CLI coordinate through a lock, and the CLI writes through the daemon when it runs.
 - Benchmark results in CI are published for trend tracking but do not block pull requests, because shared CI runners are too noisy for hard limits; the latency requirement is verified on the reference machine.
 - The reference machine of the technical specification (4 cores, SSD) is used for the performance criteria.
+- The GitHub and GitLab test repositories and their tokens are created by the repository owner before the first scheduled host validation; until then that run reports "not configured" instead of failing.
 - Only SHA-1 repositories are supported in this release (FR-018).
 - The reference repository for measurements is about 100,000 lines in about 1,000 files, as in the technical specification.
