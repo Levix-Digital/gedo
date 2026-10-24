@@ -16,6 +16,7 @@ Git was designed for asynchronous, low-trust exchange of patches between isolate
 - **Frankenstein commits.** Renames, extractions and formatting get mixed with business logic in one diff; separating them with `git add -p` is fragile, and reviews and reverts become risky.
 - **Squash amnesia.** Teams choose between squash (a clean history that destroys the reasoning) and merge commits (a history polluted with "wip" and "fix tests"); server-side squash and rebase also rewrite commit ids.
 - **Lockfiles, generated files and binaries.** Lockfiles produce hundreds of unreadable conflict lines; binaries cannot be merged and depend on manual locks people forget.
+- **Stacked work is painful.** Splitting a large change into a stack of small dependent pull requests means rebasing every branch above whenever one below changes or merges; most teams give up and open one huge pull request.
 - **Reviews are late and file-shaped.** Pull requests of a thousand lines arrive when everything is "done", in no logical order, and architecture problems are found too late.
 - **Lost work.** `reset --hard`, a force push over a colleague's commits or a forgotten stash loses work that Git cannot easily bring back.
 
@@ -34,6 +35,7 @@ Today teams cope with conventions (small pull requests, "who is touching X?" mes
 - **Conflicts negotiated before the pull request**: per-symbol threads with executable proposals let two developers agree asynchronously, without being online together.
 - **History per entity, not per line**: `gedo trace <symbol>` follows a function through renames, moves and reformatting; `gedo playback` shows how a delivery evolved.
 - **Clean commits without effort**: semantic lanes split refactoring from feature logic into separate commits.
+- **Small pull requests without rebase pain**: `gedo stack` splits work into a stack of dependent pull requests by semantic group and keeps every level up to date when a lower one changes or merges.
 - **Surgical code movement**: `gedo graft` moves a symbol and its minimal dependency closure into another stream, and the duplicate is removed when both sides merge.
 - **Never lose work**: every save is in the local log; `gedo recover` and `gedo undo` bring work back, and force pushes over colleagues' commits are blocked.
 - **Zero cost for the rest of the team**: source files stay pure code, `refs/heads/*` stay canonical, every Git command keeps working through `gedo`, and a teammate without Gedo clones, pushes and reviews exactly as before.
@@ -67,17 +69,18 @@ The complete product, as capabilities:
 5. **Event log and convergence**: an immutable local write-ahead log, event tapes robust to squash and rebase, a tree CRDT with deterministic conflict resolution (set semantics for members of a structure, idempotent events so a grafted change is never applied twice), semantic lanes (refactor and feature, split into separate commits on publish) and virtual streams (`gedo stream`) that switch or isolate work in memory without `git stash` or `git checkout`.
 6. **Semantic merge and early conflict detection**: a semantic merge driver for Git, a background shadow merge of uncommitted work against the team's pushed branches, a semantic diff (`gedo delta`: moved, renamed, refactored or changed) and a semantic check after every merge.
 7. **Symbol graph and contracts**: a directed dependency graph between node identities, LSP integration for precise types and diagnostics, the minimum-cut algorithm behind `gedo graft`, and detection of contract breaks before compilation and after merges that Git declares clean.
-8. **Developer CLI and daemon**: the `gedo` command line (`init`, `publish`, `trace`, `graft`, `delta`, `radar`, `stream`, `doctor`, and later `inbox`, `accept`, `peek`, `playback`, `recover`, `undo`) and the `gedod` background daemon that watches the file system, feeds the parser and the WAL, and fetches the team's branches for the shadow merge.
+8. **Developer CLI and daemon**: the `gedo` command line (`init`, `publish`, `trace`, `graft`, `delta`, `radar`, `stream`, `doctor`, and later `inbox`, `accept`, `peek`, `playback`, `recover`, `undo`, `stack`) and the `gedod` background daemon that watches the file system, feeds the parser and the WAL, and fetches the team's branches for the shadow merge.
 9. **Full Git command compatibility**: every Git command works through `gedo`, transparently: Gedo commands are handled by the overlay, any other command passes straight to the user's Git with the same output and exit code, and Git hooks installed by `gedo init` (chained with existing hooks) keep the overlay correct even when `git` is called directly.
 10. **Safety net**: recovery of any saved state from the local log (`gedo recover`), an operation log with `gedo undo`, and a guard against force pushes that would erase colleagues' commits.
 11. **Hosting integration**: a GitHub Action (GitLab later) that posts the semantic diff and contract checks on pull requests, re-indexes after server-side merges, squashes and rebases, and complements the host's merge queue by checking that queued pull requests are semantically independent.
 12. **Lockfiles and generated files**: treated as derived artifacts; merges regenerate them deterministically from the dependency changes instead of merging their text.
 13. **Distributed control plane**: developer intents (`SymbolLocked`, `SymbolMutating`) and `gedo peek` into a colleague's work in progress, soft leases with heartbeat and expiry for binary files, over three tiers: background fetch through Git remotes (MVP), an optional self-hostable relay for second-level latency, and peer-to-peer in local networks.
 14. **Symbol inbox**: when two developers change the same node in incompatible ways, the second one chooses to adopt the other's change, propose a unification or keep their own for now; proposals become asynchronous threads per symbol with executable snapshots, closed by `gedo accept`; changes to public contracts can ask for a quick acknowledgment from their owners while the code is still being written.
-15. **History replay**: `gedo playback <commit>` shows the event-by-event evolution of a delivery and its negotiation threads, keeping the main history clean.
-16. **IDE integration**: a language server and lightweight extensions (VS Code first) that show the tree status, collisions, threads and semantic locks.
-17. **Platforms and distribution**: Windows and Linux first, macOS later; signed binaries; installation through `cargo install`, release archives and the platforms' package managers.
-18. **Pair programming (future)**: live collaboration on the same symbols, built on the control plane, much later.
+15. **Stacked pull requests**: `gedo stack` proposes how to split a change into small dependent pull requests (by lane, by symbol group from the dependency graph), creates and updates the stack's branches and pull requests on the host, and restacks every level automatically, with the semantic merge, when a lower level changes or merges.
+16. **History replay**: `gedo playback <commit>` shows the event-by-event evolution of a delivery and its negotiation threads, keeping the main history clean.
+17. **IDE integration**: a language server and lightweight extensions (VS Code first) that show the tree status, collisions, threads and semantic locks.
+18. **Platforms and distribution**: Windows and Linux first, macOS later; signed binaries; installation through `cargo install`, release archives and the platforms' package managers.
+19. **Pair programming (future)**: live collaboration on the same symbols, built on the control plane, much later.
 
 ## Non-Goals
 

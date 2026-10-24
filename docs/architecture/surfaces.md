@@ -10,7 +10,7 @@ The gedo CLI, the gedod daemon and the use cases they call.
 
 ## Responsibilities
 
-- `gedo-app` (core): one use case per user action: `init`, ingest a file change, `publish`, `trace`, `graft`, `delta`, `radar`, `stream`, `doctor`, merge a file (merge driver), shadow merge, sync after a Git event (commit, checkout, merge, rewrite, push), and later `inbox`, `accept`, `peek`, `playback`, `recover`, `undo`.
+- `gedo-app` (core): one use case per user action: `init`, ingest a file change, `publish`, `trace`, `graft`, `delta`, `radar`, `stream`, `doctor`, merge a file (merge driver), shadow merge, sync after a Git event (commit, checkout, merge, rewrite, push), and later `inbox`, `accept`, `peek`, `playback`, `recover`, `undo`, `stack`.
 - `gedo-cli`: the `gedo` binary; dispatches each invocation to a use case or passes it through to Git, and renders results.
 - `gedod`: the background daemon; watches the file system, and on each save calls the ingest use case (parse, identity, WAL); fetches the tracked remote branches in the background and runs the shadow merge.
 - A GitHub Action (after the MVP): semantic diff and contract checks on pull requests, re-attachment after server-side merges, merge queue checks.
@@ -50,6 +50,7 @@ flowchart LR
 | `gedo inbox`, `gedo accept <proposal>` | After the MVP: asynchronous negotiation per symbol |
 | `gedo peek @dev <symbol>` | After the MVP: a colleague's work in progress on a symbol (relay tier) |
 | `gedo playback <commit>` | After the MVP: event-by-event evolution of a delivery |
+| `gedo stack` | After the MVP: split work into stacked pull requests and restack them when a lower level changes or merges |
 | `gedo recover`, `gedo undo` | After the MVP: restore saved states from the WAL; undo the last operations |
 
 `gedo init` and `gedo gc` share their names with Git, so they keep Git's behavior: they run `git init` or `git gc` first, unchanged, and then set up or prune the overlay.
