@@ -2,24 +2,51 @@
 
 Gedo (Git Event-Driven Overlay) is a collaboration overlay built directly on Git's object store. It lets a team collaborate on code entities (functions, types, modules) instead of lines of text: conflicts merged by meaning, collisions found while they are born, and history per entity, without a mandatory server, without annotations in source files and without breaking any existing Git tool. See [the vision](docs/product/VISION.md) for the full picture.
 
-## Status
+## Features
 
-Version 0.1.0 is a **library only**: the store foundation that every later feature builds on, and the syntax model of the next release. There is no `gedo` command or daemon yet.
+Gedo is a **library only** today: the store foundation that every later feature builds on, and the syntax model that node identity builds on. There is no `gedo` command or daemon yet.
 
 - `gedo-core`: the ports, commit-chain collections, in-memory adapters and the contract suite.
 - `gedo-store`: the real adapters. Gedo data lives as commit chains under `refs/gedo/*` in the repository itself, next to a crash-safe local write-ahead log and a rebuildable redb cache in `.git/gedo/`. Nothing in the working tree, the index or any branch is touched.
-- `gedo-ast` and `gedo-parse`: a Rust source file becomes its code entities (functions, types, modules, implementations), each with a qualified path and structural hashes that ignore formatting and comments and are identical on every machine. This is the base of node identity (v0.2.0).
+- `gedo-ast` and `gedo-parse`: a Rust source file becomes its code entities (functions, types, modules, implementations), each with a qualified path and structural hashes that ignore formatting and comments and are identical on every machine.
 - Gedo data travels through ordinary Git remotes (file, SSH, HTTPS; GitHub and GitLab are validated weekly). A plain `git fetch` brings it once the remote is set up, and branch pushes behave exactly as without Gedo.
 
-Platforms: Linux and Windows. SHA-1 repositories only; SHA-256 repositories are refused.
+## Requirements
 
-## Build and test
+- Linux or Windows.
+- Rust 1.95 or later, Git 2.34 or later and a C compiler for the Tree-sitter grammar (MSVC on Windows, `cc` on Linux). <!-- readme-ok -->
+- SHA-1 repositories only; SHA-256 repositories are refused.
 
-Requires Rust 1.95 or later, Git 2.34 or later and a C compiler for the Tree-sitter grammar (MSVC on Windows, `cc` on Linux).
+## Installation
+
+Gedo is not published yet. Build it from source:
 
 ```text
+git clone https://github.com/Levix-Digital/gedo
+cd gedo
 cargo build --workspace
 cargo test --workspace
+```
+
+## Usage
+
+To see the entities of a Rust file and their hashes:
+
+```text
+cargo run -p gedo-parse --example syntax_map -- <file.rs>
+```
+
+To see the store at work on a scratch repository, run the example, then look at the repository with Git:
+
+```text
+cargo run -p gedo-store --example roundtrip -- <repository>
+git status
+git for-each-ref refs/gedo
+```
+
+Development commands:
+
+```text
 cargo xtask arch-check            # the core depends on no adapter or infrastructure crate
 cargo deny check                  # licenses, duplicate versions and RustSec advisories
 cargo bench -p gedo-store --bench wal_append
@@ -31,11 +58,17 @@ cargo xtask scale-study           # push and fetch cost of large collections
 
 The SSH remote test needs `openssh-server` on Linux and runs with `GEDO_TEST_SSH=1 cargo test -p gedo-store --test transport -- --include-ignored`. The GitHub and GitLab round trip runs from the `host-validation` workflow.
 
-To see the entities of a Rust file and their hashes, run `cargo run -p gedo-parse --example syntax_map -- <file.rs>`. To see the store at work on a scratch repository, run `cargo run -p gedo-store --example roundtrip -- <repository>`, then `git status` and `git for-each-ref refs/gedo`.
+## Configuration
 
-## A note on `git log --all`
+There is nothing to configure yet: the library takes the repository path from its caller.
 
-Tools that list every reference, such as `git log --all` or `gitk --all`, show Gedo's chains as separate histories with commits like `gedo: ...`, unrelated to your code. Branch views, `git log --branches --remotes`, hosting UIs and IDEs do not show them. See [ADR-0011](docs/adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md).
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| The build fails in `tree-sitter` or `tree-sitter-rust` | Install a C compiler: the Visual Studio Build Tools on Windows, `build-essential` or `gcc` on Linux |
+| `cargo xtask parse-sweep` reports missing files | Run `cargo fetch` first: the sweep reads the sources of the locked dependencies from the local Cargo registry |
+| `git log --all` or `gitk --all` shows unrelated histories with commits like `gedo: ...` | These are Gedo's chains under `refs/gedo/*`. Branch views, `git log --branches --remotes`, hosting UIs and IDEs do not show them; see the [technical documentation](TECDOC.md) |
 
 ## Documentation
 
