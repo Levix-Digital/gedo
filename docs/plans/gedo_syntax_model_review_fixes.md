@@ -4,10 +4,10 @@ project: gedo
 title: Syntax model review fixes
 kind: bug
 version: v0.2.0
-status: draft
+status: active
 author: Levi Silveira
 created_at: '2026-10-24T20:21:48'
-updated_at: '2026-10-24T20:23:15'
+updated_at: '2026-10-24T20:27:40'
 session_id: null
 tags:
 - parsing
@@ -42,6 +42,10 @@ status_log:
   by: Levi Silveira
   status: draft
   note: Plan updated
+- at: '2026-10-24T20:27:40'
+  by: Levi Silveira
+  status: active
+  note: Approved by Levi on 2026-10-24
 ---
 
 # Syntax model review fixes
