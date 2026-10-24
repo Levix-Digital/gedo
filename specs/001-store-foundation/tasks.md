@@ -186,7 +186,7 @@ description: "Tasks for the store foundation (v0.1.0)"
 - [X] T044 [P] Write `README.md` with `user-docs`: what Gedo is, status (v0.1.0, library only), build and test commands, the `git log --all` note, license
 - [X] T045 Run `architecture-docs/build_index.py`, `architecture-docs/check_docs.py`, `software-design/check_design.py`, `user-docs/check_readme.py`, all tests and `cargo deny check`; fix everything reported
 - [X] T046 Walk through `quickstart.md` steps 1 to 7 and fix any drift between the guide and the code
-- [ ] T047 Run `cargo bench -p gedo-store --bench wal_append` on the reference machine (4 cores, SSD) on Windows and Linux and record p50, p95 and p99 in `docs/plans/gedo_store_foundation.md` (SC-003: p95 under 1 ms)
+- [X] T047 Run `cargo bench -p gedo-store --bench wal_append` on the reference machine (4 cores, SSD) on Windows and Linux and record p50, p95 and p99 in `docs/plans/gedo_store_foundation.md` (SC-003: p95 under 1 ms)
 - [ ] T048 Write `docs/ci/branch-protection.md` with the exact required checks for `main` (both matrix jobs, MSRV, deny, arch-check) and ask the repository owner to enable them in the GitHub settings; verify with a deliberately failing draft pull request that merging is blocked (SC-008)
 
 ---

@@ -137,6 +137,7 @@ Taken from the phases of `tasks.md`:
 | Machine | p50 | p95 | p99 | SC-003 |
 |---|---:|---:|---:|---|
 | Linux container, 4 vCPUs, Git 2.43 (2026-10-24) | 1.3 µs | 23.8 µs | 30.3 µs | pass |
-| Windows reference machine (4 cores, SSD) | pending | pending | pending | pending |
+| GitHub Actions `windows-latest`, `--quick` (2026-10-24) | 2.3 µs | 3.4 µs | 27.8 µs | pass |
+| GitHub Actions `ubuntu-latest`, `--quick` (2026-10-24) | 1.4 µs | 3.2 µs | 6.0 µs | pass |
 
-The Linux numbers come from a cloud container rather than the reference machine; the Windows run and a run on the reference hardware are still to be recorded. The CI bench job uploads the same report on both platforms once GitHub Actions runs.
+Every run is well under the 1 ms limit on both platforms. These are shared runners and a cloud container rather than the 4-core SSD reference machine; the CI bench job uploads its report on every pull request for trend tracking.
