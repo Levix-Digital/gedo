@@ -4,10 +4,10 @@ project: gedo
 title: Syntax model review fixes
 kind: bug
 version: v0.2.0
-status: active
+status: completed
 author: Levi Silveira
 created_at: '2026-10-24T20:21:48'
-updated_at: '2026-10-24T20:27:40'
+updated_at: '2026-10-24T23:03:41'
 session_id: null
 tags:
 - parsing
@@ -26,13 +26,21 @@ backlog_items:
 - IMP-002
 milestones:
 - name: M1 Walk performance and deadline
-  done: false
+  done: true
+  done_at: '2026-10-24'
+  by: Levi Silveira
 - name: M2 Hash rules
-  done: false
+  done: true
+  done_at: '2026-10-24'
+  by: Levi Silveira
 - name: M3 Error flag and paths
-  done: false
+  done: true
+  done_at: '2026-10-24'
+  by: Levi Silveira
 - name: M4 Documentation and acceptance
-  done: false
+  done: true
+  done_at: '2026-10-24'
+  by: Levi Silveira
 status_log:
 - at: '2026-10-24T20:21:48'
   by: Levi Silveira
@@ -46,6 +54,22 @@ status_log:
   by: Levi Silveira
   status: active
   note: Approved by Levi on 2026-10-24
+- at: '2026-10-24T20:36:02'
+  by: Levi Silveira
+  note: 'Milestone ''M1 Walk performance and deadline'' completed: Regression tests added'
+- at: '2026-10-24T20:36:04'
+  by: Levi Silveira
+  note: 'Milestone ''M2 Hash rules'' completed: Regression tests added'
+- at: '2026-10-24T20:36:05'
+  by: Levi Silveira
+  note: 'Milestone ''M3 Error flag and paths'' completed: Regression tests added'
+- at: '2026-10-24T23:03:41'
+  by: Levi Silveira
+  note: 'Milestone ''M4 Documentation and acceptance'' completed: Docs, checkers, sweep, fuzz and benchmark done'
+- at: '2026-10-24T23:03:41'
+  by: Levi Silveira
+  status: completed
+  note: All milestones completed
 ---
 
 # Syntax model review fixes
@@ -172,3 +196,11 @@ One branch `fix/syntax-model-review` from `main`, one pull request into `main`.
 2. M2 Hash rules: BUG-003, BUG-004 and BUG-006, with the snapshots and the formatter corpus regenerated.
 3. M3 Error flag and paths: BUG-005 and BUG-007.
 4. M4 Documentation and acceptance: section 7, the checkers, the sweep, the benchmark and the fuzz run.
+
+## Results
+
+- Regression tests: each new test failed on `main` and passes with the fixes (`tests/changes.rs`, `tests/formatting.rs`, `tests/errors.rs`, `tests/tracing_events.rs`, unit tests in `walk.rs` and `paths.rs`). The long-list test parses 25,000 and 400,000 elements: 16 times the size took 31 times as long before the fix, and about 16 times after it.
+- New fixture `src/review.rs` (unsorted use lists, one-element tuples, jump statements) with its snapshot and its `rustfmt` variants; `formatter_variants_keep_every_hash` passes on it.
+- `cargo xtask parse-sweep`: 238 packages, 8,602 files, 3,342,061 lines; 0 crashes, 0 refused, 1,517 files with syntax errors, all known grammar gaps (unchanged).
+- Fuzzing, `cargo +nightly fuzz run parse_rust -- -max_total_time=600`, Linux container, 4 vCPUs: 238,902 runs in 601 s, no crash, hang or out-of-memory.
+- `parse_rust` benchmark, same container, back to back: `main` p50 7.9 ms, p95 8.3 ms, p99 9.0 ms; this branch p50 8.3 ms, p95 8.5 ms, p99 9.1 ms. About 3% slower (the walk now tracks last children and pending jumps, and use-list items are entities), still under the 10 ms of SC-001 on Linux; BUG-001 tracks Windows.
