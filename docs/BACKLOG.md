@@ -1016,6 +1016,14 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Two developers working live on the same symbols through the relay.
 
+### FEAT-127: Stable data formats and compatibility guarantee
+- **Priority**: medium
+- **Epic**: EPIC-018
+- **Status**: open
+- **Found**: 2026-10-24
+- **Plan**: -
+- **Description**: Freeze the formats of refs/gedo/*, the WAL and the cache, document the compatibility policy and test that every later release reads them (the 1.0 stability promise).
+
 ## Improvements
 
 ## Adjustments
