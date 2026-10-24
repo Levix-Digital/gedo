@@ -93,6 +93,16 @@ impl GitRepository {
         Ok(Identity { name, email })
     }
 
+    /// The identity as a signature dated now, for commits and reference log entries.
+    pub(crate) fn signature(&self) -> Result<gix::actor::Signature, StoreError> {
+        let identity = self.identity()?;
+        Ok(gix::actor::Signature {
+            name: identity.name.into(),
+            email: identity.email.into(),
+            time: gix::date::Time::now_local_or_utc(),
+        })
+    }
+
     /// A handle for the current thread.
     pub(crate) fn local(&self) -> gix::Repository {
         self.repo.to_thread_local()

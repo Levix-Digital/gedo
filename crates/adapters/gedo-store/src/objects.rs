@@ -128,12 +128,7 @@ impl ObjectStore for GitObjectStore {
     }
 
     fn write_commit(&self, commit: &NewCommit) -> Result<GitOid, StoreError> {
-        let identity = self.repository.identity()?;
-        let signature = gix::actor::Signature {
-            name: identity.name.into(),
-            email: identity.email.into(),
-            time: gix::date::Time::now_local_or_utc(),
-        };
+        let signature = self.repository.signature()?;
         let parents = commit.parents.iter().map(to_gix_oid).collect::<Result<_, _>>()?;
         let object = gix::objs::Commit {
             tree: to_gix_oid(&commit.tree)?,

@@ -3,11 +3,13 @@
 //!
 //! Each check is a public function taking a factory of fresh, empty stores; the macros
 //! [`object_store_contract!`](crate::object_store_contract), [`ref_store_contract!`](crate::ref_store_contract),
-//! [`wal_contract!`](crate::wal_contract) and [`cache_contract!`](crate::cache_contract) turn every
+//! [`wal_contract!`](crate::wal_contract), [`cache_contract!`](crate::cache_contract) and
+//! [`collection_contract!`](crate::collection_contract) turn every
 //! check into its own `#[test]`.
 
+use crate::collection::{Collection, MAX_UPDATE_ATTEMPTS, MergeOutcome};
 use crate::error::StoreError;
-use crate::ids::{GedoRefName, GitOid, ObjectHash};
+use crate::ids::{EntryId, GedoRefName, GitOid, ObjectHash};
 use crate::ports::{
     CacheEntry, CacheRebuildSource, CacheStatus, EntryMode, Expected, LogSequence, NewCommit, ObjectStore,
     RebuildReason, RefOutcome, RefStore, RefUpdate, SymbolCache, TreeEntry, WriteAheadLog,
@@ -566,6 +568,281 @@ macro_rules! cache_contract {
         #[test]
         fn invalid_cache_namespaces_are_refused() {
             $crate::contract_tests::invalid_cache_namespaces_are_refused($open);
+        }
+    };
+}
+
+// --- Collection over both ports ----------------------------------------------------------------
+
+fn entry(id: &str, content: &str) -> (EntryId, Vec<u8>) {
+    (EntryId::new(id).expect("valid id"), content.as_bytes().to_vec())
+}
+
+fn tapes() -> GedoRefName {
+    name("refs/gedo/tapes")
+}
+
+/// Entries put into a collection are read back; putting them again writes nothing.
+pub fn collections_store_entries<O: ObjectStore, R: RefStore>(make: impl Fn() -> (O, R)) {
+    let (objects, refs) = make();
+    let collection = Collection::new(tapes(), &objects, &refs);
+    assert_eq!(collection.head().expect("head"), None);
+    assert_eq!(
+        collection
+            .get(&EntryId::new("abcd").expect("valid id"))
+            .expect("get"),
+        None
+    );
+
+    let first = collection
+        .put(
+            &[
+                entry("abcd01", "one"),
+                entry("ab9999", "two"),
+                entry("ff00", "three"),
+            ],
+            "gedo: put",
+        )
+        .expect("put");
+    assert_eq!(refs.read(&tapes()).expect("read"), Some(first));
+    assert_eq!(
+        collection
+            .get(&EntryId::new("abcd01").expect("valid id"))
+            .expect("get"),
+        Some(b"one".to_vec())
+    );
+    assert_eq!(
+        collection
+            .get(&EntryId::new("ff00").expect("valid id"))
+            .expect("get"),
+        Some(b"three".to_vec())
+    );
+    assert_eq!(
+        collection
+            .get(&EntryId::new("abcd02").expect("valid id"))
+            .expect("get"),
+        None
+    );
+
+    assert_eq!(
+        collection
+            .put(&[entry("abcd01", "one")], "gedo: again")
+            .expect("put"),
+        first,
+        "nothing new, no commit"
+    );
+
+    let second = collection
+        .put(&[entry("1234", "four")], "gedo: more")
+        .expect("put");
+    let info = objects.read_commit(&second).expect("commit");
+    assert_eq!(info.parents, vec![first], "each change extends the chain");
+    assert_eq!(info.message, "gedo: more");
+    assert_eq!(collection.entries().expect("entries").len(), 4);
+
+    let root = objects.read_tree(&info.tree).expect("tree");
+    let directories: Vec<&str> = root.iter().map(|entry| entry.name.as_str()).collect();
+    assert_eq!(directories, ["12", "ab", "ff"], "two-character fan-out");
+    assert!(root.iter().all(|entry| entry.mode == EntryMode::Tree));
+}
+
+/// The same id with different content is corruption, and nothing is written.
+pub fn conflicting_entries_are_refused<O: ObjectStore, R: RefStore>(make: impl Fn() -> (O, R)) {
+    let (objects, refs) = make();
+    let collection = Collection::new(tapes(), &objects, &refs);
+    let head = collection.put(&[entry("abcd", "one")], "gedo: put").expect("put");
+    let error = collection
+        .put(&[entry("abcd", "other")], "gedo: put")
+        .expect_err("refused");
+    assert!(matches!(error, StoreError::Corrupted { .. }), "{error}");
+    assert_eq!(collection.head().expect("head"), Some(head));
+    assert!(collection.put(&[], "gedo: nothing").is_err());
+    assert!(
+        collection
+            .put(&[entry("abcd", "x"), entry("abcd", "y")], "gedo: twice")
+            .is_err()
+    );
+}
+
+/// A reference store that lets a rival writer win the first races: before each of the first
+/// `races` compare-and-swaps, the rival puts its own entry through the inner store.
+pub struct RacingRefs<'a, O: ObjectStore, R: RefStore> {
+    objects: &'a O,
+    inner: &'a R,
+    races_left: std::sync::Mutex<u32>,
+    rival_writes: std::sync::Mutex<u32>,
+}
+
+impl<'a, O: ObjectStore, R: RefStore> RacingRefs<'a, O, R> {
+    /// Wraps `inner`; the rival wins the next `races` updates.
+    pub fn new(objects: &'a O, inner: &'a R, races: u32) -> Self {
+        RacingRefs {
+            objects,
+            inner,
+            races_left: races.into(),
+            rival_writes: 0.into(),
+        }
+    }
+
+    /// Entries the rival wrote so far.
+    pub fn rival_writes(&self) -> u32 {
+        *self.rival_writes.lock().expect("not poisoned")
+    }
+}
+
+impl<O: ObjectStore, R: RefStore> RefStore for RacingRefs<'_, O, R> {
+    fn read(&self, name: &GedoRefName) -> Result<Option<GitOid>, StoreError> {
+        self.inner.read(name)
+    }
+    fn list(&self, prefix: &GedoRefName) -> Result<Vec<(GedoRefName, GitOid)>, StoreError> {
+        self.inner.list(prefix)
+    }
+    fn list_remote(&self, remote: &str) -> Result<Vec<(String, GitOid)>, StoreError> {
+        self.inner.list_remote(remote)
+    }
+    fn compare_and_swap(&self, update: &RefUpdate) -> Result<RefOutcome, StoreError> {
+        let race = {
+            let mut left = self.races_left.lock().expect("not poisoned");
+            let race = *left > 0;
+            *left = left.saturating_sub(1);
+            race
+        };
+        if race {
+            let mut writes = self.rival_writes.lock().expect("not poisoned");
+            *writes += 1;
+            let rival = Collection::new(update.name.clone(), self.objects, self.inner);
+            rival.put(&[entry(&format!("ee{:04x}", *writes), "rival")], "gedo: rival")?;
+        }
+        self.inner.compare_and_swap(update)
+    }
+    fn delete(&self, name: &GedoRefName, expected: GitOid) -> Result<RefOutcome, StoreError> {
+        self.inner.delete(name, expected)
+    }
+}
+
+/// A put that loses races reloads, keeps the rival's entries and retries; it gives up as
+/// `Contended` after [`MAX_UPDATE_ATTEMPTS`].
+pub fn puts_retry_when_the_reference_moves<O: ObjectStore, R: RefStore>(make: impl Fn() -> (O, R)) {
+    let (objects, refs) = make();
+    let racing = RacingRefs::new(&objects, &refs, 3);
+    let collection = Collection::new(tapes(), &objects, &racing);
+    collection
+        .put(&[entry("abcd", "mine")], "gedo: put")
+        .expect("succeeds after 3 lost races");
+    assert_eq!(racing.rival_writes(), 3);
+    let entries = Collection::new(tapes(), &objects, &refs)
+        .entries()
+        .expect("entries");
+    assert_eq!(entries.len(), 4, "ours and the rival's three entries");
+
+    let racing = RacingRefs {
+        objects: &objects,
+        inner: &refs,
+        races_left: MAX_UPDATE_ATTEMPTS.into(),
+        rival_writes: 3.into(),
+    };
+    let collection = Collection::new(tapes(), &objects, &racing);
+    let error = collection
+        .put(&[entry("dcba", "mine")], "gedo: put")
+        .expect_err("gives up");
+    assert!(
+        matches!(
+            error,
+            StoreError::Contended {
+                attempts: MAX_UPDATE_ATTEMPTS,
+                ..
+            }
+        ),
+        "{error}"
+    );
+}
+
+/// Diverged chains are joined by a merge commit with the union of both sides; behind and ahead
+/// chains fast-forward or stay as they are.
+pub fn diverged_chains_merge_by_union<O: ObjectStore, R: RefStore>(make: impl Fn() -> (O, R)) {
+    let (objects, refs) = make();
+    let local = Collection::new(tapes(), &objects, &refs);
+    let base = local.put(&[entry("aaaa", "base")], "gedo: base").expect("put");
+
+    // A teammate's chain: same base, other entries (another reference stands in for the remote).
+    let theirs = Collection::new(name("refs/gedo/theirs"), &objects, &refs);
+    assert_eq!(
+        theirs.merge(base).expect("merge"),
+        MergeOutcome::FastForwarded { head: base }
+    );
+    let their_head = theirs
+        .put(&[entry("bbbb", "theirs")], "gedo: theirs")
+        .expect("put");
+    local.put(&[entry("cccc", "mine")], "gedo: mine").expect("put");
+
+    let MergeOutcome::Merged { head } = local.merge(their_head).expect("merge") else {
+        panic!("diverged chains need a merge commit");
+    };
+    let info = objects.read_commit(&head).expect("commit");
+    assert_eq!(info.parents.len(), 2);
+    assert_eq!(info.parents[1], their_head);
+    let ids: Vec<String> = local
+        .entries()
+        .expect("entries")
+        .keys()
+        .map(ToString::to_string)
+        .collect();
+    assert_eq!(ids, ["aaaa", "bbbb", "cccc"]);
+
+    assert_eq!(
+        local.merge(their_head).expect("merge"),
+        MergeOutcome::UpToDate,
+        "already merged"
+    );
+    assert_eq!(
+        local.merge(base).expect("merge"),
+        MergeOutcome::UpToDate,
+        "an ancestor"
+    );
+    assert_eq!(
+        theirs.merge(head).expect("merge"),
+        MergeOutcome::FastForwarded { head },
+        "behind"
+    );
+}
+
+/// A remote without a chain for the collection leaves it unchanged.
+pub fn merging_a_missing_remote_chain_changes_nothing<O: ObjectStore, R: RefStore>(
+    make: impl Fn() -> (O, R),
+) {
+    let (objects, refs) = make();
+    let collection = Collection::new(tapes(), &objects, &refs);
+    let head = collection.put(&[entry("abcd", "one")], "gedo: put").expect("put");
+    assert_eq!(
+        collection.merge_remote("origin").expect("merge"),
+        MergeOutcome::NoRemoteChain
+    );
+    assert_eq!(collection.head().expect("head"), Some(head));
+}
+
+/// Runs every collection check as its own test.
+#[macro_export]
+macro_rules! collection_contract {
+    ($make:expr) => {
+        #[test]
+        fn collections_store_entries() {
+            $crate::contract_tests::collections_store_entries($make);
+        }
+        #[test]
+        fn conflicting_entries_are_refused() {
+            $crate::contract_tests::conflicting_entries_are_refused($make);
+        }
+        #[test]
+        fn puts_retry_when_the_reference_moves() {
+            $crate::contract_tests::puts_retry_when_the_reference_moves($make);
+        }
+        #[test]
+        fn diverged_chains_merge_by_union() {
+            $crate::contract_tests::diverged_chains_merge_by_union($make);
+        }
+        #[test]
+        fn merging_a_missing_remote_chain_changes_nothing() {
+            $crate::contract_tests::merging_a_missing_remote_chain_changes_nothing($make);
         }
     };
 }

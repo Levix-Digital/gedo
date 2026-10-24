@@ -52,6 +52,15 @@ pub enum StoreError {
         repository: PathBuf,
     },
 
+    /// Concurrent writers kept moving a reference; the update was given up after `attempts` tries.
+    #[error("{name} kept changing under concurrent writers; gave up after {attempts} attempts")]
+    Contended {
+        /// The reference.
+        name: String,
+        /// Attempts made.
+        attempts: u32,
+    },
+
     /// Another process holds the write-ahead log.
     #[error("write-ahead log {path} is busy: another Gedo process is writing to it")]
     WalBusy {

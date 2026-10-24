@@ -16,3 +16,27 @@ mod objects {
     use super::*;
     gedo_core::object_store_contract!(|| GitObjectStore::new(fresh_repository()));
 }
+
+mod refs {
+    use super::*;
+    use gedo_store::GitRefStore;
+    gedo_core::ref_store_contract!(|| {
+        let repository = fresh_repository();
+        (
+            GitObjectStore::new(repository.clone()),
+            GitRefStore::new(repository),
+        )
+    });
+}
+
+mod collections {
+    use super::*;
+    use gedo_store::GitRefStore;
+    gedo_core::collection_contract!(|| {
+        let repository = fresh_repository();
+        (
+            GitObjectStore::new(repository.clone()),
+            GitRefStore::new(repository),
+        )
+    });
+}

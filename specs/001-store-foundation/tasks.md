@@ -67,7 +67,7 @@ description: "Tasks for the store foundation (v0.1.0)"
 
 - [X] T017 [US1] Implement `GixObjectStore` (`write_blob`, `read_blob` with the 64 MiB limit, `write_tree` with Git ordering, `read_tree`, `write_commit` with the repository identity, `read_commit`) in `crates/adapters/gedo-store/src/objects.rs`; no `git` subprocess
 - [X] T018 [US1] Run the contract suite against `GixObjectStore` in `crates/adapters/gedo-store/tests/contract.rs`
-- [ ] T019 [US1] Add the example `crates/adapters/gedo-store/examples/roundtrip.rs` (writes a chain entry in a given repository and prints `refs/gedo` contents) used by quickstart step 7
+- [X] T019 [US1] Add the example `crates/adapters/gedo-store/examples/roundtrip.rs` (writes a chain entry in a given repository and prints `refs/gedo` contents) used by quickstart step 7
 
 **Checkpoint**: US1 passes on its own
 
@@ -81,14 +81,14 @@ description: "Tasks for the store foundation (v0.1.0)"
 
 ### Tests for User Story 2
 
-- [ ] T020 [P] [US2] Write the stress test: 8 threads and 2 processes (the test binary re-invoked with an environment variable) perform 10,000 compare-and-swap updates on one reference; zero lost updates, every `Moved` carries the current value, the reflog lists every value, and collection `put` retries emit a `tracing` event with the attempt count, in `crates/adapters/gedo-store/tests/cas_stress.rs`
-- [ ] T021 [P] [US2] Write property tests for collections on the in-memory adapters: fan-out paths unique and valid on case-insensitive file systems; union merge commutative, associative and idempotent; `put` retries on `Moved` up to 8 attempts, in `crates/core/gedo-core/tests/collection.rs`
+- [X] T020 [P] [US2] Write the stress test: 8 threads and 2 processes (the test binary re-invoked with an environment variable) perform 10,000 compare-and-swap updates on one reference; zero lost updates, every `Moved` carries the current value, the reflog lists every value, and collection `put` retries emit a `tracing` event with the attempt count, in `crates/adapters/gedo-store/tests/cas_stress.rs`
+- [X] T021 [P] [US2] Write property tests for collections on the in-memory adapters: fan-out paths unique and valid on case-insensitive file systems; union merge commutative, associative and idempotent; `put` retries on `Moved` up to 8 attempts, in `crates/core/gedo-core/tests/collection.rs`
 
 ### Implementation for User Story 2
 
-- [ ] T022 [US2] Implement `GixRefStore` (`read`, `list`, `list_remote` over `refs/gedo-remote/<remote>/*`, `compare_and_swap` with `PreviousValue::MustNotExist` / `MustExistAndMatch` and reflog messages `gedo: <operation>`, `delete` with an expected value; idempotent create of the same value is `Updated`) in `crates/adapters/gedo-store/src/refs.rs`
-- [ ] T023 [US2] Implement `Collection` (two-level fan-out tree by `EntryId`, `get`, `put` writing blobs, tree and a commit with the head as parent then compare-and-swap with up to 8 retries, `merge_remote` writing a union merge commit; same id with different content → `Corrupted`) in `crates/core/gedo-core/src/collection.rs`
-- [ ] T024 [US2] Extend the contract tests in `crates/adapters/gedo-store/tests/contract.rs` to `GixRefStore` and run the collection tests of T021 against the real adapters too
+- [X] T022 [US2] Implement `GixRefStore` (`read`, `list`, `list_remote` over `refs/gedo-remote/<remote>/*`, `compare_and_swap` with `PreviousValue::MustNotExist` / `MustExistAndMatch` and reflog messages `gedo: <operation>`, `delete` with an expected value; idempotent create of the same value is `Updated`) in `crates/adapters/gedo-store/src/refs.rs`
+- [X] T023 [US2] Implement `Collection` (two-level fan-out tree by `EntryId`, `get`, `put` writing blobs, tree and a commit with the head as parent then compare-and-swap with up to 8 retries, `merge_remote` writing a union merge commit; same id with different content → `Corrupted`) in `crates/core/gedo-core/src/collection.rs`
+- [X] T024 [US2] Extend the contract tests in `crates/adapters/gedo-store/tests/contract.rs` to `GixRefStore` and run the collection tests of T021 against the real adapters too
 
 **Checkpoint**: US1 and US2 pass
 

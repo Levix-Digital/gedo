@@ -4,7 +4,9 @@
 
 mod convert;
 pub mod objects;
+pub mod refs;
 pub mod repository;
 
 pub use objects::GitObjectStore;
+pub use refs::GitRefStore;
 pub use repository::{GitRepository, Identity};

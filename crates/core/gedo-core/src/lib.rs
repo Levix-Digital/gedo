@@ -5,6 +5,7 @@
 //! as `gedo-store` implement its ports.
 #![forbid(unsafe_code)]
 
+pub mod collection;
 #[cfg(feature = "contract-tests")]
 pub mod contract_tests;
 pub mod error;
@@ -14,5 +15,6 @@ pub mod memory;
 pub mod ports;
 pub mod record;
 
+pub use collection::{Collection, MergeOutcome};
 pub use error::StoreError;
 pub use ids::{EntryId, GedoRefName, GitOid, ObjectHash};
