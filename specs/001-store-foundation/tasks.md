@@ -46,7 +46,7 @@ description: "Tasks for the store foundation (v0.1.0)"
 - [X] T011 Define the port traits `ObjectStore`, `RefStore` (with `RefUpdate { expected: Absent | Value(GitOid), new, log_message }` and `RefOutcome::{Updated, Moved { current }}`), `WriteAheadLog` (with `LogSequence`, `OpenReport`), `SymbolCache` and `CacheRebuildSource` exactly as in `contracts/ports.md`, in `crates/core/gedo-core/src/ports/{object.rs,refs.rs,wal.rs,cache.rs}` and `src/ports/mod.rs`
 - [X] T012 Implement the in-memory adapters (`MemoryObjectStore`, `MemoryRefStore` with atomic compare-and-swap and a reflog, `MemoryWal` with simulated durability, `MemoryCache`) behind the `memory` feature in `crates/core/gedo-core/src/memory/`
 - [X] T013 Write the shared contract suite (macro or generic functions taking a factory) for the four ports behind the `contract-tests` feature in `crates/core/gedo-core/src/contract_tests.rs`, and run it against the in-memory adapters in `crates/core/gedo-core/tests/memory_contract.rs`
-- [ ] T014 Implement repository opening in `crates/adapters/gedo-store/src/repository.rs`: open with `gix` (worktrees and bare repositories included), refuse non-SHA-1 object formats with `UnsupportedObjectFormat`, resolve `.git/gedo/` (create on demand, race-safe), read the user identity (`MissingIdentity` when absent)
+- [X] T014 Implement repository opening in `crates/adapters/gedo-store/src/repository.rs`: open with `gix` (worktrees and bare repositories included), refuse non-SHA-1 object formats with `UnsupportedObjectFormat`, resolve `.git/gedo/` (create on demand, race-safe), read the user identity (`MissingIdentity` when absent)
 
 **Checkpoint**: core and repository access ready
 
@@ -60,13 +60,13 @@ description: "Tasks for the store foundation (v0.1.0)"
 
 ### Tests for User Story 1
 
-- [ ] T015 [P] [US1] Write invariance tests: repositories with uncommitted edits, staged files, detached `HEAD`, a worktree and a bare repository; after every store operation `git status --porcelain`, the index file, `HEAD` and `refs/heads/*` are byte-identical, and `git fsck` is clean, in `crates/adapters/gedo-store/tests/invariance.rs`
-- [ ] T016 [P] [US1] Write format tests: SHA-256 repository refused, missing identity refused before a commit is written, in `crates/adapters/gedo-store/tests/formats.rs`
+- [X] T015 [P] [US1] Write invariance tests: repositories with uncommitted edits, staged files, detached `HEAD`, a worktree and a bare repository; after every store operation `git status --porcelain`, the index file, `HEAD` and `refs/heads/*` are byte-identical, and `git fsck` is clean, in `crates/adapters/gedo-store/tests/invariance.rs`
+- [X] T016 [P] [US1] Write format tests: SHA-256 repository refused, missing identity refused before a commit is written, in `crates/adapters/gedo-store/tests/formats.rs`
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Implement `GixObjectStore` (`write_blob`, `read_blob` with the 64 MiB limit, `write_tree` with Git ordering, `read_tree`, `write_commit` with the repository identity, `read_commit`) in `crates/adapters/gedo-store/src/objects.rs`; no `git` subprocess
-- [ ] T018 [US1] Run the contract suite against `GixObjectStore` in `crates/adapters/gedo-store/tests/contract.rs`
+- [X] T017 [US1] Implement `GixObjectStore` (`write_blob`, `read_blob` with the 64 MiB limit, `write_tree` with Git ordering, `read_tree`, `write_commit` with the repository identity, `read_commit`) in `crates/adapters/gedo-store/src/objects.rs`; no `git` subprocess
+- [X] T018 [US1] Run the contract suite against `GixObjectStore` in `crates/adapters/gedo-store/tests/contract.rs`
 - [ ] T019 [US1] Add the example `crates/adapters/gedo-store/examples/roundtrip.rs` (writes a chain entry in a given repository and prints `refs/gedo` contents) used by quickstart step 7
 
 **Checkpoint**: US1 passes on its own
