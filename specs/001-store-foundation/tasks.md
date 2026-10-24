@@ -173,8 +173,8 @@ description: "Tasks for the store foundation (v0.1.0)"
 
 **Independent Test**: the report exists and the decision is in ADR-0011
 
-- [ ] T039 [US6] Implement `cargo xtask scale-study` in `tools/xtask/src/scale_study.rs`: for entry counts (default 100, 1,000, 10,000, 50,000, 100,000) build a repository with one chain holding N entries and one with N references, measure initial push, fresh clone plus fetch, and incremental push and fetch after one change against a file remote (and a host when `--remote` names one), write `target/scale-study/report.md` with times and transferred sizes
-- [ ] T040 [US6] Run the scale study, compare with SC-007 (10,000 entries adding more than 5 s or 50 MB fails), and record the results and the decision in the Consequences of `docs/adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md` (status `proposed` until the user accepts the plan's results)
+- [X] T039 [US6] Implement `cargo xtask scale-study` in `tools/xtask/src/scale_study.rs`: for entry counts (default 100, 1,000, 10,000, 50,000, 100,000) build a repository with one chain holding N entries and one with N references, measure initial push, fresh clone plus fetch, and incremental push and fetch after one change against a file remote (and a host when `--remote` names one), write `target/scale-study/report.md` with times and transferred sizes
+- [X] T040 [US6] Run the scale study, compare with SC-007 (10,000 entries adding more than 5 s or 50 MB fails), and record the results and the decision in the Consequences of `docs/adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md` (status `proposed` until the user accepts the plan's results)
 
 ---
 

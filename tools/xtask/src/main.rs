@@ -7,6 +7,7 @@
 mod arch_check;
 mod git;
 mod host_validate;
+mod scale_study;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -21,6 +22,7 @@ fn main() -> ExitCode {
     let result = match arguments.first().map(String::as_str) {
         Some("arch-check") => arch_check::run(&workspace_root()),
         Some("host-validate") => host_validate::run(&workspace_root()),
+        Some("scale-study") => scale_study::run(&workspace_root(), &arguments[1..]),
         None | Some("help" | "--help") => {
             println!("usage: cargo xtask <arch-check | host-validate | scale-study [options]>");
             Ok(())

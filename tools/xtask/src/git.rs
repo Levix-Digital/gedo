@@ -1,7 +1,8 @@
 //! Running the `git` executable from the tools, with secrets kept out of arguments and output.
 
+use std::io::Write as _;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
 /// A `git` runner: extra configuration passed through the environment, and texts to redact.
@@ -38,6 +39,16 @@ impl Git {
 
     /// Runs `git args` in `directory` and returns its standard output and the time it took.
     pub fn run(&self, directory: &Path, args: &[&str]) -> Result<(String, Duration), String> {
+        self.run_with_input(directory, args, &[])
+    }
+
+    /// Like [`Git::run`], with `input` written to the standard input.
+    pub fn run_with_input(
+        &self,
+        directory: &Path,
+        args: &[&str],
+        input: &[u8],
+    ) -> Result<(String, Duration), String> {
         let mut command = Command::new("git");
         command
             .current_dir(directory)
@@ -50,9 +61,17 @@ impl Git {
                 .env(format!("GIT_CONFIG_VALUE_{index}"), value);
         }
         let started = Instant::now();
-        let output = command
-            .output()
-            .map_err(|error| format!("git {}: {error}", args.join(" ")))?;
+        let spawn_error = |error: std::io::Error| format!("git {}: {error}", args.join(" "));
+        let mut child = command
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .map_err(spawn_error)?;
+        if let Some(mut stdin) = child.stdin.take() {
+            stdin.write_all(input).map_err(spawn_error)?;
+        }
+        let output = child.wait_with_output().map_err(spawn_error)?;
         let elapsed = started.elapsed();
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
