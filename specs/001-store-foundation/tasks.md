@@ -156,12 +156,12 @@ description: "Tasks for the store foundation (v0.1.0)"
 
 ### Tests for User Story 4
 
-- [ ] T036 [P] [US4] Write rebuild tests: missing file, corrupted file (random bytes), schema version 0 and 2; each opens as `Rebuilt { reason }`, emits a `tracing` event, and answers the same lookups as before; a rebuild interrupted by a write failure leaves no cache that opens as `Ready` with partial content (the next open rebuilds again); on Windows only, a cache file held by another handle is retried for up to 2 s then fails with context, in `crates/adapters/gedo-store/tests/cache_rebuild.rs`
+- [X] T036 [P] [US4] Write rebuild tests: missing file, corrupted file (random bytes), schema version 0 and 2; each opens as `Rebuilt { reason }`, emits a `tracing` event, and answers the same lookups as before; a rebuild interrupted by a write failure leaves no cache that opens as `Ready` with partial content (the next open rebuilds again); on Windows only, a cache file held by another handle is retried for up to 2 s then fails with context, in `crates/adapters/gedo-store/tests/cache_rebuild.rs`
 
 ### Implementation for User Story 4
 
-- [ ] T037 [US4] Implement `RedbCache` in `crates/adapters/gedo-store/src/cache.rs`: `meta.schema_version: u32` = 1, one table per namespace, open → `Ready` or delete and rebuild from the `CacheRebuildSource` → `Rebuilt { reason: Missing | SchemaMismatch { found } | Corrupted }`; Windows sharing-violation retries up to 2 s
-- [ ] T038 [US4] Run the cache contract tests against `RedbCache` in `crates/adapters/gedo-store/tests/contract.rs`
+- [X] T037 [US4] Implement `RedbCache` in `crates/adapters/gedo-store/src/cache.rs`: `meta.schema_version: u32` = 1, one table per namespace, open → `Ready` or delete and rebuild from the `CacheRebuildSource` → `Rebuilt { reason: Missing | SchemaMismatch { found } | Corrupted }`; Windows sharing-violation retries up to 2 s
+- [X] T038 [US4] Run the cache contract tests against `RedbCache` in `crates/adapters/gedo-store/tests/contract.rs`
 
 **Checkpoint**: all P1 and P2 stories except US6 pass
 

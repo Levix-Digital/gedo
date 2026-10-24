@@ -1,11 +1,14 @@
-//! Waiting for the log and dropping a torn record are visible as `tracing` events.
+//! Waiting for the log, dropping a torn record and rebuilding the cache are visible as `tracing`
+//! events.
 //!
-//! Alone in its own test binary: tracing caches whether a call site is enabled process-wide.
+//! One test in its own binary: tracing caches whether a call site is enabled process-wide, so
+//! concurrent tests without a subscriber would disable the events for this one.
 
 use std::sync::{Arc, Mutex};
 
+use gedo_core::contract_tests::FixedSource;
 use gedo_core::ports::WriteAheadLog;
-use gedo_store::FileWal;
+use gedo_store::{FileWal, RedbCache};
 use tracing::field::{Field, Visit};
 use tracing::span::{Attributes, Id, Record};
 use tracing::{Event, Metadata, Subscriber};
@@ -38,7 +41,7 @@ impl Subscriber for Messages {
 }
 
 #[test]
-fn lock_waits_and_torn_records_are_logged() {
+fn lock_waits_torn_records_and_cache_rebuilds_are_logged() {
     let messages = Messages::default();
     let directory = tempfile::tempdir().expect("temporary directory");
     tracing::subscriber::with_default(messages.clone(), || {
@@ -61,6 +64,8 @@ fn lock_waits_and_torn_records_are_logged() {
         let bytes = std::fs::read(&log).expect("log");
         std::fs::write(&log, &bytes[..bytes.len() - 2]).expect("tear the last record");
         FileWal::open(directory.path()).expect("opens");
+
+        RedbCache::open(directory.path(), &FixedSource(vec![])).expect("opens");
     });
     let messages = messages.0.lock().expect("not poisoned").clone();
     assert!(

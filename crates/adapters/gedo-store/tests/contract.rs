@@ -48,3 +48,11 @@ mod wal {
         FileWal::open(directory.path()).expect("opens")
     });
 }
+
+mod cache {
+    use gedo_store::RedbCache;
+    gedo_core::cache_contract!(|source| {
+        let directory = Box::leak(Box::new(tempfile::tempdir().expect("temporary directory")));
+        RedbCache::open(directory.path(), source).expect("opens")
+    });
+}
