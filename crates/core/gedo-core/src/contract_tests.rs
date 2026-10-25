@@ -152,6 +152,45 @@ pub fn trees_round_trip_in_git_order<O: ObjectStore>(make: impl Fn() -> O) {
     assert!(objects.read_tree(&empty).expect("read").is_empty());
 }
 
+/// Executable files, symbolic links and submodules of source histories keep their mode.
+pub fn source_entry_modes_round_trip<O: ObjectStore>(make: impl Fn() -> O) {
+    let objects = make();
+    let blob = objects.write_blob(b"#!/bin/sh").expect("written");
+    let submodule = commit(&objects, "submodule");
+    let entries = vec![
+        TreeEntry {
+            name: "build.sh".into(),
+            mode: EntryMode::ExecutableBlob,
+            oid: blob,
+        },
+        TreeEntry {
+            name: "link".into(),
+            mode: EntryMode::Link,
+            oid: blob,
+        },
+        TreeEntry {
+            name: "vendor".into(),
+            mode: EntryMode::Submodule,
+            oid: submodule,
+        },
+    ];
+    let tree = objects.write_tree(&entries).expect("written");
+    let modes: Vec<(String, EntryMode)> = objects
+        .read_tree(&tree)
+        .expect("read")
+        .into_iter()
+        .map(|entry| (entry.name, entry.mode))
+        .collect();
+    assert_eq!(
+        modes,
+        [
+            ("build.sh".to_owned(), EntryMode::ExecutableBlob),
+            ("link".to_owned(), EntryMode::Link),
+            ("vendor".to_owned(), EntryMode::Submodule),
+        ]
+    );
+}
+
 /// Invalid and duplicate tree entry names are refused.
 pub fn invalid_tree_entries_are_refused<O: ObjectStore>(make: impl Fn() -> O) {
     let objects = make();
@@ -217,6 +256,10 @@ macro_rules! object_store_contract {
         #[test]
         fn trees_round_trip_in_git_order() {
             $crate::contract_tests::trees_round_trip_in_git_order($make);
+        }
+        #[test]
+        fn source_entry_modes_round_trip() {
+            $crate::contract_tests::source_entry_modes_round_trip($make);
         }
         #[test]
         fn invalid_tree_entries_are_refused() {

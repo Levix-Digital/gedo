@@ -89,6 +89,9 @@ impl ObjectStore for GitObjectStore {
                 let mode = match entry.mode {
                     EntryMode::Blob => EntryKind::Blob,
                     EntryMode::Tree => EntryKind::Tree,
+                    EntryMode::ExecutableBlob => EntryKind::BlobExecutable,
+                    EntryMode::Link => EntryKind::Link,
+                    EntryMode::Submodule => EntryKind::Commit,
                 };
                 Ok(gix::objs::tree::Entry {
                     mode: mode.into(),
@@ -112,7 +115,9 @@ impl ObjectStore for GitObjectStore {
                 let mode = match entry.mode.kind() {
                     EntryKind::Blob => EntryMode::Blob,
                     EntryKind::Tree => EntryMode::Tree,
-                    other => return Err(corrupted(oid, format!("unsupported entry mode {other:?}"))),
+                    EntryKind::BlobExecutable => EntryMode::ExecutableBlob,
+                    EntryKind::Link => EntryMode::Link,
+                    EntryKind::Commit => EntryMode::Submodule,
                 };
                 let name = entry
                     .filename
