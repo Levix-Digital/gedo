@@ -3,6 +3,8 @@
 use gedo_core::syntax::TokenClass;
 use tree_sitter::Node;
 
+use super::kind_of;
+
 /// Strict and reserved keywords, including those the grammar exposes as named leaves (`self`,
 /// `crate`, `mut`).
 const KEYWORDS: &[&str] = &[
@@ -56,7 +58,7 @@ const KEYWORDS: &[&str] = &[
 /// The class of a leaf or atomic node under `parent`. `optional_brace` says whether a `{` or `}`
 /// belongs to a block that a formatter may remove.
 pub fn classify(node: Node<'_>, parent: Option<Node<'_>>, text: &[u8], optional_brace: bool) -> TokenClass {
-    match node.kind() {
+    match kind_of(node) {
         "line_comment" | "block_comment" => {
             return if node.child_by_field_name("doc").is_some() {
                 TokenClass::DocComment
@@ -69,7 +71,7 @@ pub fn classify(node: Node<'_>, parent: Option<Node<'_>>, text: &[u8], optional_
         "lifetime" | "label" => return TokenClass::Identifier,
         _ => {}
     }
-    let parent_kind = parent.map(|parent| parent.kind()).unwrap_or_default();
+    let parent_kind = parent.map(kind_of).unwrap_or_default();
     match text {
         b"{" | b"}" if optional_brace => TokenClass::OptionalPunctuation,
         b"(" | b"[" | b"{" => TokenClass::OpenDelimiter,

@@ -151,10 +151,10 @@ fn parse_tree(
 ) -> Result<tree_sitter::Tree, ParseError> {
     let mut parser = tree_sitter::Parser::new();
     let grammar = match language {
-        Language::Rust => tree_sitter_rust::LANGUAGE,
+        Language::Rust => rust::language(),
     };
     parser
-        .set_language(&grammar.into())
+        .set_language(grammar)
         .map_err(|error| ParseError::Internal {
             path: path.to_owned(),
             detail: format!("grammar rejected by Tree-sitter: {error}"),

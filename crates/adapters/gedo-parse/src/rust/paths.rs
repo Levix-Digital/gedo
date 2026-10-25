@@ -2,6 +2,8 @@
 
 use tree_sitter::Node;
 
+use super::kind_of;
+
 /// Directories whose files belong to a crate rooted in them.
 const CRATE_DIRECTORIES: &[&str] = &["src", "tests", "benches", "examples"];
 
@@ -114,11 +116,11 @@ pub fn compact_text(node: Node<'_>, source: &[u8]) -> String {
     let mut cursor = node.walk();
     loop {
         let current = cursor.node();
-        let is_leaf = current.child_count() == 0 || super::kinds::is_atomic(current.kind());
+        let is_leaf = current.child_count() == 0 || super::kinds::is_atomic(kind_of(current));
         if !is_leaf && cursor.goto_first_child() {
             continue;
         }
-        if is_leaf && !matches!(current.kind(), "line_comment" | "block_comment") {
+        if is_leaf && !matches!(kind_of(current), "line_comment" | "block_comment") {
             let piece = String::from_utf8_lossy(&source[current.byte_range()]);
             let joins_words = text.chars().last().is_some_and(is_word_char)
                 && piece.chars().next().is_some_and(is_word_char);
