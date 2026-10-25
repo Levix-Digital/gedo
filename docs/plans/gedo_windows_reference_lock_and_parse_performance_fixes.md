@@ -4,10 +4,10 @@ project: gedo
 title: Windows reference lock and parse performance fixes
 kind: bug
 version: v0.2.0
-status: in_progress
+status: completed
 author: Levi Silveira
 created_at: '2026-10-25T13:31:27'
-updated_at: '2026-10-25T14:08:16'
+updated_at: '2026-10-25T14:15:12'
 session_id: null
 tags:
 - windows
@@ -34,7 +34,9 @@ milestones:
   done_at: '2026-10-25'
   by: Levi Silveira
 - name: M4 Reference machine and documentation
-  done: false
+  done: true
+  done_at: '2026-10-25'
+  by: Levi Silveira
 status_log:
 - at: '2026-10-25T13:31:27'
   by: Levi Silveira
@@ -57,6 +59,13 @@ status_log:
 - at: '2026-10-25T14:08:16'
   by: Levi Silveira
   note: 'Milestone ''M3 Allocations'' completed: tokens moved into entities; normalize -20%'
+- at: '2026-10-25T14:15:12'
+  by: Levi Silveira
+  note: 'Milestone ''M4 Reference machine and documentation'' completed: Reference machine p95 7.8 to 8.1 ms; parsing.md and store.md updated'
+- at: '2026-10-25T14:15:12'
+  by: Levi Silveira
+  status: completed
+  note: All milestones completed
 ---
 
 # Windows reference lock and parse performance fixes
@@ -161,3 +170,12 @@ M3 was done with a smaller change than planned: instead of borrowing the token t
 | M3 moved tokens | 154 M (normalize 28 M) | 4,716 + 12,275 | 13.5 ms, p50 12.0 ms (run 40200481745) | |
 
 What is left is mostly Tree-sitter's own parse (75 M instructions, about half), which Gedo does not control. BUG-008: `test (windows-latest)` green on each push of the pull request.
+
+Reference machine (Levi's Windows desktop: Intel Core i7-12700KF, 12 cores and 20 threads, on AC, other apps open), `cargo bench -p gedo-parse --bench parse_rust -- --quick`, three runs each:
+
+| Version | p50 | p95 | p99 |
+|---|---|---|---|
+| `main` 6d2f534 | 8.65 to 8.71 ms | 9.33 to 9.38 ms | 9.75 to 10.44 ms |
+| this branch c54732f | 7.27 to 7.31 ms | 7.82 to 8.06 ms | 8.39 to 8.65 ms |
+
+SC-001 holds on the reference machine (p95 under 10 ms), with about 15% of margin gained. The GitHub windows-latest runner stays above 10 ms; its numbers are informational, as `specs/002-syntax-model` says. BUG-001 and BUG-008 are fixed.
