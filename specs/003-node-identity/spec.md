@@ -16,6 +16,14 @@ Identities must be **deterministic** (ADR-0007): the same history produces the s
 
 Like v0.1.0 and feature 002, this feature has no end-user command (`gedo init` and the daemon arrive in v0.4.0). Its users are the **event layer** (v0.3.0), which turns deltas into events, the **merge driver, trace and graft** (v0.4.0), which follow entities by id, and the **Levix developers** who build them. The vision's identity metrics are proven here: at least 95% of identities preserved on the reference corpus, and identical ids for the same history on every machine and in every indexing order.
 
+## Clarifications
+
+### Session 2026-10-25
+
+- Q: Is a move from one file to another file in the same change recognized as a move? → A: Yes; matching works on the whole change set (all files of a commit), so an entity that leaves one file can be matched to one that appears in another, and it keeps its identity with a "moved" delta.
+- Q: Is the whole history always indexed from the first commit, or only from a shared starting point? → A: The whole history, from every root commit; it is the only fully deterministic choice. The cost of the first indexing is measured by the benchmarks, and results shared through the Gedo data of a remote are reused instead of recomputed.
+- Q: How is identity accuracy measured? → A: On scripted edits of real Rust code (renames, moves, signature changes, formatter runs, copies, splits, ...) whose correct outcome is known; real histories are used for determinism across machines and orders, not for accuracy.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - An entity keeps its identity through edits, renames and moves (Priority: P1)
@@ -32,7 +40,7 @@ A developer edits the code: changes a function's body, adds a parameter, renames
 2. **Given** a function whose body was edited, **When** the versions are matched, **Then** it keeps its identity and a "body modified" delta is reported.
 3. **Given** a method whose signature changed (a parameter added, a return type changed, visibility changed), **When** the versions are matched, **Then** it keeps its identity and a "signature mutated" delta is reported.
 4. **Given** a function renamed in place with its body unchanged or slightly edited, **When** the versions are matched, **Then** it keeps its identity and a "renamed" delta is reported.
-5. **Given** a function moved to another container or another module, **When** the versions are matched, **Then** it keeps its identity and a "moved" delta is reported. [NEEDS CLARIFICATION: is a move from one file to another file in the same change recognized as a move, or only moves within one file?]
+5. **Given** a function moved to another container or another module, **When** the versions are matched, **Then** it keeps its identity and a "moved" delta is reported. This includes moves to another file in the same change.
 6. **Given** an entity removed and an unrelated entity added, **When** the versions are matched, **Then** the removed one is reported as tombstoned and the added one as created with a new identity.
 
 ---
@@ -91,7 +99,7 @@ For each pair of versions, Gedo reports what happened to each entity as an order
 
 ### User Story 5 - Existing history and teammates' commits are indexed (Priority: P2)
 
-A team adopts Gedo on a repository with years of history, and some teammates keep committing without Gedo. Gedo indexes those commits from the Git history alone and reaches the identities that live indexing would have produced. [NEEDS CLARIFICATION: is the whole history always indexed from the first commit, or only from a shared starting point recorded for the repository?]
+A team adopts Gedo on a repository with years of history, and some teammates keep committing without Gedo. Gedo indexes those commits from the Git history alone and reaches the identities that live indexing would have produced. The whole history is indexed, from every root commit, so the result never depends on where indexing started.
 
 **Why this priority**: most of the code Gedo will see was written without it; without history indexing, identities of old entities would depend on when Gedo was installed.
 
@@ -108,7 +116,7 @@ A team adopts Gedo on a repository with years of history, and some teammates kee
 
 ### User Story 6 - The identity metrics are measured on a reference corpus (Priority: P2)
 
-The project keeps a reference identity corpus of renames, moves, signature changes, body edits and formatter runs with their expected identities, and benchmarks that report identity accuracy, determinism across machines and matching time on every pull request. [NEEDS CLARIFICATION: is accuracy measured only on scripted edits of real code with known outcomes, or also on a hand-labelled sample of real commits?]
+The project keeps a reference identity corpus of renames, moves, signature changes, body edits and formatter runs with their expected identities, and benchmarks that report identity accuracy, determinism across machines and matching time on every pull request. Accuracy is measured on scripted edits of real code whose outcome is known; real histories measure determinism.
 
 **Why this priority**: the 95% accuracy target and the 80% similarity threshold are only meaningful when measured; the corpus is also the regression net for every later change of the matching.
 
@@ -141,18 +149,18 @@ The project keeps a reference identity corpus of renames, moves, signature chang
 ### Functional Requirements
 
 - **FR-001**: The core MUST define the identity of a code entity (`AstNodeId`, 16 bytes) and the per-file result that anchors identities to the entities of one file version: for each entity its identity, kind, qualified path, byte range and hashes, with the source blob, the language, the hash format and the matching algorithm version.
-- **FR-002**: Matching MUST compare the entities of a previous and a new version and decide for each new entity whether it continues an earlier one, in three tiers in this order: (1) exact match on qualified path and structural hash; (2) signature and scope heuristics among the remaining entities of the same kind, keeping the identity when the similarity reaches a named, tuned threshold (initially 80%); (3) otherwise a new identity, and every unmatched earlier entity is tombstoned.
+- **FR-002**: Matching MUST work on a change set (the files changed between two commits, or one file) and compare the entities of the previous and the new versions across all its files and decide for each new entity whether it continues an earlier one, in three tiers in this order: (1) exact match on qualified path and structural hash; (2) signature and scope heuristics among the remaining entities of the same kind, keeping the identity when the similarity reaches a named, tuned threshold (initially 80%); (3) otherwise a new identity, and every unmatched earlier entity is tombstoned.
 - **FR-003**: Matching MUST be deterministic: the same inputs give the same result on every platform, build, thread count and input order; ties MUST be broken by a fixed, documented rule.
 - **FR-004**: A new identity MUST be derived only from the entity's kind, its crate, its qualified path (with its occurrence) and its structural hash, under a domain-separated, versioned derivation (ADR-0007); a matched entity MUST keep its earlier identity.
 - **FR-005**: The matching algorithm MUST be versioned; the version MUST be stored with every result, and identities already produced MUST never be recomputed by a newer version.
 - **FR-006**: Matching MUST produce the semantic deltas of the change, in a deterministic order: created, moved, renamed, signature mutated, body modified, tombstoned; one entity MAY produce several deltas (renamed and body modified, for example).
 - **FR-007**: When two identities are found for what the matching considers one entity, the lower identity MUST be kept and the other recorded as its alias in an "identity merged" record; alias records MUST combine without conflict across machines, and lookups MUST resolve aliases, including chains.
 - **FR-008**: An entity flagged with a syntax error MUST NOT be tombstoned or re-created because of the error alone; matching MUST treat it so that the next valid version keeps the identity.
-- **FR-009**: Gedo MUST index Rust code from Git history alone (commits, trees and blobs), without Gedo having run when the commits were made, and reach the same identities as live indexing of the same history.
+- **FR-009**: Gedo MUST index Rust code from Git history alone (commits, trees and blobs), always the whole history from every root commit, without Gedo having run when the commits were made, and reach the same identities as live indexing of the same history.
 - **FR-010**: Indexing MUST be resumable and idempotent, and MUST reuse results already shared through the Gedo data of a remote; a shared result MUST equal what local indexing computes.
 - **FR-011**: The per-file results and the alias records MUST be stored as Gedo data under `refs/gedo/*`, in versioned formats that fetched data is decoded from safely (size limits, format versions, no panic on malformed input), and the decoders MUST be fuzzed.
-- **FR-012**: A reference identity corpus MUST cover at least: body edits, signature changes, renames, moves within a file and between modules, formatter runs, reorders, copies, splits, merges, deletions and additions, each case with its expected identities and deltas.
-- **FR-013**: Benchmarks MUST report identity accuracy per category and overall, determinism across Windows and Linux, and matching time, and CI MUST fail when accuracy drops below the target or when identities differ between platforms.
+- **FR-012**: A reference identity corpus of scripted edits on real Rust code, with known outcomes, MUST cover at least: body edits, signature changes, renames, moves within a file and between modules, formatter runs, reorders, copies, splits, merges, deletions and additions, each case with its expected identities and deltas.
+- **FR-013**: Benchmarks MUST report identity accuracy per category and overall (on the scripted corpus), determinism across Windows and Linux and across indexing orders (on real histories), and matching time, and CI MUST fail when accuracy drops below the target or when identities differ between platforms.
 - **FR-014**: Errors (unreadable history, malformed stored data, unsupported format version) MUST carry context and MUST NOT be swallowed; matching itself never fails on valid syntax maps.
 - **FR-015**: The matching, derivation and reconciliation MUST be pure core logic without I/O (ADR-0001), covered by property-based tests, including indexing the same history in different orders and on different branches.
 

@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain (3 open, asked to the user)
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -32,4 +32,4 @@
 ## Notes
 
 - Gedo is a code tool: entities, identities, Git history and formatters are the product's domain, not implementation details. Hash and id constructions, crate names and storage layouts are kept out of the spec and belong to the plan.
-- Open clarifications: moves between files (US1 scenario 5), the starting point of history indexing (US5), how accuracy is measured (US6).
+- Clarifications resolved with the user (2026-10-25): moves between files are matched (change-set matching), the whole history is indexed from every root, accuracy is measured on scripted edits with known outcomes.
