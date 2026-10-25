@@ -41,17 +41,17 @@ pub fn kind_of<'tree>(node: Node<'tree>) -> &'tree str {
 mod tests {
     use super::{kind_of, language};
 
-    /// Every node of `source`, in depth-first order.
-    fn assert_kinds_match(source: &str) {
+    /// Checks every node of `source`, in depth-first order; returns the kinds visited.
+    fn assert_kinds_match(source: &str) -> Vec<String> {
         let mut parser = tree_sitter::Parser::new();
         parser.set_language(language()).expect("grammar");
         let tree = parser.parse(source, None).expect("tree");
         let mut cursor = tree.walk();
-        let mut visited = 0;
+        let mut visited = Vec::new();
         loop {
             let node = cursor.node();
             assert_eq!(kind_of(node), node.kind(), "node {node:?}");
-            visited += 1;
+            visited.push(node.kind().to_owned());
             if cursor.goto_first_child() || cursor.goto_next_sibling() {
                 continue;
             }
@@ -64,7 +64,8 @@ mod tests {
                 break;
             }
         }
-        assert!(visited > 1);
+        assert!(visited.len() > 1);
+        visited
     }
 
     #[test]
@@ -74,6 +75,9 @@ mod tests {
 
     #[test]
     fn the_kind_table_names_error_nodes() {
-        assert_kinds_match("fn broken( { let x = ; }\nstruct A { a: }\n#[derive(Debug]\nstruct B;");
+        let kinds =
+            assert_kinds_match("fn broken( { let x = ; }\nstruct A { a: }\n#[derive(Debug]\nstruct B;");
+        // The error symbol lies outside the table and goes through the fallback.
+        assert!(kinds.iter().any(|kind| kind == "ERROR"), "{kinds:?}");
     }
 }
