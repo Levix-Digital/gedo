@@ -321,7 +321,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Description**: Grammar mapping, qualified paths and conformance suite for Mojo.
 
 ### FEAT-055: JSON support
-- **Priority**: low
+- **Priority**: medium
 - **Epic**: EPIC-004
 - **Status**: open
 - **Found**: 2026-10-24
@@ -337,7 +337,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Description**: Structural tracking of YAML files with a conformance suite.
 
 ### FEAT-057: TOML support
-- **Priority**: low
+- **Priority**: medium
 - **Epic**: EPIC-004
 - **Status**: open
 - **Found**: 2026-10-24
@@ -896,6 +896,38 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Freeze the formats of refs/gedo/*, the WAL and the cache, document the compatibility policy and test that every later release reads them (the 1.0 stability promise).
 
+### FEAT-128: Declarative language packs
+- **Priority**: medium
+- **Epic**: EPIC-003
+- **Status**: open
+- **Found**: 2026-10-25, improvement review 2026-10-25
+- **Plan**: -
+- **Description**: A declarative manifest and Tree-sitter query (.scm) format for entity kinds, container scopes, qualified path rules and trivia classification, so later languages are added without a hand-written module per grammar in gedo-parse. Designed after TypeScript and Python exist (two real languages besides Rust), with its own ADR; prerequisite of the language waves after v1.0.0.
+
+### FEAT-129: Local intents between streams on one machine
+- **Priority**: high
+- **Epic**: EPIC-013
+- **Status**: open
+- **Found**: 2026-10-25, improvement review 2026-10-25
+- **Plan**: -
+- **Description**: A local tier below the three of ADR-0010: SymbolLocked and SymbolMutating intents written to the local cache in the shared .git directory, with the owning process and an expiry, so parallel agents and streams on the same machine see who is changing which node within milliseconds, without network. Amends ADR-0010 when planned; FEAT-104 keeps the distributed part.
+
+### FEAT-130: Agent streams with hidden managed checkouts
+- **Priority**: high
+- **Epic**: EPIC-006
+- **Status**: open
+- **Found**: 2026-10-25, improvement review 2026-10-25
+- **Plan**: -
+- **Description**: Parallel coding agents work on the same repository without the user seeing or managing worktrees: each agent virtual stream gets a checkout created and managed by Gedo under .git/gedo/streams/<name>, outside the user's folder, sharing the build output directory, removed when the stream is published or discarded; gedo radar and the shadow merge treat these sibling streams as first-class sources, without push or fetch. Agents keep their own file tools; nothing is written to the user's working tree.
+
+### FEAT-131: Minimal language server for collisions and contract breaks
+- **Priority**: medium
+- **Epic**: EPIC-017
+- **Status**: open
+- **Found**: 2026-10-25, improvement review 2026-10-25
+- **Plan**: -
+- **Description**: A language server that only publishes diagnostics: collisions found by gedo radar and contract breaks (FEAT-079), so any LSP editor (VS Code, Zed, Neovim, RustRover) shows them without an extension. The full server (FEAT-117) and the VS Code extension (FEAT-118) stay later.
+
 ## Improvements
 
 ### IMP-001: Rust grammar gaps of tree-sitter-rust 0.24
@@ -913,6 +945,14 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Found**: 2026-10-25, PR #7
 - **Plan**: -
 - **Description**: A file refused for its size or depth is recorded as absent, so its entities are tombstoned and a later version that parses gets new ids. Carrying the previous map unchanged while the file is refused would keep identities through a temporarily oversized file, at the cost of maps that no longer describe the blob.
+
+### IMP-004: Progressive history indexing for large repositories
+- **Priority**: low
+- **Epic**: EPIC-002
+- **Status**: open
+- **Found**: 2026-10-25, improvement review 2026-10-25
+- **Plan**: -
+- **Description**: In repositories whose full history does not index within the gedo init target (under 30 s), index a configurable recent horizon synchronously and let gedod index the rest of the history to the roots in the background, reconciling identities deterministically. Needs a measurement on a large repository before it is scheduled.
 
 ## Adjustments
 

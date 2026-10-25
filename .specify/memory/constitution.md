@@ -1,7 +1,7 @@
 <!-- dev-cycle-constitution
 generated-by: dev-cycle-protocol/constitution.py (do not edit; change a source and regenerate)
-sources-sha256: 35ed41e4492dbc5bbc9e62b6207c76a460799f804966aba3afad5c9a6895bd37
-content-sha256: 062a9618cf96f532dcb862b4baecff754a5213ba204341fc2fba5a2baf5758b9
+sources-sha256: 088c67621034cca1fbedd2c5232e7fe7d58b1d740d2839a685105c124d7daad0
+content-sha256: 679823ca740628246b7c7a97199c3267bc9ddd0be4ca9cfc5a41700abcc3ea4b
 -->
 # gedo Constitution
 
@@ -116,7 +116,7 @@ Adapters depend on the core; the core depends on nothing outside itself except p
 4. **Plans are shared and complete**: approved plans are versioned files in the project (`plan-memory`).
 5. **Safe delivery**: short-lived branches on the project's branching model, CI on every pull request, release candidates, the user's release gate (`devops-release`).
 6. **Security**: no secrets in Git, backward-compatible data migrations, a rollback path for every release.
-7. **Bugs first**: open `critical` and `high` bugs are planned and fixed before new features, improvements and adjustments, unless the user explicitly accepts the risk; nothing found is lost, it is fixed now or captured in the backlog.
+7. **Bugs first**: open `critical`, `high` and `medium` bugs are planned and fixed before new features, improvements and adjustments; a `low` bug goes into the next release at the latest; no known bug stays untriaged (a severity, and a release for the ones that do not block). Only the user can explicitly accept the risk. Nothing found is lost, it is fixed now or captured in the backlog.
 8. **Follow-through**: the agent follows CI and releases to the end and fixes what fails; the user's decisions (plan approval, candidate acceptance, the release gate) are never taken by the agent.
 9. **No AI attribution, anywhere**: no artifact names an AI, a model or a coding agent as author, co-author, reviewer or source: commits and their trailers, tags, branches, pull and merge requests, reviews and review comments, issues, plans, documentation, release notes and code comments. Everything is authored by the repository's Git identity (`devops-release`). Configuration a project needs for its tools (an agent's settings folder, an integration name) is technical, not attribution.
 
@@ -182,7 +182,7 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 - **No mandatory server** (ADR-0005, ADR-0010); the relay tier is optional, self-hostable, and Git stays the canonical store.
 - **Licenses**: the project is MIT OR Apache-2.0; dependencies must be permissive and compatible (MIT, Apache-2.0, BSD, ISC, Zlib, Unicode-3.0), enforced by `cargo-deny`.
 - **Quality**: property-based tests for the core algorithms, snapshot tests for outputs, fuzzing for decoders, an end-to-end suite that compares `git` and `gedo` on the same scenarios, and CI on Windows and Linux for every pull request.
-- **Team and budget**: one developer plus the agent; private GitHub repository, so CI minutes are paid (Windows counts double); no paid infrastructure.
+- **Team and budget**: one developer plus the agent; the GitHub repository is public, so standard CI runners are free (they would be paid, with Windows counting double, if it went private again); no paid infrastructure.
 
 ## Architecture Decisions
 
@@ -206,4 +206,4 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - Amendments change the source, not this file: an ADR for decisions, the technical specification for requirements and constraints, `.dev-cycle.json` for the architecture style, the skills for principles. Then run `constitution.py generate` and commit the result with the change.
 - Gate 3 of the development cycle blocks a plan while this file is stale or edited by hand.
 
-**Version**: 1.3.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-25
+**Version**: 1.4.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-25
