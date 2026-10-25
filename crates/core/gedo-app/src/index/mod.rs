@@ -206,21 +206,24 @@ impl<'a, O: ObjectStore, P: Parser + Sync, C: SymbolCache> IdentityIndex<'a, O, 
         run: &mut Run,
         report: &mut IndexReport,
     ) -> Result<(), IndexError> {
-        if run.parses.len() > MAX_CACHED_PARSES {
-            run.parses.clear();
-        }
-        let mut wanted: BTreeSet<(String, GitOid)> = BTreeSet::new();
+        let mut needed: BTreeSet<(String, GitOid)> = BTreeSet::new();
         for (oid, commit) in batch {
             let changes = self.changes(oid, commit)?;
             for change in &changes {
                 for blob in [change.old, change.new].into_iter().flatten() {
-                    if !run.parses.contains_key(&(change.path.clone(), blob)) {
-                        wanted.insert((change.path.clone(), blob));
-                    }
+                    needed.insert((change.path.clone(), blob));
                 }
             }
             run.diffs.insert(*oid, changes);
         }
+        // Past the limit, keep only what this batch reads.
+        if run.parses.len() > MAX_CACHED_PARSES {
+            run.parses.retain(|key, _| needed.contains(key));
+        }
+        let wanted: Vec<(String, GitOid)> = needed
+            .into_iter()
+            .filter(|key| !run.parses.contains_key(key))
+            .collect();
         let mut sources = Vec::with_capacity(wanted.len());
         for (path, blob) in wanted {
             let bytes = self
@@ -314,17 +317,13 @@ impl<'a, O: ObjectStore, P: Parser + Sync, C: SymbolCache> IdentityIndex<'a, O, 
         let mut deltas = outcome.deltas;
         let mut merges = Vec::new();
         for parent in commit.parents.iter().skip(1) {
-            let found = self.reconcile(
+            let merge = Merge {
                 oid,
                 commit,
-                parent,
-                &table,
-                &live,
-                &mut maps,
-                &mut deltas,
-                run,
-                report,
-            )?;
+                first_parent_table: &table,
+                live: &live,
+            };
+            let found = self.reconcile(&merge, parent, &mut maps, &mut deltas, run, report)?;
             merges.extend(found);
         }
         merges.sort();
@@ -392,19 +391,21 @@ impl<'a, O: ObjectStore, P: Parser + Sync, C: SymbolCache> IdentityIndex<'a, O, 
     /// an entity that continues an id of that parent other than its own is reconciled, the lower
     /// id kept (research R11). `maps` holds the merge's changed files and receives the files whose
     /// ids changed.
-    #[allow(clippy::too_many_arguments)]
     fn reconcile(
         &self,
-        oid: &GitOid,
-        commit: &CommitInfo,
+        merge: &Merge<'_>,
         parent: &GitOid,
-        first_parent_table: &FileTable,
-        live: &BTreeSet<AstNodeId>,
         maps: &mut BTreeMap<String, BlobAstMap>,
         deltas: &mut [SemanticDelta],
         run: &mut Run,
         report: &mut IndexReport,
     ) -> Result<Vec<IdentityMerged>, IndexError> {
+        let Merge {
+            oid,
+            commit,
+            first_parent_table,
+            live,
+        } = *merge;
         let theirs = self.table_of(parent)?;
         let parent_tree = self
             .objects
@@ -631,6 +632,16 @@ impl<'a, O: ObjectStore, P: Parser + Sync, C: SymbolCache> IdentityIndex<'a, O, 
         }
         Ok(table)
     }
+}
+
+/// A merge commit being reconciled with its other parents, and what matching against its first
+/// parent produced.
+#[derive(Clone, Copy)]
+struct Merge<'m> {
+    oid: &'m GitOid,
+    commit: &'m CommitInfo,
+    first_parent_table: &'m FileTable,
+    live: &'m BTreeSet<AstNodeId>,
 }
 
 /// State kept for one call of `index_history`.

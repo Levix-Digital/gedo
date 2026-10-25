@@ -954,6 +954,14 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Constructs the Rust grammar does not parse, found by `cargo xtask parse-sweep` and listed in `crates/adapters/gedo-parse/tests/known_grammar_gaps.toml`: `pub type` in `extern` blocks, `unsafe extern` with `safe fn`, `(): Trait` bounds, `name @ (A | B)`, `where` on unit structs, `$` or `,` as literal matcher tokens, raw strings in nested macro token trees, attributes on struct expression fields and the edition 2015 `try!`. Errors stay local to the entities around them; fix by upgrading the grammar or contributing upstream, then remove the entries.
 
+### IMP-003: Keep identities through files the parser refuses
+- **Priority**: low
+- **Epic**: EPIC-002
+- **Status**: open
+- **Found**: 2026-10-25, PR #7
+- **Plan**: -
+- **Description**: A file refused for its size or depth is recorded as absent, so its entities are tombstoned and a later version that parses gets new ids. Carrying the previous map unchanged while the file is refused would keep identities through a temporarily oversized file, at the cost of maps that no longer describe the blob.
+
 ## Adjustments
 
 ## Epics
