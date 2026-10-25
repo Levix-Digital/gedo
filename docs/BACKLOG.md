@@ -27,41 +27,41 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### FEAT-011: Three-tier node matching
 - **Priority**: high
 - **Epic**: EPIC-002
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_node_identity
 - **Description**: Exact match, signature and scope heuristics (80% threshold as a tuned constant) and spawn or tombstone fallback.
 
 ### FEAT-012: Deterministic identity derivation and alias reconciliation
 - **Priority**: high
 - **Epic**: EPIC-002
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_node_identity
 - **Description**: UUID v8 ids derived from content, versioned matching and IdentityMerged aliases at merge time (ADR-0007).
 
 ### FEAT-013: Semantic delta emission
 - **Priority**: high
 - **Epic**: EPIC-002
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_node_identity
 - **Description**: NodeCreated, NodeMoved, NodeRenamed, SignatureMutated, BodyModified and NodeTombstoned deltas.
 
 ### FEAT-014: Reference identity corpus and benchmarks
 - **Priority**: high
 - **Epic**: EPIC-002
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_node_identity
 - **Description**: Corpus of renames, moves and formatter runs measuring accuracy (95% target) and determinism across machines.
 
 ### FEAT-015: Indexing of history made without Gedo
 - **Priority**: high
 - **Epic**: EPIC-002
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_node_identity
 - **Description**: Index existing repositories and commits made by teammates without Gedo, with the same ids on every machine.
 
 ### FEAT-017: TypeScript support
