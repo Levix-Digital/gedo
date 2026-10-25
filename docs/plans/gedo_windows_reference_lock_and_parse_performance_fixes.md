@@ -4,10 +4,10 @@ project: gedo
 title: Windows reference lock and parse performance fixes
 kind: bug
 version: v0.2.0
-status: draft
+status: active
 author: Levi Silveira
 created_at: '2026-10-25T13:31:27'
-updated_at: '2026-10-25T13:40:24'
+updated_at: '2026-10-25T13:41:27'
 session_id: null
 tags:
 - windows
@@ -38,6 +38,10 @@ status_log:
   by: Levi Silveira
   status: draft
   note: Plan updated
+- at: '2026-10-25T13:41:27'
+  by: Levi Silveira
+  status: active
+  note: Approved by Levi on 2026-10-25
 ---
 
 # Windows reference lock and parse performance fixes
