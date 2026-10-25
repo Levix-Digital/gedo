@@ -390,7 +390,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: Event, SemanticOp, Lamport clock and author fingerprint, with deterministic ids for reconstructed events.
+- **Description**: Event, SemanticOp, Lamport clock and author fingerprint, with deterministic ids for reconstructed events. Each event also carries the kind of author (person or agent, with an identifier) and a map of opaque labels (key and value) that tools on top of Gedo set and filter, for example plan=... or milestone=M2 from the dev-cycle protocol; Gedo stores and returns them without knowing what they mean. Both are in the format from the start, because formats freeze at v1.0.0 (FEAT-127).
 
 ### FEAT-064: Event tapes and commit index
 - **Priority**: high
@@ -430,7 +430,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: gedo stream <name>: switch or isolate work in memory without git stash or checkout.
+- **Description**: gedo stream <name>: switch or isolate work in memory without git stash or checkout. A stream carries the same opaque labels as events (FEAT-063), set at creation, so a tool can open one stream per plan milestone or per agent and find it again.
 
 ### FEAT-069: Deterministic sequencer
 - **Priority**: medium
@@ -585,12 +585,12 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Description**: Run git gc unchanged, then prune Gedo data past its retention.
 
 ### FEAT-088: Machine-readable and accessible output
-- **Priority**: medium
+- **Priority**: high
 - **Epic**: EPIC-008
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: --json output for Gedo commands; NO_COLOR and non-TTY handling; no information by color alone.
+- **Description**: --json output for Gedo commands with a documented, versioned schema covered by snapshot tests: it is the contract other tools build on (the dev-cycle protocol first), so a breaking change needs a new schema version. NO_COLOR and non-TTY handling; no information by color alone.
 
 ### FEAT-089: Command dispatcher and pure pass-through
 - **Priority**: high
@@ -927,6 +927,14 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Found**: 2026-10-25, improvement review 2026-10-25
 - **Plan**: -
 - **Description**: A language server that only publishes diagnostics: collisions found by gedo radar and contract breaks (FEAT-079), so any LSP editor (VS Code, Zed, Neovim, RustRover) shows them without an extension. The full server (FEAT-117) and the VS Code extension (FEAT-118) stay later.
+
+### FEAT-132: Embeddable library API for the parser and the symbol graph
+- **Priority**: low
+- **Epic**: EPIC-007
+- **Status**: open
+- **Found**: 2026-10-25, platform strategy review 2026-10-25
+- **Plan**: -
+- **Description**: Publish gedo-parse and gedo-graph as crates with a stable, semver-versioned public API, so other tools (the dev-cycle checkers, for example check_design) can parse code and query the dependency graph in-process. After v1.0.0; until then the crates stay internal to the workspace and other tools use the CLI and --json.
 
 ## Improvements
 
