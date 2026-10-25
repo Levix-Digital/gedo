@@ -9,16 +9,16 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### BUG-001: Rust parse benchmark over 10 ms p95 on Windows
 - **Severity**: medium
 - **Epic**: EPIC-003
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24, PR #3 CI bench, windows-latest
-- **Plan**: -
+- **Plan**: gedo_windows_reference_lock_and_parse_performance_fixes
 - **Description**: parse_rust (2,000 lines) measured p95 14.1 ms on GitHub Actions windows-latest against 8.0 ms on ubuntu-latest and 8.3 ms in a 4-vCPU Linux container (SC-001 of specs/002-syntax-model: under 10 ms on the reference machine). On Linux, Tree-sitter's own parse is about 3.3 ms of 8 ms; the walk and normalization (many small String allocations) take the rest, which points at the Windows allocator. Measure on the reference machine first, then reduce allocations in the walk and normalization if it misses.
 
 ### BUG-008: Reference update fails on Windows when a concurrent writer's lock file is being deleted
 - **Severity**: medium
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-25, PR #7 CI (test windows-latest)
-- **Plan**: -
+- **Plan**: gedo_windows_reference_lock_and_parse_performance_fixes
 - **Description**: cas_stress failed once on windows-latest: gix reports 'Another IO error occurred while obtaining the lock: Access is denied' on .git/refs/gedo/<name>.lock. Windows refuses to create a file whose previous instance is pending deletion by another process, and gix does not treat that PermissionDenied as retryable, so compare_and_swap returns a backend error instead of waiting or returning Contended. Fix: in gedo-store refs.rs, treat a PermissionDenied I/O error while acquiring the lock as a busy lock on Windows (retry within REF_LOCK_WAIT_MS, then Contended).
 
 ## Features
