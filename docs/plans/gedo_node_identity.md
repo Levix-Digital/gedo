@@ -4,10 +4,10 @@ project: gedo
 title: Node identity
 kind: feature
 version: v0.2.0
-status: active
+status: in_progress
 author: Levi Silveira
 created_at: '2026-10-25T07:53:15'
-updated_at: '2026-10-25T08:36:00'
+updated_at: '2026-10-25T09:05:11'
 session_id: null
 tags:
 - identity
@@ -27,17 +27,29 @@ backlog_items:
 spec_dir: specs/003-node-identity
 milestones:
 - name: M1 Setup and identity model
-  done: false
+  done: true
+  done_at: '2026-10-25'
+  by: Levi Silveira
 - name: M2 Matching
-  done: false
+  done: true
+  done_at: '2026-10-25'
+  by: Levi Silveira
 - name: M3 Deltas
-  done: false
+  done: true
+  done_at: '2026-10-25'
+  by: Levi Silveira
 - name: M4 Determinism and reconciliation
-  done: false
+  done: true
+  done_at: '2026-10-25'
+  by: Levi Silveira
 - name: M5 History indexing
-  done: false
+  done: true
+  done_at: '2026-10-25'
+  by: Levi Silveira
 - name: M6 Identity corpus
-  done: false
+  done: true
+  done_at: '2026-10-25'
+  by: Levi Silveira
 - name: M7 Documentation and acceptance
   done: false
 status_log:
@@ -53,6 +65,24 @@ status_log:
   by: Levi Silveira
   status: active
   note: Approved by Levi on 2026-10-25
+- at: '2026-10-25T09:05:06'
+  by: Levi Silveira
+  note: Milestone 'M1 Setup and identity model' completed
+- at: '2026-10-25T09:05:07'
+  by: Levi Silveira
+  note: Milestone 'M2 Matching' completed
+- at: '2026-10-25T09:05:08'
+  by: Levi Silveira
+  note: Milestone 'M3 Deltas' completed
+- at: '2026-10-25T09:05:09'
+  by: Levi Silveira
+  note: Milestone 'M4 Determinism and reconciliation' completed
+- at: '2026-10-25T09:05:10'
+  by: Levi Silveira
+  note: Milestone 'M5 History indexing' completed
+- at: '2026-10-25T09:05:11'
+  by: Levi Silveira
+  note: Milestone 'M6 Identity corpus' completed
 ---
 
 # Node identity

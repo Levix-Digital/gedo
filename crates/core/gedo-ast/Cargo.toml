@@ -18,5 +18,9 @@ proptest.workspace = true
 insta.workspace = true
 criterion.workspace = true
 
+[[bench]]
+name = "match_change"
+harness = false
+
 [lints]
 workspace = true
