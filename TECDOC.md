@@ -69,6 +69,7 @@ pushed). Source files and `refs/heads/*` stay untouched.
 <!-- architecture-docs:adrs:start -->
 | ADR | Title | Status | Version | Date |
 |---|---|---|---|---|
+| [ADR-0013](docs/adr/0013-versioned-json-output-as-the-contract-for-tools-built-on-ged.md) | Versioned JSON output as the contract for tools built on Gedo | accepted | v0.4.0 | 2026-10-25 |
 | [ADR-0012](docs/adr/0012-identity-results-are-local-derived-data-computed-per-commit.md) | Identity results are local derived data computed per commit | accepted | v0.2.0 | 2026-10-25 |
 | [ADR-0011](docs/adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md) | Gedo references as commit chains with a separate fetch namespace | proposed | v0.1.0 | 2026-10-24 |
 | [ADR-0010](docs/adr/0010-three-tiers-of-real-time-coordination-and-merge-queue-comple.md) | Three tiers of real-time coordination and merge queue complement | accepted | v0.1.0 | 2026-10-24 |

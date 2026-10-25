@@ -72,3 +72,4 @@ A language server and VS Code extension are later driving adapters over the same
 - [ADR-0006](../adr/0006-git-command-pass-through-with-hook-based-augmentation.md): Git pass-through, hook-based augmentation and `gedo trace`.
 - [ADR-0009](../adr/0009-semantic-merge-driver-and-shadow-merge.md): merge driver, shadow merge and background fetch.
 - [ADR-0010](../adr/0010-three-tiers-of-real-time-coordination-and-merge-queue-comple.md): hosting integration and merge queue complement.
+- [ADR-0013](../adr/0013-versioned-json-output-as-the-contract-for-tools-built-on-ged.md): versioned `--json` output, capabilities and exit codes as the contract for tools built on Gedo.

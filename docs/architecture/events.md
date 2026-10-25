@@ -41,3 +41,4 @@ Pure data structures and functions: event, tape, clock, tree CRDT, lanes, stream
 - [ADR-0003](../adr/0003-git-object-store-as-the-canonical-datastore.md): tapes live in `refs/gedo/tapes/`.
 - [ADR-0008](../adr/0008-gedo-data-robust-to-history-rewrites.md): content-addressed events and re-attachment after rewrites.
 - [ADR-0009](../adr/0009-semantic-merge-driver-and-shadow-merge.md): merge rules shared by the driver and the shadow merge.
+- [ADR-0013](../adr/0013-versioned-json-output-as-the-contract-for-tools-built-on-ged.md): opaque labels and author kind inherited from streams, reserved `gedo.` prefix.
