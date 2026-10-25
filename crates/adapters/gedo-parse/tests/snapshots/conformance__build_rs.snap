@@ -3,6 +3,7 @@ source: crates/adapters/gedo-parse/tests/conformance.rs
 expression: "common::render(&common::syntax_map(&path, &source))"
 ---
 language: rust
+unit: 
 hash_format: 1
 entities:
   - kind: function

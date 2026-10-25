@@ -16,6 +16,12 @@ pub enum EntryMode {
     Blob,
     /// A subtree (file mode `40000`).
     Tree,
+    /// An executable blob (file mode `100755`), found in source histories.
+    ExecutableBlob,
+    /// A symbolic link (file mode `120000`), found in source histories.
+    Link,
+    /// A submodule commit (file mode `160000`), found in source histories.
+    Submodule,
 }
 
 /// One entry of a tree.

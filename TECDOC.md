@@ -38,6 +38,13 @@ neutral syntax tree, `gedo-ast` matches it against the previous `BlobAstMap` and
 emits semantic deltas, `gedo-crdt` turns them into events appended to the WAL.
 `gedo publish` packs the WAL into an event tape and a canonical Git commit.
 
+History made without Gedo is indexed by `gedo-app`'s `IdentityIndex`: it walks every
+ancestor of the given commits to every root, parses only the Rust files that differ
+from the first parent, matches them against the parent's results with `gedo-ast`, and
+reconciles the other parents of merges. Each commit's maps, deltas and identity merges
+are local derived data in the symbol cache (ADR-0012), so the same history gives the
+same ids on every machine and in every indexing order.
+
 State lives in the Git object store under `refs/gedo/*` (shared through standard
 `git push` and `git fetch`) and in `.git/gedo/` (local WAL and redb cache, never
 pushed). Source files and `refs/heads/*` stay untouched.
@@ -62,6 +69,7 @@ pushed). Source files and `refs/heads/*` stay untouched.
 <!-- architecture-docs:adrs:start -->
 | ADR | Title | Status | Version | Date |
 |---|---|---|---|---|
+| [ADR-0012](docs/adr/0012-identity-results-are-local-derived-data-computed-per-commit.md) | Identity results are local derived data computed per commit | accepted | v0.2.0 | 2026-10-25 |
 | [ADR-0011](docs/adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md) | Gedo references as commit chains with a separate fetch namespace | proposed | v0.1.0 | 2026-10-24 |
 | [ADR-0010](docs/adr/0010-three-tiers-of-real-time-coordination-and-merge-queue-comple.md) | Three tiers of real-time coordination and merge queue complement | accepted | v0.1.0 | 2026-10-24 |
 | [ADR-0009](docs/adr/0009-semantic-merge-driver-and-shadow-merge.md) | Semantic merge driver and shadow merge | accepted | v0.1.0 | 2026-10-24 |

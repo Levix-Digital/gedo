@@ -1,0 +1,23 @@
+---
+source: crates/core/gedo-ast/tests/matching.rs
+expression: text
+---
+first:
+  Created { id: AstNodeId(121bbcbd-0168-8b89-a991-fe990f4ac992), kind: Constant, at: Location { unit: "src", path: "src/rates.rs", qualified_path: "crate::rates::BASE" } }
+  Created { id: AstNodeId(2cffbd10-1c90-881a-b103-edc7ec20f8ba), kind: Struct, at: Location { unit: "src", path: "src/billing.rs", qualified_path: "crate::billing::Invoice" } }
+  Created { id: AstNodeId(4c0f0ec4-361c-8a99-83dd-036f5beeba7d), kind: Impl, at: Location { unit: "src", path: "src/billing.rs", qualified_path: "crate::billing::<impl Invoice>" } }
+  Created { id: AstNodeId(c8a93454-909b-8e28-9b9f-608cb450686b), kind: Method, at: Location { unit: "src", path: "src/billing.rs", qualified_path: "crate::billing::Invoice::total" } }
+  Created { id: AstNodeId(c9e39821-e37e-8fdb-8e99-44337d1ba13a), kind: Method, at: Location { unit: "src", path: "src/billing.rs", qualified_path: "crate::billing::Invoice::count" } }
+  Created { id: AstNodeId(d6c65d21-0e78-832c-b2a6-e23dcf9d3cc8), kind: Function, at: Location { unit: "src", path: "src/billing.rs", qualified_path: "crate::billing::tax" } }
+next:
+  Renamed { id: AstNodeId(2cffbd10-1c90-881a-b103-edc7ec20f8ba), from_name: "Invoice", to_name: "Bill", qualified_path: "crate::billing::Bill" }
+  Renamed { id: AstNodeId(d6c65d21-0e78-832c-b2a6-e23dcf9d3cc8), from_name: "tax", to_name: "vat", qualified_path: "crate::billing::vat" }
+  SignatureMutated { id: AstNodeId(4c0f0ec4-361c-8a99-83dd-036f5beeba7d), before: StructuralHash(8ecfcbb1ba40f493b54b2f2c2392aa053ca540b05b3ddba37f34870bfd62e4a1), after: StructuralHash(6c3b0bc65b70f9db9cca00ae3f8f99bbdcff3955c067e82a032551fddfdc0224) }
+  BodyModified { id: AstNodeId(c9e39821-e37e-8fdb-8e99-44337d1ba13a), before: StructuralHash(07699be2bd18fb12424b40d2979bffd44fde2bd8bbf4f66c8c711a6f1d9ab578), after: StructuralHash(234df2446149e5bc54b680f9671798f8ada6a7489dd75e3540a6d315a4f1592b) }
+  Tombstoned { id: AstNodeId(121bbcbd-0168-8b89-a991-fe990f4ac992), kind: Constant, at: Location { unit: "src", path: "src/rates.rs", qualified_path: "crate::rates::BASE" } }
+maps:
+  src/billing.rs crate::billing::Bill 2cffbd10-1c90-881a-b103-edc7ec20f8ba
+  src/billing.rs crate::billing::<impl Bill> 4c0f0ec4-361c-8a99-83dd-036f5beeba7d
+  src/billing.rs crate::billing::Bill::total c8a93454-909b-8e28-9b9f-608cb450686b
+  src/billing.rs crate::billing::Bill::count c9e39821-e37e-8fdb-8e99-44337d1ba13a
+  src/billing.rs crate::billing::vat d6c65d21-0e78-832c-b2a6-e23dcf9d3cc8

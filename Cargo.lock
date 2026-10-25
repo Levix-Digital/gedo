@@ -618,11 +618,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "gedo-app"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "criterion",
+ "gedo-ast",
+ "gedo-core",
+ "gedo-parse",
+ "gedo-store",
+ "insta",
+ "postcard",
+ "proptest",
+ "serde",
+ "tempfile",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
 name = "gedo-ast"
 version = "0.1.0"
 dependencies = [
  "blake3",
+ "criterion",
  "gedo-core",
+ "gedo-parse",
+ "insta",
  "proptest",
 ]
 

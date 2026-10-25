@@ -5,8 +5,10 @@
 
 use std::fmt;
 
+use serde::{Deserialize, Serialize};
+
 /// A language Gedo can parse.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Language {
     /// Rust (`.rs`).
     Rust,
@@ -28,7 +30,7 @@ impl fmt::Display for Language {
 }
 
 /// The language-neutral category of a code entity.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum EntityKind {
     /// A module or namespace.
     Module,
@@ -145,7 +147,7 @@ impl TokenClass {
 }
 
 /// A half-open byte range `[start, end)` in the original source.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct ByteRange {
     /// First byte.
     pub start: u32,
@@ -215,6 +217,9 @@ pub struct ParsedFile {
     pub language: Language,
     /// The file's path in the repository, `/`-separated.
     pub path: String,
+    /// The repository path of the file's compilation unit (a crate's source directory), which
+    /// tells apart equal qualified paths of different crates. Not hashed.
+    pub unit: String,
     /// Every token, in source order.
     pub tokens: Vec<Token>,
     /// Every entity, in source order; containers come before their children.
@@ -224,7 +229,7 @@ pub struct ParsedFile {
 }
 
 /// The version of the normalization and hash rules that produced a hash.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum HashFormat {
     /// The first rules (`specs/002-syntax-model/research.md`, R4 to R6).
     V1,
@@ -240,7 +245,7 @@ impl HashFormat {
 }
 
 /// A 32-byte BLAKE3 hash of normalized tokens.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct StructuralHash(pub [u8; 32]);
 
 impl fmt::Display for StructuralHash {
@@ -302,6 +307,8 @@ pub struct SyntaxMap {
     pub language: Language,
     /// The file's path in the repository.
     pub path: String,
+    /// The file's compilation unit, as in [`ParsedFile::unit`].
+    pub unit: String,
     /// The rules that produced the hashes.
     pub hash_format: HashFormat,
     /// The entities, in source order.

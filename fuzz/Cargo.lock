@@ -130,6 +130,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
+name = "gedo-app"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "gedo-ast",
+ "gedo-core",
+ "postcard",
+ "serde",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
 name = "gedo-ast"
 version = "0.1.0"
 dependencies = [
@@ -151,6 +164,7 @@ dependencies = [
 name = "gedo-fuzz"
 version = "0.0.0"
 dependencies = [
+ "gedo-app",
  "gedo-ast",
  "gedo-core",
  "gedo-parse",

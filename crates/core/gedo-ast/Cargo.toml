@@ -13,7 +13,14 @@ gedo-core.workspace = true
 blake3.workspace = true
 
 [dev-dependencies]
+gedo-parse.workspace = true
 proptest.workspace = true
+insta.workspace = true
+criterion.workspace = true
+
+[[bench]]
+name = "match_change"
+harness = false
 
 [lints]
 workspace = true

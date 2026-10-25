@@ -27,41 +27,41 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### FEAT-011: Three-tier node matching
 - **Priority**: high
 - **Epic**: EPIC-002
-- **Status**: open
+- **Status**: in_progress
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_node_identity
 - **Description**: Exact match, signature and scope heuristics (80% threshold as a tuned constant) and spawn or tombstone fallback.
 
 ### FEAT-012: Deterministic identity derivation and alias reconciliation
 - **Priority**: high
 - **Epic**: EPIC-002
-- **Status**: open
+- **Status**: in_progress
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_node_identity
 - **Description**: UUID v8 ids derived from content, versioned matching and IdentityMerged aliases at merge time (ADR-0007).
 
 ### FEAT-013: Semantic delta emission
 - **Priority**: high
 - **Epic**: EPIC-002
-- **Status**: open
+- **Status**: in_progress
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_node_identity
 - **Description**: NodeCreated, NodeMoved, NodeRenamed, SignatureMutated, BodyModified and NodeTombstoned deltas.
 
 ### FEAT-014: Reference identity corpus and benchmarks
 - **Priority**: high
 - **Epic**: EPIC-002
-- **Status**: open
+- **Status**: in_progress
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_node_identity
 - **Description**: Corpus of renames, moves and formatter runs measuring accuracy (95% target) and determinism across machines.
 
 ### FEAT-015: Indexing of history made without Gedo
 - **Priority**: high
 - **Epic**: EPIC-002
-- **Status**: open
+- **Status**: in_progress
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_node_identity
 - **Description**: Index existing repositories and commits made by teammates without Gedo, with the same ids on every machine.
 
 ### FEAT-017: TypeScript support
@@ -953,6 +953,14 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Found**: 2026-10-24
 - **Plan**: -
 - **Description**: Constructs the Rust grammar does not parse, found by `cargo xtask parse-sweep` and listed in `crates/adapters/gedo-parse/tests/known_grammar_gaps.toml`: `pub type` in `extern` blocks, `unsafe extern` with `safe fn`, `(): Trait` bounds, `name @ (A | B)`, `where` on unit structs, `$` or `,` as literal matcher tokens, raw strings in nested macro token trees, attributes on struct expression fields and the edition 2015 `try!`. Errors stay local to the entities around them; fix by upgrading the grammar or contributing upstream, then remove the entries.
+
+### IMP-003: Keep identities through files the parser refuses
+- **Priority**: low
+- **Epic**: EPIC-002
+- **Status**: open
+- **Found**: 2026-10-25, PR #7
+- **Plan**: -
+- **Description**: A file refused for its size or depth is recorded as absent, so its entities are tombstoned and a later version that parses gets new ids. Carrying the previous map unchanged while the file is refused would keep identities through a temporarily oversized file, at the cost of maps that no longer describe the blob.
 
 ## Adjustments
 

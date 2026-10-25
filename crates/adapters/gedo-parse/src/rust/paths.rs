@@ -8,17 +8,8 @@ const CRATE_DIRECTORIES: &[&str] = &["src", "tests", "benches", "examples"];
 /// The module path of a file from its repository path: `crate` followed by the modules below the
 /// nearest crate directory.
 pub fn module_path(file_path: &str) -> String {
-    let components: Vec<&str> = file_path
-        .split(['/', '\\'])
-        .filter(|part| !part.is_empty())
-        .collect();
-    // A `tests/` directory inside `src/` is a module, so `src/` wins over the other directories.
-    let root = components.iter().rposition(|part| *part == "src").or_else(|| {
-        components
-            .iter()
-            .rposition(|part| CRATE_DIRECTORIES.contains(part))
-    });
-    let Some(root) = root else {
+    let components = path_components(file_path);
+    let Some(root) = crate_directory(&components) else {
         return "crate".to_owned();
     };
     let below = &components[root + 1..];
@@ -50,6 +41,49 @@ pub fn module_path(file_path: &str) -> String {
         .chain(modules)
         .collect::<Vec<_>>()
         .join("::")
+}
+
+/// The repository path of a file's compilation unit: the nearest crate directory, followed by the
+/// target's name for a target of its own (`tests/transport.rs` is `tests/transport`,
+/// `src/bin/tool/main.rs` is `src/bin/tool`); the file's directory when there is no crate
+/// directory (research R4 of `specs/003-node-identity`).
+pub fn unit_of(file_path: &str) -> String {
+    let components = path_components(file_path);
+    let Some(root) = crate_directory(&components) else {
+        return components[..components.len().saturating_sub(1)].join("/");
+    };
+    let base = components[..=root].join("/");
+    let below = &components[root + 1..];
+    let target = match (components[root], below) {
+        ("src", ["bin", file]) => Some(format!("bin/{}", file.strip_suffix(".rs").unwrap_or(file))),
+        ("src", ["bin", directory, _, ..]) => Some(format!("bin/{directory}")),
+        ("tests" | "benches" | "examples", [file]) => {
+            Some(file.strip_suffix(".rs").unwrap_or(file).to_owned())
+        }
+        ("tests" | "benches" | "examples", [directory, "main.rs"]) => Some((*directory).to_owned()),
+        _ => None,
+    };
+    match target {
+        Some(target) => format!("{base}/{target}"),
+        None => base,
+    }
+}
+
+fn path_components(file_path: &str) -> Vec<&str> {
+    file_path
+        .split(['/', '\\'])
+        .filter(|part| !part.is_empty())
+        .collect()
+}
+
+/// Index of the nearest crate directory. A `tests/` directory inside `src/` is a module, so `src/`
+/// wins over the other directories.
+fn crate_directory(components: &[&str]) -> Option<usize> {
+    components.iter().rposition(|part| *part == "src").or_else(|| {
+        components
+            .iter()
+            .rposition(|part| CRATE_DIRECTORIES.contains(part))
+    })
 }
 
 /// The qualified path of an `impl` block and the scope of its items.
@@ -114,7 +148,28 @@ fn is_word_char(character: char) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::module_path;
+    use super::{module_path, unit_of};
+
+    #[test]
+    fn units_are_crate_directories_and_targets() {
+        for (path, unit) in [
+            ("src/lib.rs", "src"),
+            ("src/a/b.rs", "src"),
+            ("crates/core/gedo-ast/src/hash.rs", "crates/core/gedo-ast/src"),
+            ("src/bin/tool.rs", "src/bin/tool"),
+            ("src/bin/tool/main.rs", "src/bin/tool"),
+            ("src/bin/tool/helper.rs", "src/bin/tool"),
+            ("tests/transport.rs", "tests/transport"),
+            ("tests/suite/main.rs", "tests/suite"),
+            ("tests/common/mod.rs", "tests"),
+            ("crates/x/benches/speed.rs", "crates/x/benches/speed"),
+            ("build.rs", ""),
+            ("crates/x/build.rs", "crates/x"),
+            ("crates\\x\\src\\lib.rs", "crates/x/src"),
+        ] {
+            assert_eq!(unit_of(path), unit, "{path}");
+        }
+    }
 
     #[test]
     fn crate_roots_are_crate() {

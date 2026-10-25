@@ -1,7 +1,7 @@
 <!-- dev-cycle-constitution
 generated-by: dev-cycle-protocol/constitution.py (do not edit; change a source and regenerate)
-sources-sha256: 2009bc44debce4f08153f21d47cfcb4416e39f40ab8ce45311765ad20608d3e1
-content-sha256: e41c6e122c98ab13d6089418ea34e07e25186e8878958014e411bd368e80345d
+sources-sha256: 35ed41e4492dbc5bbc9e62b6207c76a460799f804966aba3afad5c9a6895bd37
+content-sha256: 062a9618cf96f532dcb862b4baecff754a5213ba204341fc2fba5a2baf5758b9
 -->
 # gedo Constitution
 
@@ -198,6 +198,7 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - ADR-0008: Gedo data robust to history rewrites (`docs/adr/0008-gedo-data-robust-to-history-rewrites.md`)
 - ADR-0009: Semantic merge driver and shadow merge (`docs/adr/0009-semantic-merge-driver-and-shadow-merge.md`)
 - ADR-0010: Three tiers of real-time coordination and merge queue complement (`docs/adr/0010-three-tiers-of-real-time-coordination-and-merge-queue-comple.md`)
+- ADR-0012: Identity results are local derived data computed per commit (`docs/adr/0012-identity-results-are-local-derived-data-computed-per-commit.md`)
 
 ## Governance
 
@@ -205,4 +206,4 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - Amendments change the source, not this file: an ADR for decisions, the technical specification for requirements and constraints, `.dev-cycle.json` for the architecture style, the skills for principles. Then run `constitution.py generate` and commit the result with the change.
 - Gate 3 of the development cycle blocks a plan while this file is stale or edited by hand.
 
-**Version**: 1.2.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-24
+**Version**: 1.3.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-25

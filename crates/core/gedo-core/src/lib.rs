@@ -9,6 +9,7 @@ pub mod collection;
 #[cfg(feature = "contract-tests")]
 pub mod contract_tests;
 pub mod error;
+pub mod identity;
 pub mod ids;
 #[cfg(feature = "memory")]
 pub mod memory;
@@ -18,4 +19,7 @@ pub mod syntax;
 
 pub use collection::{Collection, MergeOutcome};
 pub use error::StoreError;
+pub use identity::{
+    AnchoredNode, AstNodeId, BlobAstMap, IdentityMerged, Location, MatchFormat, SemanticDelta,
+};
 pub use ids::{EntryId, GedoRefName, GitOid, ObjectHash};

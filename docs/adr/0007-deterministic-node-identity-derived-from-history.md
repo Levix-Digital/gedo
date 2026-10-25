@@ -8,7 +8,7 @@ subsystems: [identity, core]
 supersedes: []
 superseded_by: []
 amends: [2]
-amended_by: []
+amended_by: [12]
 ---
 
 # ADR-0007: Deterministic node identity derived from history

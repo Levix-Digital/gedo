@@ -134,6 +134,9 @@ fn parse_supported(
     Ok(ParsedFile {
         language,
         path: path.to_owned(),
+        unit: match language {
+            Language::Rust => rust::paths::unit_of(path),
+        },
         tokens,
         entities,
         has_error: tree.root_node().has_error(),

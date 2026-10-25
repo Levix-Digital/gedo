@@ -1,0 +1,34 @@
+[package]
+name = "gedo-app"
+description = "Gedo's use cases: the core logic that combines ports, free of I/O and infrastructure libraries."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+gedo-core.workspace = true
+gedo-ast.workspace = true
+blake3.workspace = true
+postcard.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+gedo-core = { workspace = true, features = ["memory"] }
+gedo-parse.workspace = true
+gedo-store.workspace = true
+proptest.workspace = true
+insta.workspace = true
+tempfile.workspace = true
+criterion.workspace = true
+
+[[bench]]
+name = "index_history"
+harness = false
+
+[lints]
+workspace = true
