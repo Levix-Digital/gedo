@@ -4,10 +4,10 @@ project: gedo
 title: Node identity
 kind: feature
 version: v0.2.0
-status: in_progress
+status: completed
 author: Levi Silveira
 created_at: '2026-10-25T07:53:15'
-updated_at: '2026-10-25T09:05:11'
+updated_at: '2026-10-25T13:15:15'
 session_id: null
 tags:
 - identity
@@ -51,7 +51,9 @@ milestones:
   done_at: '2026-10-25'
   by: Levi Silveira
 - name: M7 Documentation and acceptance
-  done: false
+  done: true
+  done_at: '2026-10-25'
+  by: Levi Silveira
 status_log:
 - at: '2026-10-25T07:53:15'
   by: Levi Silveira
@@ -83,6 +85,13 @@ status_log:
 - at: '2026-10-25T09:05:11'
   by: Levi Silveira
   note: Milestone 'M6 Identity corpus' completed
+- at: '2026-10-25T13:15:15'
+  by: Levi Silveira
+  note: 'Milestone ''M7 Documentation and acceptance'' completed: Merged in PR #7'
+- at: '2026-10-25T13:15:15'
+  by: Levi Silveira
+  status: completed
+  note: All milestones completed
 ---
 
 # Node identity

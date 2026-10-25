@@ -14,6 +14,13 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: parse_rust (2,000 lines) measured p95 14.1 ms on GitHub Actions windows-latest against 8.0 ms on ubuntu-latest and 8.3 ms in a 4-vCPU Linux container (SC-001 of specs/002-syntax-model: under 10 ms on the reference machine). On Linux, Tree-sitter's own parse is about 3.3 ms of 8 ms; the walk and normalization (many small String allocations) take the rest, which points at the Windows allocator. Measure on the reference machine first, then reduce allocations in the walk and normalization if it misses.
 
+### BUG-008: Reference update fails on Windows when a concurrent writer's lock file is being deleted
+- **Severity**: medium
+- **Status**: open
+- **Found**: 2026-10-25, PR #7 CI (test windows-latest)
+- **Plan**: -
+- **Description**: cas_stress failed once on windows-latest: gix reports 'Another IO error occurred while obtaining the lock: Access is denied' on .git/refs/gedo/<name>.lock. Windows refuses to create a file whose previous instance is pending deletion by another process, and gix does not treat that PermissionDenied as retryable, so compare_and_swap returns a backend error instead of waiting or returning Contended. Fix: in gedo-store refs.rs, treat a PermissionDenied I/O error while acquiring the lock as a busy lock on Windows (retry within REF_LOCK_WAIT_MS, then Contended).
+
 ## Features
 
 ### FEAT-008: SHA-256 repository support
@@ -23,46 +30,6 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Found**: 2026-10-24
 - **Plan**: -
 - **Description**: Support repositories using the SHA-256 object format (open question in the vision).
-
-### FEAT-011: Three-tier node matching
-- **Priority**: high
-- **Epic**: EPIC-002
-- **Status**: in_progress
-- **Found**: 2026-10-24
-- **Plan**: gedo_node_identity
-- **Description**: Exact match, signature and scope heuristics (80% threshold as a tuned constant) and spawn or tombstone fallback.
-
-### FEAT-012: Deterministic identity derivation and alias reconciliation
-- **Priority**: high
-- **Epic**: EPIC-002
-- **Status**: in_progress
-- **Found**: 2026-10-24
-- **Plan**: gedo_node_identity
-- **Description**: UUID v8 ids derived from content, versioned matching and IdentityMerged aliases at merge time (ADR-0007).
-
-### FEAT-013: Semantic delta emission
-- **Priority**: high
-- **Epic**: EPIC-002
-- **Status**: in_progress
-- **Found**: 2026-10-24
-- **Plan**: gedo_node_identity
-- **Description**: NodeCreated, NodeMoved, NodeRenamed, SignatureMutated, BodyModified and NodeTombstoned deltas.
-
-### FEAT-014: Reference identity corpus and benchmarks
-- **Priority**: high
-- **Epic**: EPIC-002
-- **Status**: in_progress
-- **Found**: 2026-10-24
-- **Plan**: gedo_node_identity
-- **Description**: Corpus of renames, moves and formatter runs measuring accuracy (95% target) and determinism across machines.
-
-### FEAT-015: Indexing of history made without Gedo
-- **Priority**: high
-- **Epic**: EPIC-002
-- **Status**: in_progress
-- **Found**: 2026-10-24
-- **Plan**: gedo_node_identity
-- **Description**: Index existing repositories and commits made by teammates without Gedo, with the same ids on every machine.
 
 ### FEAT-017: TypeScript support
 - **Priority**: medium
@@ -1243,3 +1210,48 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: gedo_syntax_model_review_fixes
 - **Closed**: 2026-10-24, plan gedo_syntax_model_review_fixes
 - **Description**: No test produces ParseError::Timeout or its tracing event, although T027 is ticked as covering it. Make the deadline injectable and test it with a zero duration.
+
+### FEAT-011: Three-tier node matching
+- **Priority**: high
+- **Epic**: EPIC-002
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_node_identity
+- **Closed**: 2026-10-25, plan gedo_node_identity
+- **Description**: Exact match, signature and scope heuristics (80% threshold as a tuned constant) and spawn or tombstone fallback.
+
+### FEAT-012: Deterministic identity derivation and alias reconciliation
+- **Priority**: high
+- **Epic**: EPIC-002
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_node_identity
+- **Closed**: 2026-10-25, plan gedo_node_identity
+- **Description**: UUID v8 ids derived from content, versioned matching and IdentityMerged aliases at merge time (ADR-0007).
+
+### FEAT-013: Semantic delta emission
+- **Priority**: high
+- **Epic**: EPIC-002
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_node_identity
+- **Closed**: 2026-10-25, plan gedo_node_identity
+- **Description**: NodeCreated, NodeMoved, NodeRenamed, SignatureMutated, BodyModified and NodeTombstoned deltas.
+
+### FEAT-014: Reference identity corpus and benchmarks
+- **Priority**: high
+- **Epic**: EPIC-002
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_node_identity
+- **Closed**: 2026-10-25, plan gedo_node_identity
+- **Description**: Corpus of renames, moves and formatter runs measuring accuracy (95% target) and determinism across machines.
+
+### FEAT-015: Indexing of history made without Gedo
+- **Priority**: high
+- **Epic**: EPIC-002
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_node_identity
+- **Closed**: 2026-10-25, plan gedo_node_identity
+- **Description**: Index existing repositories and commits made by teammates without Gedo, with the same ids on every machine.
