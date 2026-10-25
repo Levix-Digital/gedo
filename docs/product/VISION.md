@@ -25,7 +25,7 @@ Today teams cope with conventions (small pull requests, "who is touching X?" mes
 
 ## Target Users
 
-- **Levix Digital development team (primary).** Daily users of Rust, TypeScript and Python, working on several products in parallel. They want fewer and earlier conflicts, a precise per-symbol history and the ability to move a function with its dependencies between work streams, without changing their hosting (GitHub) or their teammates' tools. They increasingly delegate work to several coding agents running in parallel on the same repository, and want those agents coordinated like teammates without managing worktrees by hand. Gedo is built and dogfooded by this team first.
+- **Levix Digital development team (primary).** Daily users of Rust, TypeScript and Python, working on several products in parallel. They want fewer and earlier conflicts, a precise per-symbol history and the ability to move a function with its dependencies between work streams, without changing their hosting (GitHub) or their teammates' tools. They increasingly delegate work to several coding agents running in parallel on the same repository, and want those agents coordinated like teammates without managing worktrees by hand. They run these agents through the Levix dev-cycle protocol, which drives Gedo through its CLI and `--json` output and tags streams and events with its plans and milestones. Gedo is built and dogfooded by this team first.
 - **Small and medium development teams, any stack (later).** Teams of roughly 2 to 50 developers on GitHub, GitLab or self-hosted Git. They want semantic collaboration without migrating away from Git, without a new server to operate and without forcing every collaborator to install a new tool.
 
 ## Value Proposition
@@ -45,7 +45,7 @@ Today teams cope with conventions (small pull requests, "who is touching X?" mes
 
 ## Business Model
 
-Open source, no revenue intended. Dual-licensed under MIT and Apache-2.0, the convention of the Rust ecosystem. The repository starts **private** and is opened once Gedo has enough traction that contributing upstream is more attractive than forking; until then the license is in place but nothing is distributed. The name and logo "Gedo" are protected by a trademark policy so that forks cannot present themselves as the project.
+Open core. Gedo itself is open source and complete: everything that works on one machine and through plain Git remotes (the store, node identity, the merge driver, lockfiles, virtual streams and agent streams, the CLI, the daemon, the GitHub Action and a self-hostable relay) stays free, with no feature held back for a paid tier. Revenue, if any, comes from separate Levix products built on top of Gedo and the dev-cycle protocol (a managed relay, a team dashboard, enterprise hosting and compliance reporting); they live outside this repository and use Gedo only through its public surfaces (`--json` output, `refs/gedo/*` and the relay protocol). Dual-licensed under MIT and Apache-2.0, the convention of the Rust ecosystem. The repository starts **private** and is opened once Gedo has enough traction that contributing upstream is more attractive than forking; until then the license is in place but nothing is distributed. The name and logo "Gedo" are protected by a trademark policy so that forks cannot present themselves as the project.
 
 Costs that matter: CI minutes while the repository is private (Windows minutes count double there; the repository is public now, so standard runners, macOS included, are free), code-signing certificates for released binaries, and the development time of a small team.
 
@@ -88,7 +88,7 @@ The complete product, as capabilities:
 
 - Replacing GitHub, GitLab, their pull requests or their merge queues; Gedo works alongside and complements them.
 - A mandatory proprietary or self-hosted server; the relay stays optional and everything works without it.
-- A graphical client of its own; the surfaces are the CLI and IDE extensions.
+- A graphical client of its own; the surfaces are the CLI and IDE extensions. A team dashboard, if built, is a separate Levix product that reads Gedo's data.
 - Real-time co-editing in the style of Google Docs; live pair programming is a distant, separate capability, not part of the core.
 - Writing metadata, UUIDs or helper files into the working tree or into source files.
 - Changing the content or meaning of `refs/heads/*`.
