@@ -83,6 +83,17 @@ pub fn decode<T: DeserializeOwned>(bytes: &[u8], source: &str) -> Result<T, Stor
     RecordEnvelope::decode(bytes, &[FORMAT], source)?.unwrap(source)
 }
 
+/// Decodes a map and checks its invariants, so a damaged record never reaches matching.
+pub fn decode_map(bytes: &[u8], source: &str) -> Result<BlobAstMap, StoreError> {
+    let map: BlobAstMap = decode(bytes, source)?;
+    map.check().map_err(|reason| StoreError::Corrupted {
+        path: source.to_owned(),
+        offset: None,
+        reason,
+    })?;
+    Ok(map)
+}
+
 /// A map's encoding and digest.
 pub fn encode_map(map: &BlobAstMap) -> Result<(MapDigest, Vec<u8>), StoreError> {
     let bytes = encode(map)?;
@@ -126,12 +137,52 @@ mod tests {
         ));
     }
 
+    #[test]
+    fn maps_that_break_their_invariants_are_refused() {
+        use gedo_core::identity::{AnchoredNode, AstNodeId, MatchFormat};
+        use gedo_core::syntax::{EntityKind, HashFormat, Language, StructuralHash};
+        let node = AnchoredNode {
+            id: AstNodeId([1; 16]),
+            kind: EntityKind::Function,
+            name: "f".into(),
+            qualified_path: "crate::f".into(),
+            occurrence: 0,
+            byte_range: None,
+            container: None,
+            structural_hash: StructuralHash([0; 32]),
+            signature_hash: StructuralHash([0; 32]),
+            body_hash: StructuralHash([0; 32]),
+            has_error: false,
+        };
+        let map = BlobAstMap {
+            source_blob: GitOid::from_bytes(&[2; 20]).expect("valid id"),
+            path: "src/lib.rs".into(),
+            unit: String::new(),
+            language: Language::Rust,
+            hash_format: HashFormat::V1,
+            match_format: MatchFormat::V1,
+            nodes: vec![node.clone()],
+            has_error: false,
+        };
+        let (_, bytes) = encode_map(&map).expect("encodes");
+        assert_eq!(decode_map(&bytes, "test").expect("valid"), map);
+        let duplicated = BlobAstMap {
+            nodes: vec![node.clone(), node],
+            ..map
+        };
+        let (_, bytes) = encode_map(&duplicated).expect("encodes");
+        assert!(matches!(
+            decode_map(&bytes, "test"),
+            Err(StoreError::Corrupted { .. })
+        ));
+    }
+
     proptest! {
         #[test]
         fn arbitrary_bytes_never_panic(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
             let _record = decode::<CommitRecord>(&bytes, "fuzz");
             let _checkpoint = decode::<Checkpoint>(&bytes, "fuzz");
-            let _map = decode::<BlobAstMap>(&bytes, "fuzz");
+            let _map = decode_map(&bytes, "fuzz");
         }
     }
 }

@@ -37,7 +37,7 @@ The repository must use SHA-1 object ids; a SHA-256 repository is refused with `
 
 ### Commit-chain collections
 
-A collection (`tapes`, `ast-map`, `threads`, ...) is one reference, `refs/gedo/<collection>`, pointing to the head of a commit chain ([ADR-0011](../adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md)). Each commit's tree holds every entry of the collection in a two-level fan-out by entry id, `ab/cdef...`, as Git notes do; entry ids are lowercase hex. A write rewrites only the fan-out directories it touches, commits with the previous head as parent and the repository's configured identity (refused with `MissingIdentity` when there is none), then moves the reference by compare-and-swap. A lost race reloads the head and retries, up to 8 attempts, then returns `Contended`.
+A collection (`tapes`, `threads`, ...) is one reference, `refs/gedo/<collection>`, pointing to the head of a commit chain ([ADR-0011](../adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md)). Each commit's tree holds every entry of the collection in a two-level fan-out by entry id, `ab/cdef...`, as Git notes do; entry ids are lowercase hex. A write rewrites only the fan-out directories it touches, commits with the previous head as parent and the repository's configured identity (refused with `MissingIdentity` when there is none), then moves the reference by compare-and-swap. A lost race reloads the head and retries, up to 8 attempts, then returns `Contended`.
 
 Two chains that diverged are joined by a merge commit whose tree is the union of both; an entry id present on both sides with different content is reported as `Corrupted`, since entries are content-addressed.
 
@@ -57,6 +57,10 @@ All records are Postcard-encoded inside an envelope that starts with a `u16` for
 
 `.git/gedo/symbol_cache.db` is a redb database with a `meta` table holding the schema version and one table per namespace. It is derived data: when it is missing, unreadable or of another schema version it is rebuilt from the repository on open, into `symbol_cache.db.tmp` that replaces it only once complete, so an interrupted rebuild never opens as valid. The open status says whether the cache was ready or rebuilt, and why.
 
+The `identity` namespace holds the results of history indexing ([ADR-0012](../adr/0012-identity-results-are-local-derived-data-computed-per-commit.md)): `commit/<oid>` per indexed commit, `map/<digest>` per distinct `BlobAstMap`, `checkpoint/<oid>` every 64 first-parent commits and `merges`. They are not rebuilt from the repository on open: a missing or refused record is recomputed by indexing again.
+
+Tree entries carry their mode: regular and executable files, directories, symbolic links and submodules, written back exactly as read.
+
 ### Platform behavior
 
 On Windows, an operation on a file another program holds open (an antivirus, an indexer) is retried for up to 2 s before the error is returned. Reference updates wait up to 2 s for another writer's reference lock, then return `Contended` without writing anything.
@@ -75,6 +79,7 @@ On Windows, an operation on a file another program holds open (an antivirus, an 
 - [ADR-0002](../adr/0002-rust-workspace-with-gitoxide-tree-sitter-blake3-and-postcard.md): gitoxide, no Git subprocess in the store ([ADR-0006](../adr/0006-git-command-pass-through-with-hook-based-augmentation.md) allows it for the CLI pass-through, ADR-0011 for the push from the pre-push hook).
 - [ADR-0003](../adr/0003-git-object-store-as-the-canonical-datastore.md): the Git object store is the canonical datastore.
 - [ADR-0004](../adr/0004-redb-for-the-local-symbol-cache.md): redb for the local cache.
+- [ADR-0012](../adr/0012-identity-results-are-local-derived-data-computed-per-commit.md): identity results are local, in the cache, not in `refs/gedo/`.
 - [ADR-0005](../adr/0005-serverless-operation-with-git-remotes-as-the-only-transport.md): refspecs carry the data through Git remotes.
 - [ADR-0011](../adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md): commit chains, the `refs/gedo-remote/` fetch namespace, push without a push refspec.
 - [ADR-0008](../adr/0008-gedo-data-robust-to-history-rewrites.md): data robust to history rewrites.

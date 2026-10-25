@@ -34,13 +34,13 @@ Expected: the number of commits indexed; with a path, one line per entity of tha
 
 ## 4. Check a rename by hand
 
-Rename a function in a scratch branch, commit, and run step 3 with the file: the function keeps its id, and `--changes HEAD` lists a `renamed` delta for it.
+Rename a function in a scratch branch, commit, and run step 3 with the file: the function keeps its id, and `index_history -- . HEAD --changes` lists a `Renamed` delta for it (and `BodyModified` for its callers).
 
 ## 5. Benchmarks
 
 ```sh
 cargo bench -p gedo-ast --bench match_change -- --quick
-cargo bench -p gedo-app --bench index_history -- --quick
+GEDO_BENCH_REPO=/path/to/ripgrep cargo bench -p gedo-app --bench index_history -- --quick
 ```
 
-Expected: matching a 2,000-line file under 5 ms at p95 (SC-004); time per commit and total for the indexed histories (SC-005).
+Expected: matching a 2,000-line file under 5 ms at p95 (SC-004); time per commit (p95 under 100 ms) and total for the generated history and, with `GEDO_BENCH_REPO` set to a full clone, a real one (SC-005; CI uses ripgrep 14.1.1).

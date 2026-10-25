@@ -8,7 +8,7 @@
 //! which branches are indexed and on whatever machine.
 
 mod diff;
-mod records;
+pub mod records;
 mod walk;
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
@@ -573,7 +573,7 @@ impl<'a, O: ObjectStore, P: Parser + Sync, C: SymbolCache> IdentityIndex<'a, O, 
                     reason: "a commit record names a map that is missing".into(),
                 },
             })?;
-        records::decode(&bytes, "identity map").context(|| "decode a map".into())
+        records::decode_map(&bytes, "identity map").context(|| "decode a map".into())
     }
 
     /// Every Rust file of an indexed commit: the nearest checkpoint along first parents, then the

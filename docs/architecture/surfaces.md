@@ -10,7 +10,7 @@ The gedo CLI, the gedod daemon and the use cases they call.
 
 ## Responsibilities
 
-- `gedo-app` (core): one use case per user action: `init`, ingest a file change, `publish`, `trace`, `graft`, `delta`, `radar`, `stream`, `doctor`, merge a file (merge driver), shadow merge, sync after a Git event (commit, checkout, merge, rewrite, push), and later `inbox`, `accept`, `peek`, `playback`, `recover`, `undo`, `stack`.
+- `gedo-app` (core): one use case per user action: `init`, ingest a file change, `publish`, `trace`, `graft`, `delta`, `radar`, `stream`, `doctor`, merge a file (merge driver), shadow merge, sync after a Git event (commit, checkout, merge, rewrite, push), and later `inbox`, `accept`, `peek`, `playback`, `recover`, `undo`, `stack`. The first one built is the indexing of history (`IdentityIndex`, see [Node Identity](identity.md)), which `init` and the sync after a fetch will call.
 - `gedo-cli`: the `gedo` binary; dispatches each invocation to a use case or passes it through to Git, and renders results.
 - `gedod`: the background daemon; watches the file system, and on each save calls the ingest use case (parse, identity, WAL); fetches the tracked remote branches in the background and runs the shadow merge.
 - A GitHub Action (after the MVP): semantic diff and contract checks on pull requests, re-attachment after server-side merges, merge queue checks.

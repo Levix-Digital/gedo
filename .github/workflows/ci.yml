@@ -26,6 +26,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The identity snapshot of the repository's own history needs every commit.
+          fetch-depth: 0
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -87,11 +90,20 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      - name: Clone the reference history (ripgrep 14.1.1)
+        shell: bash
+        run: |
+          git clone --quiet --branch 14.1.1 https://github.com/BurntSushi/ripgrep "$RUNNER_TEMP/ripgrep"
+          test "$(git -C "$RUNNER_TEMP/ripgrep" rev-parse HEAD)" = 4649aa9700619f94cf9c66876e9549d83420e16c
       - name: Benchmarks
         shell: bash
+        env:
+          GEDO_BENCH_REPO: ${{ runner.temp }}/ripgrep
         run: |
           cargo bench -p gedo-store --bench wal_append -- --quick | tee bench-output.txt
           cargo bench -p gedo-parse --bench parse_rust -- --quick | tee -a bench-output.txt
+          cargo bench -p gedo-ast --bench match_change -- --quick | tee -a bench-output.txt
+          cargo bench -p gedo-app --bench index_history -- --quick | tee -a bench-output.txt
       - uses: actions/upload-artifact@v4
         with:
           name: bench-${{ matrix.os }}

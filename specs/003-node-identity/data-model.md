@@ -19,7 +19,7 @@ Types live in `gedo-core` unless noted. Persisted values are encoded with postca
 ## AnchoredNode
 
 - `id: AstNodeId`
-- `kind: EntityKind`, `unit: String`, `qualified_path: String`, `occurrence: u32`
+- `kind: EntityKind`, `name: String` (the own name, for `Renamed`), `qualified_path: String`, `occurrence: u32` (the unit is the map's)
 - `byte_range: Option<ByteRange>`: `None` for a node carried while its file has a syntax error (research R8, `detached`)
 - `container: Option<u32>`: index of the enclosing node in the same map
 - `structural_hash`, `signature_hash`, `body_hash: StructuralHash`
@@ -29,11 +29,11 @@ Signature and body tokens are not stored: they are recomputed from the blob when
 
 ## BlobAstMap
 
-- `source_blob: GitOid`, `path: String`, `language: Language`
+- `source_blob: GitOid`, `path: String`, `unit: String`, `language: Language`
 - `hash_format: HashFormat`, `match_format: MatchFormat`
 - `nodes: Vec<AnchoredNode>` in source order (detached nodes last, by qualified path)
 - `has_error: bool`
-- Invariants: ids are unique within a map; containers precede their children; byte ranges are within the blob.
+- Invariants: ids are unique within a map; containers precede their children; placed nodes precede detached ones. `check()` verifies them, and a map decoded from the cache that fails them is refused as corrupted.
 - Identified in the cache by `map/<digest>`, where the digest is BLAKE3 of the encoded map, so identical maps are stored once.
 
 ## SemanticDelta
@@ -64,9 +64,9 @@ Ordered by variant (as listed), then by `id` (research R12):
 
 | Key | Value (format 1) |
 |---|---|
-| `commit/<oid hex>` | `CommitRecord { parents, files: Vec<(path, Option<map digest>)>, deltas, merges: Vec<IdentityMerged> }`: only the Rust files that changed against the first parent; `None` is a deletion |
+| `commit/<oid hex>` | `CommitRecord { parents, depth (first-parent distance to a root), files: Vec<(path, Option<map digest>)>, deltas, merges: Vec<IdentityMerged> }`: only the Rust files that changed against the first parent; `None` is a deletion |
 | `checkpoint/<oid hex>` | `Checkpoint { files: Vec<(path, map digest)> }`: every Rust file of the commit, written every 64 first-parent commits |
 | `map/<digest hex>` | `BlobAstMap` |
-| `aliases` | not stored; rebuilt from the `merges` of the commit records when the index opens |
+| `merges` | `MergeList { merges: Vec<IdentityMerged> }`: every identity merge, in the order recorded; the alias table is rebuilt from it when the index opens |
 
 State of one commit: indexed (its `commit/` record exists) or not. A record is written in one cache transaction with its new maps, after the records of all its parents.

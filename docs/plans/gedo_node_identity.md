@@ -105,6 +105,21 @@ Second and last feature of release v0.2.0 Node identity: every Rust code entity 
 - **Accuracy** (clarification 3, research R9): measured on seeded scripted edits of real code with known outcomes; real histories prove determinism.
 - **New core crate `gedo-app`** (research R1) with the indexing use case; no new port and no new third-party dependency.
 
+## Results
+
+Identity corpus (`gedo-app/tests/identity_corpus.rs`, 674 cases in 19 categories): 99.98% of identities preserved overall, at least 99.61% per category (formatter runs lowest), 0 false continuations out of 110. Weights 450/400/150 and threshold 800 kept (research R5).
+
+Benchmarks, Linux development container, release build:
+
+| Benchmark | Result | Target |
+|---|---|---|
+| `match_change`, 2,000-line file | p50 0.59 ms, p95 0.65 ms, p99 0.69 ms | p95 under 5 ms (SC-004) |
+| `index_history`, generated 60 commits | 76 ms in total; one commit p50 4.1 ms, p95 7.2 ms | recorded |
+| `index_history`, ripgrep 14.1.1 (2,025 commits) | 11.2 s in total, 2,267 files parsed; one commit p50 2.7 ms, p95 3.3 ms | one commit p95 under 100 ms (SC-005) |
+| `index_history`, Gedo (69 commits) | 0.28 s | recorded |
+
+Windows numbers come from the non-blocking bench job of CI.
+
 ## Backlog items
 
 ### FEAT-011: Three-tier node matching
