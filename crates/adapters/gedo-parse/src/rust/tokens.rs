@@ -3,8 +3,6 @@
 use gedo_core::syntax::TokenClass;
 use tree_sitter::Node;
 
-use super::kinds;
-
 /// Strict and reserved keywords, including those the grammar exposes as named leaves (`self`,
 /// `crate`, `mut`).
 const KEYWORDS: &[&str] = &[
@@ -78,12 +76,10 @@ pub fn classify(node: Node<'_>, parent: Option<Node<'_>>, text: &[u8], optional_
         b")" | b"]" | b"}" => TokenClass::CloseDelimiter,
         b"<" if is_generic_list(parent_kind) => TokenClass::OpenDelimiter,
         b">" if is_generic_list(parent_kind) => TokenClass::CloseDelimiter,
-        // A comma that ends its list without a closing delimiter after it (`where` clauses), or
-        // that separates match arms.
-        b"," if parent_kind == "match_arm" || node.next_sibling().is_none() => {
-            TokenClass::OptionalPunctuation
-        }
-        b";" if parent.is_some_and(kinds::is_jump_statement) => TokenClass::OptionalPunctuation,
+        // A comma that separates match arms. A comma that ends its list without a closing
+        // delimiter after it (`where` clauses) is made optional by the walk, which knows it is
+        // the last child, and so is the `;` of a jump statement that ends its block.
+        b"," if parent_kind == "match_arm" => TokenClass::OptionalPunctuation,
         b"," => TokenClass::Separator,
         _ if is_keyword(text) => TokenClass::Keyword,
         [first, ..] if first.is_ascii_alphanumeric() || *first == b'_' || !first.is_ascii() => {

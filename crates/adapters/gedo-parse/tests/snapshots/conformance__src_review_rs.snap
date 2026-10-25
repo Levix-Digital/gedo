@@ -1,0 +1,67 @@
+---
+source: crates/adapters/gedo-parse/tests/conformance.rs
+expression: "common::render(&common::syntax_map(&path, &source))"
+---
+language: rust
+hash_format: 1
+entities:
+  - kind: module
+    language_kind: mod_item
+    qualified_path: crate::review::imports
+    occurrence: 0
+    byte_range: 0..402
+    container: -
+    has_error: false
+    structural_hash: 8c5d8ceb8007627ee05418c4a14894bd54c6891566796e5bdc553a2262ab56d3
+    signature_hash: a89a4d601c27356d3a27d104465f27ab2dcd2d5d0cbe5bcc961fdb8c4ac365e9
+    body_hash: 77f52671802a039018cd231ab36c860a552d16f952785436e74bd882ae5e702e
+  - kind: function
+    language_kind: function_item
+    qualified_path: crate::review::imports::table
+    occurrence: 0
+    byte_range: 194..264
+    container: 0
+    has_error: false
+    structural_hash: 6ad9f97b149b1e3439e690ece1610424bec7e736f4af53992f03560ea5bf445a
+    signature_hash: 35ba033d1e29083b6704eb483302486c0fe4962cddf2d0dae270c6b6eb9fec1b
+    body_hash: 3b4900a87488cca1e83b7582d4b969edc323e18d3b5dd9e3f2e25ef83caee0e5
+  - kind: function
+    language_kind: function_item
+    qualified_path: crate::review::imports::sorted
+    occurrence: 0
+    byte_range: 270..400
+    container: 0
+    has_error: false
+    structural_hash: 4512ea9245fe150144873ebc3621723186d2f22c06ae33f0dcd7a8e4237563c3
+    signature_hash: cd2e79d4d8cbc7ccffc08c62231f27fc16f120e4d3f9d246c7b2b2cafa5dd2e1
+    body_hash: d6b98cda139aa9c7231e81000b3304383098942e1f20d310d3c5f7b3c005f83c
+  - kind: function
+    language_kind: function_item
+    qualified_path: crate::review::first
+    occurrence: 0
+    byte_range: 404..553
+    container: -
+    has_error: false
+    structural_hash: fdaa220337df1245e1967b5de24bc565658fb8cdf844257ad3e917827731ffca
+    signature_hash: 5e08c175c42da4e672a5c7806b12ff93127c1f4b5a1045d2b6f21a47213fcc46
+    body_hash: 5d2810a48a371e8236734648cb8a072f85b6ff58dc238a2ed063d7e42cb67083
+  - kind: function
+    language_kind: function_item
+    qualified_path: crate::review::early
+    occurrence: 0
+    byte_range: 555..660
+    container: -
+    has_error: false
+    structural_hash: 2ef973b6e354c9117b355b78c21f2c173b77a7952236888212d75558f08e09a8
+    signature_hash: fa63cedb93a32820dd893b08477534fccb46086b95540a11fc2e57c23c7b78bc
+    body_hash: a41c837d8ea8cccf5cf3d4af1101fcbba948e4ec1f8654478279673face62561
+  - kind: function
+    language_kind: function_item
+    qualified_path: crate::review::spin
+    occurrence: 0
+    byte_range: 662..707
+    container: -
+    has_error: false
+    structural_hash: f6998eceb1172983dbd0649deed1cd1d02098ca32bfd3ddc4ce9dd943a49f8fc
+    signature_hash: 806846e7ee956322e151117dccea87e59f336b5a2b6491bf273f9cffcdc5433a
+    body_hash: 41c82260b2e54ad412ff16818a7cd436ef4b35546a08e369576a78bd1572b3ec

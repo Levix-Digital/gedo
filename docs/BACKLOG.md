@@ -14,54 +14,6 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: parse_rust (2,000 lines) measured p95 14.1 ms on GitHub Actions windows-latest against 8.0 ms on ubuntu-latest and 8.3 ms in a 4-vCPU Linux container (SC-001 of specs/002-syntax-model: under 10 ms on the reference machine). On Linux, Tree-sitter's own parse is about 3.3 ms of 8 ms; the walk and normalization (many small String allocations) take the rest, which points at the Windows allocator. Measure on the reference machine first, then reduce allocations in the walk and normalization if it misses.
 
-### BUG-002: Parser walk is quadratic on long comma lists and has no deadline
-- **Severity**: high
-- **Epic**: EPIC-003
-- **Status**: open
-- **Found**: 2026-10-24, PR #3 review
-- **Plan**: -
-- **Description**: tokens.rs calls next_sibling() for every comma, which costs O(siblings) in Tree-sitter, so a long list is O(n^2): a 1.6 MB flat array takes 0.9 s to parse and 6.5 s to walk. The 2 s timeout covers only the Tree-sitter parse, so a file near the 16 MiB limit hangs the caller (FR-012, parser contract guarantees 6 and 7). Fix: read the next sibling from the cursor and put the walk under the same deadline; regression test with a large flat array.
-
-### BUG-003: One-element tuple comma dropped by the structural hash
-- **Severity**: high
-- **Epic**: EPIC-003
-- **Status**: open
-- **Found**: 2026-10-24, PR #3 review
-- **Plan**: -
-- **Description**: The comma before a closing delimiter is dropped, so (a,) and (a) hash the same, as do (u8,) and (u8) and the pattern (a,). Breaks SC-003 and US2 scenario 4 of specs/002-syntax-model. Fix: the comma of a single-element tuple expression, type or pattern is Punctuation; must land before feature 003 stores hashes.
-
-### BUG-004: Sorting the items of a use list changes the structural hash
-- **Severity**: high
-- **Epic**: EPIC-003
-- **Status**: open
-- **Found**: 2026-10-24, PR #3 review
-- **Plan**: -
-- **Description**: Only whole use declarations are order-insensitive; rustfmt with default settings also sorts the items inside use std::{io, fmt}, which changes the hash of the enclosing module or function. Breaks SC-002 and US2 scenario 1, contradicts research R5. Fix: make use-list items order-insensitive and add an unsorted use list to the formatter fixtures; must land before feature 003 stores hashes.
-
-### BUG-005: Syntax error in an attached attribute does not flag the entity
-- **Severity**: medium
-- **Epic**: EPIC-003
-- **Status**: open
-- **Found**: 2026-10-24, PR #3 review
-- **Plan**: -
-- **Description**: has_error comes only from the item node, but the entity's tokens include its attached attributes and comments: #[derive(Debug] on a struct leaves the struct unflagged while its hash includes the broken attribute. Breaks parser contract guarantee 5 and FR-011. Fix: OR the error flag of the prefix nodes into the entity.
-
-### BUG-006: Semicolon after a mid-block return is treated as optional
-- **Severity**: medium
-- **Epic**: EPIC-003
-- **Status**: open
-- **Found**: 2026-10-24, PR #3 review
-- **Plan**: -
-- **Description**: The ; after return, break or continue is optional anywhere, so fn f() { return; g() } and fn f() { return g() } hash the same. Research R5 justifies it only for a jump that ends a block. Fix: optional only when the statement is the last of its block.
-
-### BUG-007: Wrong module paths in multi-file binaries
-- **Severity**: low
-- **Epic**: EPIC-003
-- **Status**: open
-- **Found**: 2026-10-24, PR #3 review
-- **Plan**: -
-- **Description**: src/bin/tool/helper.rs gets crate::bin::tool::helper instead of crate::helper; examples/<dir>/ and benches/<dir>/ crates have the same shape. Paths become identities in feature 003, so fix before it.
-
 ## Features
 
 ### FEAT-008: SHA-256 repository support
@@ -1002,14 +954,6 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Constructs the Rust grammar does not parse, found by `cargo xtask parse-sweep` and listed in `crates/adapters/gedo-parse/tests/known_grammar_gaps.toml`: `pub type` in `extern` blocks, `unsafe extern` with `safe fn`, `(): Trait` bounds, `name @ (A | B)`, `where` on unit structs, `$` or `,` as literal matcher tokens, raw strings in nested macro token trees, attributes on struct expression fields and the edition 2015 `try!`. Errors stay local to the entities around them; fix by upgrading the grammar or contributing upstream, then remove the entries.
 
-### IMP-002: Test the parse timeout path
-- **Priority**: low
-- **Epic**: EPIC-003
-- **Status**: open
-- **Found**: 2026-10-24, PR #3 review
-- **Plan**: -
-- **Description**: No test produces ParseError::Timeout or its tracing event, although T027 is ticked as covering it. Make the deadline injectable and test it with a zero duration.
-
 ## Adjustments
 
 ## Epics
@@ -1228,3 +1172,66 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: gedo_store_foundation
 - **Closed**: 2026-10-24, plan gedo_store_foundation
 - **Description**: Build, tests, benchmarks, check_design.py, cargo-deny and cargo-audit on every pull request on both platforms.
+
+### BUG-002: Parser walk is quadratic on long comma lists and has no deadline
+- **Severity**: high
+- **Epic**: EPIC-003
+- **Status**: done
+- **Found**: 2026-10-24, PR #3 review
+- **Plan**: gedo_syntax_model_review_fixes
+- **Closed**: 2026-10-24, plan gedo_syntax_model_review_fixes
+- **Description**: tokens.rs calls next_sibling() for every comma, which costs O(siblings) in Tree-sitter, so a long list is O(n^2): a 1.6 MB flat array takes 0.9 s to parse and 6.5 s to walk. The 2 s timeout covers only the Tree-sitter parse, so a file near the 16 MiB limit hangs the caller (FR-012, parser contract guarantees 6 and 7). Fix: read the next sibling from the cursor and put the walk under the same deadline; regression test with a large flat array.
+
+### BUG-003: One-element tuple comma dropped by the structural hash
+- **Severity**: high
+- **Epic**: EPIC-003
+- **Status**: done
+- **Found**: 2026-10-24, PR #3 review
+- **Plan**: gedo_syntax_model_review_fixes
+- **Closed**: 2026-10-24, plan gedo_syntax_model_review_fixes
+- **Description**: The comma before a closing delimiter is dropped, so (a,) and (a) hash the same, as do (u8,) and (u8) and the pattern (a,). Breaks SC-003 and US2 scenario 4 of specs/002-syntax-model. Fix: the comma of a single-element tuple expression, type or pattern is Punctuation; must land before feature 003 stores hashes.
+
+### BUG-004: Sorting the items of a use list changes the structural hash
+- **Severity**: high
+- **Epic**: EPIC-003
+- **Status**: done
+- **Found**: 2026-10-24, PR #3 review
+- **Plan**: gedo_syntax_model_review_fixes
+- **Closed**: 2026-10-24, plan gedo_syntax_model_review_fixes
+- **Description**: Only whole use declarations are order-insensitive; rustfmt with default settings also sorts the items inside use std::{io, fmt}, which changes the hash of the enclosing module or function. Breaks SC-002 and US2 scenario 1, contradicts research R5. Fix: make use-list items order-insensitive and add an unsorted use list to the formatter fixtures; must land before feature 003 stores hashes.
+
+### BUG-005: Syntax error in an attached attribute does not flag the entity
+- **Severity**: medium
+- **Epic**: EPIC-003
+- **Status**: done
+- **Found**: 2026-10-24, PR #3 review
+- **Plan**: gedo_syntax_model_review_fixes
+- **Closed**: 2026-10-24, plan gedo_syntax_model_review_fixes
+- **Description**: has_error comes only from the item node, but the entity's tokens include its attached attributes and comments: #[derive(Debug] on a struct leaves the struct unflagged while its hash includes the broken attribute. Breaks parser contract guarantee 5 and FR-011. Fix: OR the error flag of the prefix nodes into the entity.
+
+### BUG-006: Semicolon after a mid-block return is treated as optional
+- **Severity**: medium
+- **Epic**: EPIC-003
+- **Status**: done
+- **Found**: 2026-10-24, PR #3 review
+- **Plan**: gedo_syntax_model_review_fixes
+- **Closed**: 2026-10-24, plan gedo_syntax_model_review_fixes
+- **Description**: The ; after return, break or continue is optional anywhere, so fn f() { return; g() } and fn f() { return g() } hash the same. Research R5 justifies it only for a jump that ends a block. Fix: optional only when the statement is the last of its block.
+
+### BUG-007: Wrong module paths in multi-file binaries
+- **Severity**: low
+- **Epic**: EPIC-003
+- **Status**: done
+- **Found**: 2026-10-24, PR #3 review
+- **Plan**: gedo_syntax_model_review_fixes
+- **Closed**: 2026-10-24, plan gedo_syntax_model_review_fixes
+- **Description**: src/bin/tool/helper.rs gets crate::bin::tool::helper instead of crate::helper; examples/<dir>/ and benches/<dir>/ crates have the same shape. Paths become identities in feature 003, so fix before it.
+
+### IMP-002: Test the parse timeout path
+- **Priority**: low
+- **Epic**: EPIC-003
+- **Status**: done
+- **Found**: 2026-10-24, PR #3 review
+- **Plan**: gedo_syntax_model_review_fixes
+- **Closed**: 2026-10-24, plan gedo_syntax_model_review_fixes
+- **Description**: No test produces ParseError::Timeout or its tracing event, although T027 is ticked as covering it. Make the deadline injectable and test it with a zero duration.

@@ -197,3 +197,26 @@ fn trees_over_the_depth_limit_are_refused() {
             .is_ok()
     );
 }
+
+#[test]
+fn parses_over_the_time_limit_are_refused() {
+    let parser = TreeSitterParser::with_timeout(std::time::Duration::ZERO);
+    assert!(matches!(
+        parser.parse("src/lib.rs", b"fn f() {}\n"),
+        Err(ParseError::Timeout { limit_ms: 0, .. })
+    ));
+}
+
+#[test]
+fn a_syntax_error_in_an_attribute_flags_its_entity() {
+    let map = parse(
+        "src/lib.rs",
+        b"fn good() {}\n#[derive(Debug]\nstruct Broken;\nfn also_good() {}\n",
+    );
+    let flags: Vec<(&str, bool)> = map
+        .entities
+        .iter()
+        .map(|entity| (entity.name.as_str(), entity.has_error))
+        .collect();
+    assert_eq!(flags, [("good", false), ("Broken", true), ("also_good", false)]);
+}

@@ -86,8 +86,8 @@ fn is_unterminated_statement(node: Node<'_>) -> bool {
             .is_some_and(|last| last.kind() != ";")
 }
 
-/// Whether a statement is `return`, `break` or `continue` followed by `;`: a formatter adds or
-/// removes that `;` when the statement ends a block, so it is optional (research R5).
+/// Whether a statement is `return`, `break` or `continue`: a formatter adds or removes its `;`
+/// when the statement ends a block, so that `;` is optional there (research R5).
 pub fn is_jump_statement(node: Node<'_>) -> bool {
     node.kind() == "expression_statement"
         && node.named_child(0).is_some_and(|expression| {
@@ -109,4 +109,42 @@ fn is_expression(node_kind: &str) -> bool {
             | "macro_invocation_statement"
     ) && !node_kind.ends_with("_item")
         && !node_kind.ends_with("_declaration")
+}
+
+/// Whether a node is one item of a `use` list. Each item is an import of its own, so the order of
+/// the items carries no meaning (research R5).
+pub fn is_use_list_item(node: Node<'_>, parent: Option<Node<'_>>) -> bool {
+    node.is_named()
+        && !matches!(node.kind(), "line_comment" | "block_comment")
+        && parent.is_some_and(|parent| parent.kind() == "use_list")
+}
+
+/// A list with a single element, whose punctuation follows its own rules (research R5).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SingleElement {
+    /// A tuple expression, type or pattern: its comma is significant, `(a,)` is a tuple and `(a)`
+    /// is not.
+    Tuple,
+    /// A `use` list other than `{self}`: `rustfmt` removes its braces and comma, `std::{io}`
+    /// becomes `std::io`, so they are optional and the item is not an import of its own.
+    UseList,
+}
+
+/// Whether `node` is a list with a single element. It looks through the node's children once, so
+/// the walk asks it once per node.
+pub fn single_element(node: Node<'_>) -> Option<SingleElement> {
+    let shape = match node.kind() {
+        "tuple_expression" | "tuple_type" | "tuple_pattern" => SingleElement::Tuple,
+        "use_list" => SingleElement::UseList,
+        _ => return None,
+    };
+    let mut cursor = node.walk();
+    let mut elements = node
+        .named_children(&mut cursor)
+        .filter(|child| !matches!(child.kind(), "line_comment" | "block_comment" | "attribute_item"));
+    let only = elements.next()?;
+    if elements.next().is_some() || (shape == SingleElement::UseList && only.kind() == "self") {
+        return None;
+    }
+    Some(shape)
 }

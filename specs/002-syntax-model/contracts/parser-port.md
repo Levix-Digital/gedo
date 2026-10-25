@@ -19,7 +19,7 @@ Guarantees of every implementation:
 3. Tokens cover every leaf of the source in order, never overlap, and their byte ranges index the original bytes (a byte order mark is not a token).
 4. Each `RawEntity`'s token range starts at its first token (attributes and doc comments attached to it included) and ends at its last; nested entities' ranges are inside their container's.
 5. `has_error` is set on an entity if and only if its token range contains a syntax error.
-6. Limits are enforced before any work proportional to the input: `TooLarge` before parsing, `TooDeep` and `Timeout` without unbounded recursion or time.
+6. Limits are enforced before any work proportional to the input: `TooLarge` before parsing, `TooDeep` and `Timeout` without unbounded recursion or time. The time limit covers the parse and the walk that collects tokens and entities, and the walk is linear in the size of the tree.
 7. Never panics on any input.
 
 The adapter is tested against these guarantees with the conformance suite and property-based tests.
