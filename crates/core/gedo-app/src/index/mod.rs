@@ -45,6 +45,16 @@ pub enum IndexError {
         source: StoreError,
     },
 
+    /// The parser ran out of time on a file. Whether it does depends on the machine's speed, so no
+    /// result is recorded for the commit: indexing again with a longer time limit completes it.
+    #[error("parsing {path} ({blob}) timed out; index again with a longer parser time limit")]
+    ParseTimeout {
+        /// The file.
+        path: String,
+        /// Its blob.
+        blob: GitOid,
+    },
+
     /// A query named a commit that has not been indexed.
     #[error("commit {commit} is not indexed")]
     NotIndexed {
@@ -526,16 +536,26 @@ impl<'a, O: ObjectStore, P: Parser + Sync, C: SymbolCache> IdentityIndex<'a, O, 
         report: &mut IndexReport,
     ) -> Result<ParseResult, IndexError> {
         let key = (path.to_owned(), blob);
-        if let Some(result) = run.parses.get(&key) {
-            return Ok(result.clone());
+        let result = match run.parses.get(&key) {
+            Some(result) => result.clone(),
+            None => {
+                let bytes = self
+                    .objects
+                    .read_blob(&blob)
+                    .context(|| format!("read {path} ({blob})"))?;
+                report.files_parsed += 1;
+                let result = parse_one(self.parser, path, &bytes);
+                run.parses.insert(key, result.clone());
+                result
+            }
+        };
+        // Every other refusal depends only on the file; a timeout depends on the machine.
+        if let Err(ParseError::Timeout { .. }) = result {
+            return Err(IndexError::ParseTimeout {
+                path: path.to_owned(),
+                blob,
+            });
         }
-        let bytes = self
-            .objects
-            .read_blob(&blob)
-            .context(|| format!("read {path} ({blob})"))?;
-        report.files_parsed += 1;
-        let result = parse_one(self.parser, path, &bytes);
-        run.parses.insert(key, result.clone());
         Ok(result)
     }
 

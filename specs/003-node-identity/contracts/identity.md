@@ -51,7 +51,7 @@ impl IdentityIndex<'_, O, P, C> {
 pub struct IndexReport { pub commits_indexed: u64, pub commits_skipped: u64, pub files_parsed: u64, pub files_refused: Vec<(String, ParseError)> }
 ```
 
-`IndexError` wraps `StoreError` (with the commit and path being read) and reports `NotIndexed { commit }`. A file the parser refuses (`TooLarge`, `TooDeep`, `Timeout`) is listed in `files_refused`, logged, and treated as a non-Rust file for that commit; it never stops indexing. A record of an unknown format or a corrupted record is a `StoreError::UnsupportedFormat` or `Corrupted`; the caller may clear the namespace and index again.
+`IndexError` wraps `StoreError` (with the commit and path being read) and reports `NotIndexed { commit }` and `ParseTimeout { path, blob }`. A file the parser refuses for a reason of its own (`TooLarge`, `TooDeep`, `Internal`) is listed in `files_refused`, logged, and treated as a non-Rust file for that commit. A `Timeout` depends on the machine's speed, so it stops indexing with `ParseTimeout` before the commit is recorded (changed during implementation: recording it would make ids differ between machines); indexing again with a longer parser time limit completes it. A record of an unknown format or a corrupted record is a `StoreError::UnsupportedFormat` or `Corrupted`; the caller may clear the namespace and index again.
 
 Guarantees:
 

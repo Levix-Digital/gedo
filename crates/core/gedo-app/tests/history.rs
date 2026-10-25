@@ -136,6 +136,25 @@ fn indexing_again_writes_nothing_and_resumes_where_it_stopped() {
 }
 
 #[test]
+fn a_parse_timeout_stops_indexing_without_recording_the_commit() {
+    let linear = linear();
+    let slow = History {
+        objects: linear.history.objects,
+        parser: gedo_parse::TreeSitterParser::with_timeout(std::time::Duration::ZERO),
+    };
+    let mut cache = support::cache();
+    let mut index = IdentityIndex::open(&slow.objects, &slow.parser, &mut cache).expect("opens");
+    assert!(matches!(
+        index.index_history(&[linear.root]),
+        Err(gedo_app::IndexError::ParseTimeout { .. })
+    ));
+    assert!(matches!(
+        index.map_at(&linear.root, "src/lib.rs"),
+        Err(gedo_app::IndexError::NotIndexed { .. })
+    ));
+}
+
+#[test]
 fn unindexed_commits_are_reported() {
     let linear = linear();
     let mut cache = linear.history.index(&[&[linear.root]]);
