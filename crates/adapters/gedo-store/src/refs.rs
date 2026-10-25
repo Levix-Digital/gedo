@@ -63,7 +63,13 @@ impl GitRefStore {
             .refs
             .transaction()
             .prepare(Some(edit), wait, wait)
-            .map_err(ApplyError::Git)?;
+            .map_err(|error| {
+                if is_busy_lock(&error, cfg!(windows)) {
+                    ApplyError::Busy
+                } else {
+                    ApplyError::Git(error)
+                }
+            })?;
         transaction
             .commit(signature.to_ref(&mut time))
             .map_err(ApplyError::Git)?;
@@ -75,6 +81,7 @@ impl GitRefStore {
         let error = match result {
             Ok(()) => return Ok(RefOutcome::Updated),
             Err(ApplyError::Store(error)) => return Err(error),
+            Err(ApplyError::Busy) => return Err(contended(name)),
             Err(ApplyError::Git(error)) => error,
         };
         let actual = error
@@ -94,12 +101,7 @@ impl GitRefStore {
             return Ok(RefOutcome::Moved { current: None });
         }
         if error.is_retryable() {
-            // The lock stayed taken by other writers for the whole wait; nothing was written.
-            tracing::debug!(reference = %name, wait_ms = REF_LOCK_WAIT_MS, "reference lock still busy");
-            return Err(StoreError::Contended {
-                name: name.to_string(),
-                attempts: 1,
-            });
+            return Err(contended(name));
         }
         Err(StoreError::backend(
             "update reference",
@@ -110,7 +112,31 @@ impl GitRefStore {
 
 enum ApplyError {
     Store(StoreError),
+    /// The reference lock stayed busy for the whole wait; nothing was written.
+    Busy,
     Git(gix::Error),
+}
+
+/// The lock stayed taken by other writers for the whole wait; nothing was written.
+fn contended(name: &GedoRefName) -> StoreError {
+    tracing::debug!(reference = %name, wait_ms = REF_LOCK_WAIT_MS, "reference lock still busy");
+    StoreError::Contended {
+        name: name.to_string(),
+        attempts: 1,
+    }
+}
+
+/// Whether a failure to prepare an edit means another writer holds the lock.
+///
+/// gix retries a lock that already exists for the whole wait and reports a last failure of that
+/// kind as retryable. On Windows, the last attempt can instead meet a lock file another writer is
+/// deleting, which Windows refuses with `PermissionDenied`; that lock is busy as well. Elsewhere
+/// `PermissionDenied` is a real permission problem, which waiting does not fix.
+fn is_busy_lock(error: &gix::Error, on_windows: bool) -> bool {
+    on_windows
+        && error
+            .downcast_any_ref::<std::io::Error>()
+            .is_some_and(|io| io.kind() == std::io::ErrorKind::PermissionDenied)
 }
 
 fn full_name(name: &GedoRefName) -> Result<gix::refs::FullName, StoreError> {
@@ -226,5 +252,41 @@ impl RefStore for GitRefStore {
         };
         let result = self.apply(edit);
         self.outcome(name, result)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io;
+
+    use gix::error::{ErrorExt, message};
+
+    use super::is_busy_lock;
+
+    /// A lock failure as gix-lock reports it after its wait.
+    fn lock_failure(kind: io::ErrorKind) -> gix::Error {
+        io::Error::new(kind, "Access is denied. (os error 5)")
+            .and_raise(message("Another IO error occurred while obtaining the lock"))
+    }
+
+    #[test]
+    fn a_lock_file_being_deleted_is_a_busy_lock_on_windows() {
+        assert!(is_busy_lock(&lock_failure(io::ErrorKind::PermissionDenied), true));
+    }
+
+    #[test]
+    fn permission_denied_is_a_real_error_elsewhere() {
+        assert!(!is_busy_lock(
+            &lock_failure(io::ErrorKind::PermissionDenied),
+            false
+        ));
+    }
+
+    #[test]
+    fn other_io_errors_are_not_a_busy_lock() {
+        assert!(!is_busy_lock(&lock_failure(io::ErrorKind::NotFound), true));
+        assert!(!is_busy_lock(&lock_failure(io::ErrorKind::Other), true));
+        // A lock that still exists is gix's own retryable failure, not this rule's.
+        assert!(!is_busy_lock(&lock_failure(io::ErrorKind::AlreadyExists), true));
     }
 }

@@ -4,10 +4,10 @@ project: gedo
 title: Windows reference lock and parse performance fixes
 kind: bug
 version: v0.2.0
-status: active
+status: in_progress
 author: Levi Silveira
 created_at: '2026-10-25T13:31:27'
-updated_at: '2026-10-25T13:41:27'
+updated_at: '2026-10-25T13:43:06'
 session_id: null
 tags:
 - windows
@@ -22,7 +22,9 @@ backlog_items:
 - BUG-008
 milestones:
 - name: M1 Reference lock
-  done: false
+  done: true
+  done_at: '2026-10-25'
+  by: Levi Silveira
 - name: M2 Kind table
   done: false
 - name: M3 Allocations
@@ -42,6 +44,9 @@ status_log:
   by: Levi Silveira
   status: active
   note: Approved by Levi on 2026-10-25
+- at: '2026-10-25T13:43:06'
+  by: Levi Silveira
+  note: 'Milestone ''M1 Reference lock'' completed: is_busy_lock with unit tests; store.md updated'
 ---
 
 # Windows reference lock and parse performance fixes
