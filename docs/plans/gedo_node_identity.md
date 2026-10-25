@@ -120,6 +120,8 @@ Benchmarks, Linux development container, release build:
 
 Windows numbers come from the non-blocking bench job of CI.
 
+Fuzzing (`decode_identity_record`, SC-007): 10 minutes, 36.7 million runs, no crash.
+
 ## Backlog items
 
 ### FEAT-011: Three-tier node matching
