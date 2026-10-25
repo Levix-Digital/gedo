@@ -7,7 +7,7 @@ version: v0.2.0
 status: in_progress
 author: Levi Silveira
 created_at: '2026-10-25T13:31:27'
-updated_at: '2026-10-25T13:43:06'
+updated_at: '2026-10-25T14:08:16'
 session_id: null
 tags:
 - windows
@@ -26,9 +26,13 @@ milestones:
   done_at: '2026-10-25'
   by: Levi Silveira
 - name: M2 Kind table
-  done: false
+  done: true
+  done_at: '2026-10-25'
+  by: Levi Silveira
 - name: M3 Allocations
-  done: false
+  done: true
+  done_at: '2026-10-25'
+  by: Levi Silveira
 - name: M4 Reference machine and documentation
   done: false
 status_log:
@@ -47,6 +51,12 @@ status_log:
 - at: '2026-10-25T13:43:06'
   by: Levi Silveira
   note: 'Milestone ''M1 Reference lock'' completed: is_busy_lock with unit tests; store.md updated'
+- at: '2026-10-25T14:08:01'
+  by: Levi Silveira
+  note: 'Milestone ''M2 Kind table'' completed: Windows CI p95 15.6 to 13.5 ms'
+- at: '2026-10-25T14:08:16'
+  by: Levi Silveira
+  note: 'Milestone ''M3 Allocations'' completed: tokens moved into entities; normalize -20%'
 ---
 
 # Windows reference lock and parse performance fixes
@@ -139,3 +149,15 @@ One branch `fix/windows-lock-and-parse` from `main`, one pull request into `main
 4. M4 Reference machine and documentation: the benchmark on Levi's Windows machine, section 7, the checkers; then BUG-001 closes or goes to Levi as a decision.
 
 ## Results
+
+M3 was done with a smaller change than planned: instead of borrowing the token text (a `gedo-core` type change), `hash_entities` moves each normalized token into the one entity that owns it instead of copying it. No interface changes.
+
+`parse_rust`, 2,000 lines (p95; callgrind counts are one parse, normalize and hash):
+
+| Version | Callgrind (instructions) | Allocations (walk + normalize) | windows-latest p95 | ubuntu-latest container |
+|---|---|---|---|---|
+| `main` 6d2f534 | 189 M (walk 76 M, normalize 35 M) | 4,716 + 20,321 | 15.6 ms (run 40197160660) | p50 12.7 ms |
+| M2 kind table | 160 M (walk 47 M) | 4,716 + 20,321 | 13.5 ms, p50 12.4 ms (run 40199711582) | p50 10.1 to 10.7 ms |
+| M3 moved tokens | 154 M (normalize 28 M) | 4,716 + 12,275 | 13.5 ms, p50 12.0 ms (run 40200481745) | |
+
+What is left is mostly Tree-sitter's own parse (75 M instructions, about half), which Gedo does not control. BUG-008: `test (windows-latest)` green on each push of the pull request.
