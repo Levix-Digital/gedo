@@ -1,0 +1,86 @@
+---
+source: crates/core/gedo-app/tests/gedo_history.rs
+expression: text
+---
+crates/core/gedo-core/src/ids.rs crate::ids::ObjectHash 891a0eae-c881-89db-a80b-169f340b7b5c
+crates/core/gedo-core/src/ids.rs crate::ids::<impl ObjectHash> fb22df15-f319-8eb9-b15a-a828215d7ddf
+crates/core/gedo-core/src/ids.rs crate::ids::ObjectHash::len_bytes c7527b66-7ae3-8067-820e-685788530087
+crates/core/gedo-core/src/ids.rs crate::ids::ObjectHash::len_hex e5f94d60-21e6-8e12-b9cd-b9bb087aae0d
+crates/core/gedo-core/src/ids.rs crate::ids::ObjectHash::from_len_bytes de603c6a-b034-8cdd-8e95-84f72305fe90
+crates/core/gedo-core/src/ids.rs crate::ids::<ObjectHash as fmt::Display> 832aae47-0729-86a2-a146-e26108877eee
+crates/core/gedo-core/src/ids.rs crate::ids::<ObjectHash as fmt::Display>::fmt f0d8fd65-55e2-81ca-8bfe-29aa5b265155
+crates/core/gedo-core/src/ids.rs crate::ids::MAX_OID_BYTES 3af1ebe3-3293-8cb2-863e-e8a58edcaf74
+crates/core/gedo-core/src/ids.rs crate::ids::GitOid a2664daa-65b8-895b-921b-92f00fde8cde
+crates/core/gedo-core/src/ids.rs crate::ids::<impl GitOid> cffd91d6-7030-825c-8ac5-e898d492f068
+crates/core/gedo-core/src/ids.rs crate::ids::GitOid::from_bytes 13652c2f-3863-8c77-a821-a78ec2453d8d
+crates/core/gedo-core/src/ids.rs crate::ids::GitOid::from_hex 492fad37-dada-8d7d-ab6c-293011d076d6
+crates/core/gedo-core/src/ids.rs crate::ids::GitOid::object_hash 1f0865ed-f380-86ba-a509-b9c8ab58e3c2
+crates/core/gedo-core/src/ids.rs crate::ids::GitOid::as_bytes b21b10cd-77dd-8a61-a874-904c508641eb
+crates/core/gedo-core/src/ids.rs crate::ids::GitOid::to_hex 5771e5bc-bbf9-8c30-a5c2-95cce03d5414
+crates/core/gedo-core/src/ids.rs crate::ids::<GitOid as Ord> 77759f12-b1d0-8bf6-94a7-a8f204e33280
+crates/core/gedo-core/src/ids.rs crate::ids::<GitOid as Ord>::cmp 9894e067-f25d-8f6c-b8d6-a192fbcd4459
+crates/core/gedo-core/src/ids.rs crate::ids::<GitOid as PartialOrd> bad31b21-77e2-887f-9b1b-525b87cbdcc0
+crates/core/gedo-core/src/ids.rs crate::ids::<GitOid as PartialOrd>::partial_cmp 6b2efdb2-74fe-837c-a326-86d40c3eb199
+crates/core/gedo-core/src/ids.rs crate::ids::<GitOid as fmt::Display> 5fa7516a-7e3d-8723-9ce2-8b07402f111d
+crates/core/gedo-core/src/ids.rs crate::ids::<GitOid as fmt::Display>::fmt d758d42b-abce-836b-be05-a3d2a9bcfb8b
+crates/core/gedo-core/src/ids.rs crate::ids::<GitOid as fmt::Debug> 84cd3247-1080-8d13-9059-eb330e84256f
+crates/core/gedo-core/src/ids.rs crate::ids::<GitOid as fmt::Debug>::fmt e64c4cb5-4e72-8a1e-8424-90c983ed0f11
+crates/core/gedo-core/src/ids.rs crate::ids::<GitOid as FromStr> 2d0f63cb-0731-84df-bd2f-9ef003d8ff9b
+crates/core/gedo-core/src/ids.rs crate::ids::<GitOid as FromStr>::Err 387e0954-199d-8240-bb78-3c5dd2a97e09
+crates/core/gedo-core/src/ids.rs crate::ids::<GitOid as FromStr>::from_str 93e4b4cf-1661-8b4a-a329-845566943580
+crates/core/gedo-core/src/ids.rs crate::ids::MIN_ENTRY_ID_LEN 5aa1370c-87ae-8a5c-9c6b-cc50068b349d
+crates/core/gedo-core/src/ids.rs crate::ids::MAX_ENTRY_ID_LEN bac8bee4-0e98-84a9-adcf-7369b33246b5
+crates/core/gedo-core/src/ids.rs crate::ids::FAN_OUT_PREFIX_LEN 2f8a7f89-b892-8338-b8d6-debd9cd0f213
+crates/core/gedo-core/src/ids.rs crate::ids::EntryId a2d4806a-999e-8d7e-99df-d7c4f7e61e3d
+crates/core/gedo-core/src/ids.rs crate::ids::<impl EntryId> 7c0cda48-19fc-8710-9b4a-3401ed92cbbd
+crates/core/gedo-core/src/ids.rs crate::ids::EntryId::new c96b8ce8-2711-855b-8678-8df652b77595
+crates/core/gedo-core/src/ids.rs crate::ids::EntryId::as_str 3d67ac84-e408-860e-9066-fb514e6a1e09
+crates/core/gedo-core/src/ids.rs crate::ids::EntryId::fan_out 593d71fb-4d4b-85ba-8653-f6040b2130cd
+crates/core/gedo-core/src/ids.rs crate::ids::<EntryId as fmt::Display> 987fac0c-878a-8c3c-856f-9f16c9132e53
+crates/core/gedo-core/src/ids.rs crate::ids::<EntryId as fmt::Display>::fmt d3186e24-ed9d-80aa-8b1c-30b1665f3804
+crates/core/gedo-core/src/ids.rs crate::ids::GEDO_REF_PREFIX 2da1e41b-45dc-889c-9b1c-3c2afedb3fb3
+crates/core/gedo-core/src/ids.rs crate::ids::GEDO_REMOTE_REF_PREFIX d4e4bafb-51b6-8467-a39c-b8ca9d4b58c7
+crates/core/gedo-core/src/ids.rs crate::ids::GedoRefName f31912ed-c220-81cd-9921-b5441e0cc58a
+crates/core/gedo-core/src/ids.rs crate::ids::<impl GedoRefName> 3dafd486-c38c-8cb6-a535-51af1b05ba5c
+crates/core/gedo-core/src/ids.rs crate::ids::GedoRefName::new dba501e7-7f95-8a1f-bc33-ff0e6dd7966c
+crates/core/gedo-core/src/ids.rs crate::ids::GedoRefName::collection b53d1618-a6b1-8373-8e3a-af94d0b9f4b3
+crates/core/gedo-core/src/ids.rs crate::ids::GedoRefName::as_str e5c84634-1934-8f88-b31a-d0d8a433344e
+crates/core/gedo-core/src/ids.rs crate::ids::GedoRefName::short_name 84cf696b-e006-8f97-b0ab-4c8339c988a7
+crates/core/gedo-core/src/ids.rs crate::ids::GedoRefName::starts_with 2ea882b6-3471-855f-886d-6001b5b3b7fe
+crates/core/gedo-core/src/ids.rs crate::ids::<GedoRefName as fmt::Display> 93a91a03-c6b5-851d-94b6-865d24a8cddc
+crates/core/gedo-core/src/ids.rs crate::ids::<GedoRefName as fmt::Display>::fmt d9998a66-b3ae-8dfc-b296-723d6446a50f
+crates/core/gedo-core/src/ids.rs crate::ids::validate_remote_name e17672a2-efa1-815f-a06f-e340d36b9516
+crates/core/gedo-core/src/ids.rs crate::ids::validate_ref_components 8ab2a3cb-635c-8427-97f2-d24caf022697
+crates/core/gedo-core/src/ids.rs crate::ids::ParseIdError 91431551-8316-842e-8a03-59cbf9753117
+crates/core/gedo-core/src/ids.rs crate::ids::is_lowercase_hex 6b14a85e-64c9-8f5f-9265-e65baa24e179
+crates/core/gedo-core/src/ids.rs crate::ids::hex_value 5be1631f-eef8-85a9-a8f1-ff449eed0e90
+crates/core/gedo-core/src/ids.rs crate::ids::hex 6e03c8fc-4ef9-8544-8742-aff9b1dcd560
+crates/core/gedo-core/src/ids.rs crate::ids::hex::DIGITS 17d42323-1e47-8418-aa56-b26ed577cf18
+crates/core/gedo-core/src/ids.rs crate::ids::tests c0495476-7d17-850c-bb2a-e96c8b9c36d1
+crates/core/gedo-core/src/ids.rs crate::ids::tests::sha1_hex_round_trip 4aa6a30b-a118-868b-91af-cf91ade1b7df
+crates/core/gedo-core/src/ids.rs crate::ids::tests::sha256_ids_are_recognized b538a98f-846c-887d-a182-8c568c62d7f3
+crates/core/gedo-core/src/ids.rs crate::ids::tests::invalid_object_ids_are_refused 2b934caa-2f90-863c-b055-159584ee7708
+crates/core/gedo-core/src/ids.rs crate::ids::tests::ids_order_by_bytes b34283aa-1289-81f3-baa1-61fc6f648fac
+crates/core/gedo-core/src/ids.rs crate::ids::tests::entry_ids_fan_out_after_two_characters 9890415b-b836-8e5b-9c51-9ea12ed1a2b3
+crates/core/gedo-core/src/ids.rs crate::ids::tests::gedo_ref_names_stay_in_the_namespace 7045bef9-d071-8811-80e7-4cec6efb99ca
+crates/core/gedo-core/src/ids.rs crate::ids::tests::prefixes_match_whole_components c178d066-54c8-803b-8c08-4b5d80dd30aa
+crates/core/gedo-core/src/ids.rs crate::ids::tests::remote_names_cannot_escape_their_namespace 640c2f82-f8ca-88af-8aee-16e4a2d9d401
+crates/core/gedo-ast/src/hash.rs crate::hash::CONTEXT_V1 dd1e8ce6-6163-88b0-a599-92bdbcfd1ef9
+crates/core/gedo-ast/src/hash.rs crate::hash::PART_STRUCTURAL 7a260e66-0c70-8fcb-8062-7c9255638dfb
+crates/core/gedo-ast/src/hash.rs crate::hash::PART_SIGNATURE 1ff53c1b-6a82-8656-9762-f1c06e3f6197
+crates/core/gedo-ast/src/hash.rs crate::hash::PART_BODY 2303ce3a-b91b-84ba-b771-0e1d60fd6ae0
+crates/core/gedo-ast/src/hash.rs crate::hash::ITEM_NESTED 6610c505-8f51-8627-8b36-c2b4d0ac4313
+crates/core/gedo-ast/src/hash.rs crate::hash::ITEM_UNORDERED 5dcd7ca1-d3ff-8116-a641-ffa729f164a4
+crates/core/gedo-ast/src/hash.rs crate::hash::hash_entities 63892aad-f387-874d-af76-6d336dc2b5f3
+crates/core/gedo-ast/src/hash.rs crate::hash::HashedEntity 3eec455a-d06f-83df-aa22-e29614d1c935
+crates/core/gedo-ast/src/hash.rs crate::hash::direct_children ad99f5ba-623e-8fda-9e68-52426fa75e2a
+crates/core/gedo-ast/src/hash.rs crate::hash::is_order_insensitive b12a8422-e177-835f-b71c-359679adacdb
+crates/core/gedo-ast/src/hash.rs crate::hash::Part 2a791664-afb4-815a-8574-0f7789f26ce0
+crates/core/gedo-ast/src/hash.rs crate::hash::<impl Part> 3f5345b4-8921-87de-96ca-c741246d2d31
+crates/core/gedo-ast/src/hash.rs crate::hash::Part::new 2e7486d4-07ab-8ec1-b99f-ac1c0441ddaf
+crates/core/gedo-ast/src/hash.rs crate::hash::Part::push_token 6dd1f8cc-2729-850d-8f81-872706e0ac91
+crates/core/gedo-ast/src/hash.rs crate::hash::Part::push_nested 69fd082e-7212-837c-841a-b60fd6ebdb7d
+crates/core/gedo-ast/src/hash.rs crate::hash::Part::finish 5f723ba6-d858-881b-bad1-5e2b888f6608
+crates/core/gedo-ast/src/hash.rs crate::hash::hash_entity 3c7eaab8-0d68-87d2-9afd-f984d4f279ba
+crates/core/gedo-ast/src/hash.rs crate::hash::collect 0e4fea84-b1b9-8a42-ae42-c5a3907c1ba2
+deltas at ad25ac3fa3f8fb1b0c7c025bc699f3e626872f9d: 83
