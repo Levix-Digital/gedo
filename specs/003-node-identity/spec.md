@@ -55,7 +55,7 @@ Two developers index the same repository on different machines (Windows and Linu
 
 **Acceptance Scenarios**:
 
-1. **Given** a new entity, **When** it is first seen, **Then** its identity is derived only from its kind, its crate, its qualified path and its structural hash, so any machine derives the same one.
+1. **Given** a new entity, **When** it is first seen, **Then** its identity is derived only from its kind, its crate, its qualified path (with its occurrence) and its structural hash, so any machine derives the same one.
 2. **Given** a repository history, **When** it is indexed on Windows and on Linux, **Then** every entity of every indexed version has the same identity on both.
 3. **Given** a history with several branches, **When** it is indexed branch by branch in different orders, **Then** the identities are the same.
 4. **Given** two developers who independently create the same entity with the same content, **When** each indexes their own work, **Then** both get the same identity.
@@ -110,7 +110,7 @@ A team adopts Gedo on a repository with years of history, and some teammates kee
 1. **Given** a repository never indexed, **When** its history is indexed, **Then** every Rust entity in every indexed commit has an identity, and renames and moves across commits keep identities.
 2. **Given** commits fetched from a teammate who does not use Gedo, **When** they are indexed, **Then** the resulting identities are the ones the teammate would have obtained with Gedo running.
 3. **Given** an indexing interrupted part way, **When** it is resumed, **Then** the result is the same as an uninterrupted run.
-4. **Given** results already indexed on another machine and shared through the Gedo data of the remote, **When** a machine indexes the same history, **Then** it reuses them and they equal what it would compute.
+4. **Given** results already indexed on this machine, **When** indexing runs again, **Then** only commits without results are indexed; **Given** the local results are deleted or corrupted, **When** indexing runs again, **Then** it rebuilds them identical.
 
 ---
 
@@ -157,8 +157,8 @@ The project keeps a reference identity corpus of renames, moves, signature chang
 - **FR-007**: When two identities are found for what the matching considers one entity, the lower identity MUST be kept and the other recorded as its alias in an "identity merged" record; alias records MUST combine without conflict across machines, and lookups MUST resolve aliases, including chains.
 - **FR-008**: An entity flagged with a syntax error MUST NOT be tombstoned or re-created because of the error alone; matching MUST treat it so that the next valid version keeps the identity.
 - **FR-009**: Gedo MUST index Rust code from Git history alone (commits, trees and blobs), always the whole history from every root commit, without Gedo having run when the commits were made, and reach the same identities as live indexing of the same history.
-- **FR-010**: Indexing MUST be resumable and idempotent, and MUST reuse results already shared through the Gedo data of a remote; a shared result MUST equal what local indexing computes.
-- **FR-011**: The per-file results and the alias records MUST be stored as Gedo data under `refs/gedo/*`, in versioned formats that fetched data is decoded from safely (size limits, format versions, no panic on malformed input), and the decoders MUST be fuzzed.
+- **FR-010**: Indexing MUST be resumable and idempotent: it MUST reuse the results already computed locally and index only commits without results; results rebuilt from scratch MUST equal the previous ones.
+- **FR-011**: The per-commit results and the identity merges MUST be kept as local derived data (rebuildable from the Git history, never pushed) in versioned formats that are decoded safely (size limits, format versions, no panic on malformed input), and the decoders MUST be fuzzed. Shared identity data travels with the events of v0.3.0 (research R2).
 - **FR-012**: A reference identity corpus of scripted edits on real Rust code, with known outcomes, MUST cover at least: body edits, signature changes, renames, moves within a file and between modules, formatter runs, reorders, copies, splits, merges, deletions and additions, each case with its expected identities and deltas.
 - **FR-013**: Benchmarks MUST report identity accuracy per category and overall (on the scripted corpus), determinism across Windows and Linux and across indexing orders (on real histories), and matching time, and CI MUST fail when accuracy drops below the target or when identities differ between platforms.
 - **FR-014**: Errors (unreadable history, malformed stored data, unsupported format version) MUST carry context and MUST NOT be swallowed; matching itself never fails on valid syntax maps.
@@ -193,5 +193,6 @@ The project keeps a reference identity corpus of renames, moves, signature chang
 - Crates of a workspace are told apart by the file path (the crate's directory), without reading manifests, as decided in feature 002.
 - Only Rust is indexed; files of other languages are skipped and do not stop indexing.
 - The similarity threshold starts at 80% and is a named constant tuned on the corpus; changing it after release creates a new matching algorithm version.
+- Identity results are a pure function of the history, so they are recomputed on each machine instead of shared; live identities (before a commit exists) travel with the events of v0.3.0 (ADR-0007).
 - Indexing reads the Git object store through the existing store adapter; it never runs `git` as a subprocess (technical specification constraints).
 - The reference machine of the technical specification is used for SC-004 and SC-005; CI benchmarks are reported but do not block pull requests, while accuracy and determinism checks do.
