@@ -140,7 +140,7 @@ description: "Tasks for node identity (v0.2.0, second feature)"
 - [x] T032 [P] Update `.github/workflows/ci.yml`: `fetch-depth: 0` in the test job; bench job runs `match_change` and `index_history` with ripgrep cloned at a pinned tag and commit
 - [x] T033 [P] Documentation: `docs/architecture/identity.md`, `core.md`, `store.md`, `TECDOC.md`, TECH_SPEC data table; new `docs/adr/0012-identity-results-are-local-derived-data-computed-per-commit.md`; run `build_index.py`, `check_docs.py`, `check_readme.py` and `constitution.py generate` and `check`
 - [x] T034 Walk through `quickstart.md` steps 1 to 5 and fix any drift between the guide and the code
-- [ ] T035 Run the benchmarks on Windows and Linux and record p50, p95 and p99 of `match_change` and the indexing times in `docs/plans/gedo_node_identity.md` (SC-004, SC-005)
+- [x] T035 Run the benchmarks on Windows and Linux and record p50, p95 and p99 of `match_change` and the indexing times in `docs/plans/gedo_node_identity.md` (SC-004, SC-005)
 
 ---
 
