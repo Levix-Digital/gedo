@@ -69,6 +69,7 @@ fn build(items: &[Item], line_ending: &str) -> (ParsedFile, Vec<u8>) {
     let file = ParsedFile {
         language: Language::Rust,
         path: "src/lib.rs".into(),
+        unit: "src".into(),
         tokens,
         entities,
         has_error: false,

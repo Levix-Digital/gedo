@@ -124,6 +124,7 @@ mod tests {
         ParsedFile {
             language: Language::Rust,
             path: "src/lib.rs".into(),
+            unit: "src".into(),
             tokens,
             entities,
             has_error: false,

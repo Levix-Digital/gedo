@@ -130,6 +130,19 @@ impl fmt::Debug for GitOid {
     }
 }
 
+impl serde::Serialize for GitOid {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_bytes(self.as_bytes())
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for GitOid {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let bytes: Vec<u8> = serde::Deserialize::deserialize(deserializer)?;
+        GitOid::from_bytes(&bytes).map_err(serde::de::Error::custom)
+    }
+}
+
 impl FromStr for GitOid {
     type Err = ParseIdError;
 

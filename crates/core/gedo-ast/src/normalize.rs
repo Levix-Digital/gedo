@@ -65,6 +65,7 @@ mod tests {
         let file = ParsedFile {
             language: Language::Rust,
             path: "a.rs".into(),
+            unit: "".into(),
             tokens,
             entities: vec![],
             has_error: false,

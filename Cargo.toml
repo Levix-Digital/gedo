@@ -3,6 +3,7 @@ resolver = "3"
 members = [
     "crates/core/gedo-core",
     "crates/core/gedo-ast",
+    "crates/core/gedo-app",
     "crates/adapters/gedo-store",
     "crates/adapters/gedo-parse",
     "tools/xtask",
@@ -19,7 +20,9 @@ publish = false
 [workspace.dependencies]
 gedo-core = { path = "crates/core/gedo-core" }
 gedo-ast = { path = "crates/core/gedo-ast" }
+gedo-app = { path = "crates/core/gedo-app" }
 gedo-parse = { path = "crates/adapters/gedo-parse" }
+gedo-store = { path = "crates/adapters/gedo-store" }
 gix = { version = "0.90", default-features = false }
 redb = "4.4"
 postcard = { version = "1.1", features = ["alloc"] }

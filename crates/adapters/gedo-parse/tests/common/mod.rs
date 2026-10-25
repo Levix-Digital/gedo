@@ -56,8 +56,9 @@ pub fn syntax_map(path: &str, source: &[u8]) -> SyntaxMap {
 /// The snapshot text of a syntax map (`contracts/parser-port.md`).
 pub fn render(map: &SyntaxMap) -> String {
     let mut text = format!(
-        "language: {}\nhash_format: {}\nentities:\n",
+        "language: {}\nunit: {}\nhash_format: {}\nentities:\n",
         map.language,
+        map.unit,
         map.hash_format.number()
     );
     for entity in &map.entities {
