@@ -8,7 +8,7 @@ use gedo_core::ports::ParseError;
 use gedo_core::syntax::{ByteRange, EntityKind, RawEntity, Token, TokenClass, TokenRange};
 use tree_sitter::{Node, Tree};
 
-use crate::rust::{kinds, paths, tokens};
+use crate::rust::{kind_of, kinds, paths, tokens};
 use crate::{Deadline, MAX_NESTING_DEPTH};
 
 /// An entity whose node is still being walked.
@@ -130,7 +130,7 @@ impl Collector<'_> {
         self.track_prefix(node, parent);
         if let Some(pending) = self.pending_jump
             && parent.is_some_and(|parent| parent.id() == pending.block_id)
-            && !matches!(node.kind(), "line_comment" | "block_comment" | "}")
+            && !matches!(kind_of(node), "line_comment" | "block_comment" | "}")
         {
             // Code follows the jump statement: its `;` stays (research R5).
             self.pending_jump = None;
@@ -145,7 +145,7 @@ impl Collector<'_> {
             self.single_elements.insert(node.id(), single);
         }
         let enclosing = self.open.last().map(|top| self.entities[top.index].kind);
-        if let Some(kind) = kinds::entity_kind(node.kind(), enclosing)
+        if let Some(kind) = kinds::entity_kind(kind_of(node), enclosing)
             .or_else(|| self.is_import_item(node, parent).then_some(EntityKind::Import))
         {
             self.open_entity(node, parent, kind);
@@ -153,7 +153,7 @@ impl Collector<'_> {
         if kinds::is_optional_block(node, parent) {
             self.optional_braces.insert(node.id());
         }
-        let is_leaf = node.child_count() == 0 || kinds::is_atomic(node.kind());
+        let is_leaf = node.child_count() == 0 || kinds::is_atomic(kind_of(node));
         if is_leaf {
             self.push_token(node, parent);
         }
@@ -213,7 +213,7 @@ impl Collector<'_> {
     /// below the prefix's level (the attribute's own children) leave it alone.
     fn track_prefix(&mut self, node: Node<'_>, parent: Option<Node<'_>>) {
         let parent_id = parent.map(|parent| parent.id());
-        let is_attachable = matches!(node.kind(), "attribute_item" | "line_comment" | "block_comment");
+        let is_attachable = matches!(kind_of(node), "attribute_item" | "line_comment" | "block_comment");
         let same_level = self.prefix.is_some_and(|prefix| prefix.parent_id == parent_id);
         if is_attachable {
             if same_level {
@@ -229,7 +229,7 @@ impl Collector<'_> {
                 });
             }
         } else if same_level
-            && kinds::entity_kind(node.kind(), None).is_none()
+            && kinds::entity_kind(kind_of(node), None).is_none()
             && !self.is_import_item(node, parent)
         {
             self.prefix = None;
@@ -266,7 +266,7 @@ impl Collector<'_> {
             .or_insert(0);
         let entity = RawEntity {
             kind,
-            language_kind: node.kind().to_owned(),
+            language_kind: kind_of(node).to_owned(),
             name,
             qualified_path,
             occurrence: *occurrence,

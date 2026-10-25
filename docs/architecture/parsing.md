@@ -21,6 +21,7 @@ Turns source files into the core's neutral syntax model with Tree-sitter.
 |---|---|
 | `lib.rs` | `TreeSitterParser`: language detection by extension, limits, the parse call with its timeout |
 | `walk.rs` | One iterative cursor walk that emits tokens and entities, attaches attributes and comments to the item after them, and tracks ancestors (asking Tree-sitter for a parent walks down from the root) |
+| `rust/mod.rs` | The Rust grammar, loaded once, and `kind_of`: a node's kind read from a table indexed by its kind id, because `Node::kind` measures and validates the name on every call |
 | `rust/kinds.rs` | Rust grammar node to `EntityKind`, body of each entity, atomic nodes, optional blocks |
 | `rust/tokens.rs` | Rust leaf to `TokenClass` |
 | `rust/paths.rs` | Module path from the file path, `impl` and method paths |

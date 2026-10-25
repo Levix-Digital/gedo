@@ -20,12 +20,15 @@ const ITEM_NESTED: u8 = 0xF0;
 const ITEM_UNORDERED: u8 = 0xF1;
 
 /// The entities of `file` with their tokens and hashes, without imports, containers reindexed.
-pub fn hash_entities(file: &ParsedFile, tokens: &[Option<NormalizedToken>]) -> Vec<CodeEntity> {
+///
+/// Each token belongs to the innermost entity around it, so it is moved out of `tokens` into that
+/// entity rather than copied.
+pub fn hash_entities(file: &ParsedFile, mut tokens: Vec<Option<NormalizedToken>>) -> Vec<CodeEntity> {
     let children = direct_children(file);
     let mut hashed: Vec<Option<HashedEntity>> = vec![None; file.entities.len()];
     // Containers precede their children, so walking backwards hashes every child first.
     for index in (0..file.entities.len()).rev() {
-        hashed[index] = Some(hash_entity(file, index, &children[index], tokens, &hashed));
+        hashed[index] = Some(hash_entity(file, index, &children[index], &mut tokens, &hashed));
     }
     collect(file, hashed)
 }
@@ -71,14 +74,14 @@ impl Part {
         }
     }
 
-    fn push_token(&mut self, token: &NormalizedToken) {
+    fn push_token(&mut self, token: NormalizedToken) {
         let text = token.text.as_bytes();
         // Source files are limited far below 4 GiB, so every length fits.
         let length = u32::try_from(text.len()).unwrap_or(u32::MAX);
         self.hasher.update(&[token.class.code()]);
         self.hasher.update(&length.to_le_bytes());
         self.hasher.update(text);
-        self.tokens.push(token.clone());
+        self.tokens.push(token);
     }
 
     fn push_nested(&mut self, hash: StructuralHash) {
@@ -100,7 +103,7 @@ fn hash_entity(
     file: &ParsedFile,
     index: usize,
     children: &[usize],
-    tokens: &[Option<NormalizedToken>],
+    tokens: &mut [Option<NormalizedToken>],
     hashed: &[Option<HashedEntity>],
 ) -> HashedEntity {
     let entity = &file.entities[index];
@@ -132,7 +135,7 @@ fn hash_entity(
             position = child_entity.tokens.end;
             continue;
         }
-        if let Some(token) = &tokens[position as usize] {
+        if let Some(token) = tokens[position as usize].take() {
             part.push_token(token);
         }
         position += 1;

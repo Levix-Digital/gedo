@@ -36,7 +36,7 @@ pub fn normalize(file: &ParsedFile, source: &[u8]) -> Result<SyntaxMap, ParseErr
         detail,
     })?;
     let tokens = normalize::significant_tokens(file, source);
-    let entities = hash::hash_entities(file, &tokens);
+    let entities = hash::hash_entities(file, tokens);
     Ok(SyntaxMap {
         language: file.language,
         path: file.path.clone(),

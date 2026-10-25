@@ -63,7 +63,7 @@ Tree entries carry their mode: regular and executable files, directories, symbol
 
 ### Platform behavior
 
-On Windows, an operation on a file another program holds open (an antivirus, an indexer) is retried for up to 2 s before the error is returned. Reference updates wait up to 2 s for another writer's reference lock, then return `Contended` without writing anything.
+On Windows, an operation on a file another program holds open (an antivirus, an indexer) is retried for up to 2 s before the error is returned. Reference updates wait up to 2 s for another writer's reference lock, then return `Contended` without writing anything; a lock file that another writer is deleting at the end of the wait, which Windows refuses with "Access is denied", counts as a busy lock.
 
 ### Later features
 
