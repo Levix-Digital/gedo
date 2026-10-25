@@ -26,13 +26,13 @@ Each release: `## vX.Y.Z: <name>` with the fields `Status` (planned, in_progress
 
 ## v0.5.0: Team workflow on GitHub
 - **Status**: planned
-- **Goal**: Gedo value is visible on every pull request, data survives server-side merges, the merge queue is checked semantically, no work is ever lost, and Cargo.lock never conflicts.
-- **Items**: FEAT-096, FEAT-097, FEAT-098, FEAT-093, FEAT-094, FEAT-095, FEAT-100
+- **Goal**: Gedo value is visible on every pull request, data survives server-side merges, the merge queue is checked semantically, no work is ever lost, Cargo.toml is merged structurally and Cargo.lock regenerated, and parallel coding agents work in hidden streams that see each other's intents.
+- **Items**: FEAT-096, FEAT-097, FEAT-098, FEAT-093, FEAT-094, FEAT-095, FEAT-100, FEAT-057, FEAT-129, FEAT-130
 
 ## v0.6.0: Levix stacks
 - **Status**: planned
-- **Goal**: TypeScript and Python repositories get the full Gedo experience, with their lockfiles regenerated on merge, and signed Windows binaries installable with winget.
-- **Items**: FEAT-017, FEAT-018, FEAT-101, FEAT-102, FEAT-121, FEAT-122
+- **Goal**: TypeScript and Python repositories get the full Gedo experience, with package.json merged structurally and their lockfiles regenerated on merge, collisions and contract breaks show up in any LSP editor, and signed Windows binaries are installable with winget.
+- **Items**: FEAT-017, FEAT-018, FEAT-101, FEAT-102, FEAT-121, FEAT-122, FEAT-055, FEAT-131
 
 ## v0.7.0: Real-time coordination
 - **Status**: planned
@@ -61,35 +61,20 @@ Each release: `## vX.Y.Z: <name>` with the fields `Status` (planned, in_progress
 
 ## v0.12.0: Configuration formats
 - **Status**: planned
-- **Goal**: JSON, YAML, TOML and Markdown, present in almost every repository, are tracked and merged structurally.
-- **Items**: FEAT-055, FEAT-056, FEAT-057, FEAT-058
+- **Goal**: YAML and Markdown, present in almost every repository, are tracked and merged structurally (TOML and JSON arrive earlier, with their lockfiles).
+- **Items**: FEAT-056, FEAT-058
 
 ## v0.13.0: More platforms and hosts
 - **Status**: planned
 - **Goal**: Gedo runs on macOS and Windows on ARM, installs from Linux package managers, works with GitLab and with SHA-256 repositories.
 - **Items**: FEAT-124, FEAT-125, FEAT-123, FEAT-099, FEAT-008
 
-## v0.14.0: Languages, second wave
-- **Status**: planned
-- **Goal**: PowerShell, C, Kotlin, Lua, Assembly, Ruby, Dart and Swift are supported.
-- **Items**: FEAT-026, FEAT-027, FEAT-028, FEAT-029, FEAT-030, FEAT-031, FEAT-032, FEAT-033
-
-## v0.15.0: Languages, third wave
-- **Status**: planned
-- **Goal**: R, Groovy, Visual Basic .NET, VBA, MATLAB, Perl, GDScript and Elixir are supported.
-- **Items**: FEAT-034, FEAT-035, FEAT-036, FEAT-037, FEAT-038, FEAT-039, FEAT-040, FEAT-041
-
-## v0.16.0: Languages, fourth wave
-- **Status**: planned
-- **Goal**: Scala, Delphi, Lisp, Zig, Erlang, Fortran, Ada, F#, OCaml, Gleam, Prolog, COBOL and Mojo are supported, completing the language list.
-- **Items**: FEAT-042, FEAT-043, FEAT-044, FEAT-045, FEAT-046, FEAT-047, FEAT-048, FEAT-049, FEAT-050, FEAT-051, FEAT-052, FEAT-053, FEAT-054
-
-## v0.17.0: Data and markup formats
+## v0.14.0: Data and markup formats
 - **Status**: planned
 - **Goal**: SQL, HTML and CSS, HCL and XML are tracked structurally, and generated files are detected and regenerated instead of merged.
 - **Items**: FEAT-059, FEAT-060, FEAT-061, FEAT-062, FEAT-103
 
-## v0.18.0: Peer-to-peer
+## v0.15.0: Peer-to-peer
 - **Status**: planned
 - **Goal**: Teams in local or corporate networks coordinate in real time without any relay.
 - **Items**: FEAT-108
@@ -103,3 +88,18 @@ Each release: `## vX.Y.Z: <name>` with the fields `Status` (planned, in_progress
 - **Status**: planned
 - **Goal**: Two developers work live on the same symbols through the control plane.
 - **Items**: FEAT-126
+
+## v1.2.0: Languages, second wave
+- **Status**: planned
+- **Goal**: PowerShell, C, Kotlin, Lua, Assembly, Ruby, Dart and Swift are supported, through declarative language packs.
+- **Items**: FEAT-128, FEAT-026, FEAT-027, FEAT-028, FEAT-029, FEAT-030, FEAT-031, FEAT-032, FEAT-033
+
+## v1.3.0: Languages, third wave
+- **Status**: planned
+- **Goal**: R, Groovy, Visual Basic .NET, VBA, MATLAB, Perl, GDScript and Elixir are supported.
+- **Items**: FEAT-034, FEAT-035, FEAT-036, FEAT-037, FEAT-038, FEAT-039, FEAT-040, FEAT-041
+
+## v1.4.0: Languages, fourth wave
+- **Status**: planned
+- **Goal**: Scala, Delphi, Lisp, Zig, Erlang, Fortran, Ada, F#, OCaml, Gleam, Prolog, COBOL and Mojo are supported, completing the language list.
+- **Items**: FEAT-042, FEAT-043, FEAT-044, FEAT-045, FEAT-046, FEAT-047, FEAT-048, FEAT-049, FEAT-050, FEAT-051, FEAT-052, FEAT-053, FEAT-054

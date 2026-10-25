@@ -140,7 +140,7 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 - **No mandatory server** (ADR-0005, ADR-0010); the relay tier is optional, self-hostable, and Git stays the canonical store.
 - **Licenses**: the project is MIT OR Apache-2.0; dependencies must be permissive and compatible (MIT, Apache-2.0, BSD, ISC, Zlib, Unicode-3.0), enforced by `cargo-deny`.
 - **Quality**: property-based tests for the core algorithms, snapshot tests for outputs, fuzzing for decoders, an end-to-end suite that compares `git` and `gedo` on the same scenarios, and CI on Windows and Linux for every pull request.
-- **Team and budget**: one developer plus the agent; private GitHub repository, so CI minutes are paid (Windows counts double); no paid infrastructure.
+- **Team and budget**: one developer plus the agent; the GitHub repository is public, so standard CI runners are free (they would be paid, with Windows counting double, if it went private again); no paid infrastructure.
 
 ## Open Questions
 
