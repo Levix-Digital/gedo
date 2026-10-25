@@ -45,7 +45,7 @@ Today teams cope with conventions (small pull requests, "who is touching X?" mes
 
 ## Business Model
 
-Open core. Gedo itself is open source and complete: everything that works on one machine and through plain Git remotes (the store, node identity, the merge driver, lockfiles, virtual streams and agent streams, the CLI, the daemon, the GitHub Action and a self-hostable relay) stays free, with no feature held back for a paid tier. Revenue, if any, comes from separate Levix products built on top of Gedo and the dev-cycle protocol (a managed relay, a team dashboard, enterprise hosting and compliance reporting); they live outside this repository and use Gedo only through its public surfaces (`--json` output, `refs/gedo/*` and the relay protocol). Dual-licensed under MIT and Apache-2.0, the convention of the Rust ecosystem. The repository starts **private** and is opened once Gedo has enough traction that contributing upstream is more attractive than forking; until then the license is in place but nothing is distributed. The name and logo "Gedo" are protected by a trademark policy so that forks cannot present themselves as the project.
+Open core. Gedo itself is open source and complete: everything that works on one machine and through plain Git remotes (the store, node identity, the merge driver, lockfiles, virtual streams and agent streams, the CLI, the daemon, the GitHub Action and a self-hostable relay) stays free, with no feature held back for a paid tier. Revenue, if any, comes from separate Levix products built on top of Gedo and the dev-cycle protocol (a managed relay, the team dashboard Mission Control, enterprise hosting and compliance reporting); they live outside this repository and use Gedo only through its public surfaces (`--json` output under the contract of ADR-0013, `refs/gedo/*` and the relay protocol). Dual-licensed under MIT and Apache-2.0, the convention of the Rust ecosystem. The repository starts **private** and is opened once Gedo has enough traction that contributing upstream is more attractive than forking; until then the license is in place but nothing is distributed. The name and logo "Gedo" are protected by a trademark policy so that forks cannot present themselves as the project.
 
 Costs that matter: CI minutes while the repository is private (Windows minutes count double there; the repository is public now, so standard runners, macOS included, are free), code-signing certificates for released binaries, and the development time of a small team.
 
@@ -81,14 +81,14 @@ The complete product, as capabilities:
 15. **Stacked pull requests**: `gedo stack` proposes how to split a change into small dependent pull requests (by lane, by symbol group from the dependency graph), creates and updates the stack's branches and pull requests on the host, and restacks every level automatically, with the semantic merge, when a lower level changes or merges.
 16. **History replay**: `gedo playback <commit>` shows the event-by-event evolution of a delivery and its negotiation threads, keeping the main history clean.
 17. **IDE integration**: a minimal language server that publishes collisions and contract breaks as diagnostics in any editor, then a full language server and lightweight extensions (VS Code first) that show the tree status, collisions, threads and semantic locks.
-18. **Platforms and distribution**: Windows and Linux first, macOS later; signed binaries; installation through `cargo install`, release archives and the platforms' package managers.
+18. **Platforms and distribution**: Windows and Linux first, unsigned macOS builds from v0.6.0 and signed macOS binaries later; signed binaries; installation through `cargo install`, release archives and the platforms' package managers.
 19. **Pair programming (future)**: live collaboration on the same symbols, built on the control plane, much later.
 
 ## Non-Goals
 
 - Replacing GitHub, GitLab, their pull requests or their merge queues; Gedo works alongside and complements them.
 - A mandatory proprietary or self-hosted server; the relay stays optional and everything works without it.
-- A graphical client of its own; the surfaces are the CLI and IDE extensions. A team dashboard, if built, is a separate Levix product that reads Gedo's data.
+- A graphical client of its own; the surfaces are the CLI and IDE extensions. The team dashboard, Mission Control, is a separate Levix product that reads Gedo's data.
 - Real-time co-editing in the style of Google Docs; live pair programming is a distant, separate capability, not part of the core.
 - Writing metadata, UUIDs or helper files into the working tree or into source files.
 - Changing the content or meaning of `refs/heads/*`.

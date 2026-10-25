@@ -430,7 +430,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: gedo stream <name>: switch or isolate work in memory without git stash or checkout. A stream carries the same opaque labels as events (FEAT-063), set at creation, so a tool can open one stream per plan milestone or per agent and find it again.
+- **Description**: gedo stream <name>: switch or isolate work in memory without git stash or checkout. A stream carries the same opaque labels as events (FEAT-063), set at creation, and an optional agent author (--agent <id>), so a tool can open one stream per plan milestone or per agent and find it again with gedo stream list --label key=value --json. Every event recorded inside a stream inherits its author and labels; outside a stream the author is the person of the Git identity, or the agent and labels named by GEDO_AGENT and GEDO_LABELS. The prefix gedo. is reserved for Gedo's own keys (ADR-0013).
 
 ### FEAT-069: Deterministic sequencer
 - **Priority**: medium
@@ -478,7 +478,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: In-memory merge of uncommitted work and local commits with the upstream and related remote branches; collisions in gedo radar and notifications.
+- **Description**: In-memory merge of uncommitted work and local commits with the upstream and related remote branches; collisions in gedo radar and notifications. gedo radar --json and --label key=value (filter by stream labels) are part of the contract of ADR-0013.
 
 ### FEAT-075: Semantic diff (gedo delta)
 - **Priority**: high
@@ -518,7 +518,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: Detect callers that no longer match a changed public signature before compilation.
+- **Description**: Detect callers that no longer match a changed public signature before compilation, both from the post-merge hook (FEAT-076) and on demand with gedo check contracts [--json] over the working tree or a commit range, so the dev-cycle's check_design can call it (ADR-0013).
 
 ### FEAT-080: Language server type oracle
 - **Priority**: low
@@ -558,7 +558,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: Semantic history of one entity across renames, moves and formatting.
+- **Description**: Semantic history of one entity across renames, moves and formatting; --json and --label key=value filter by event labels (ADR-0013).
 
 ### FEAT-085: Daemon with file watcher and ingest
 - **Priority**: high
@@ -590,7 +590,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: --json output for Gedo commands with a documented, versioned schema covered by snapshot tests: it is the contract other tools build on (the dev-cycle protocol first), so a breaking change needs a new schema version. NO_COLOR and non-TTY handling; no information by color alone.
+- **Description**: --json output for Gedo commands with a documented, versioned schema covered by snapshot tests: it is the contract other tools build on (the dev-cycle protocol, Mission Control and the GitHub Action), with the rules of ADR-0013: schema and schema_version in every output, gedo version --json listing the capabilities and the schema major of each command, stable exit codes and the schemas in docs/schemas. NO_COLOR and non-TTY handling; no information by color alone.
 
 ### FEAT-089: Command dispatcher and pure pass-through
 - **Priority**: high
@@ -864,13 +864,13 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Packages for the main Linux distributions.
 
-### FEAT-124: macOS support
-- **Priority**: low
+### FEAT-124: macOS targets and release archives
+- **Priority**: medium
 - **Epic**: EPIC-018
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: macOS targets, signing and notarization.
+- **Description**: aarch64-apple-darwin and x86_64-apple-darwin builds, the macOS CI job and macOS release archives, unsigned. Signing and notarization are a separate item.
 
 ### FEAT-125: Windows on ARM
 - **Priority**: low
@@ -935,6 +935,22 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Found**: 2026-10-25, platform strategy review 2026-10-25
 - **Plan**: -
 - **Description**: Publish gedo-parse and gedo-graph as crates with a stable, semver-versioned public API, so other tools (the dev-cycle checkers, for example check_design) can parse code and query the dependency graph in-process. After v1.0.0; until then the crates stay internal to the workspace and other tools use the CLI and --json.
+
+### FEAT-133: gedo scope: entities and dependency closure of a scope
+- **Priority**: high
+- **Epic**: EPIC-007
+- **Status**: open
+- **Found**: 2026-10-25, dev-cycle integration contract 2026-10-25
+- **Plan**: -
+- **Description**: gedo scope <paths or symbols> --json lists the entities in a scope and the closure of their dependencies from the symbol graph (FEAT-077), and reports the overlap between two or more scopes, so a tool can check before work starts that parallel milestones do not touch the same entities (the dev-cycle's gate 3, ADR-0013).
+
+### FEAT-134: macOS signing and notarization
+- **Priority**: low
+- **Epic**: EPIC-018
+- **Status**: open
+- **Found**: 2026-10-25, dev-cycle integration contract 2026-10-25
+- **Plan**: -
+- **Description**: Sign and notarize the macOS binaries of FEAT-124; needs the Apple Developer Program, bought when Levix decides (VISION open question).
 
 ## Improvements
 

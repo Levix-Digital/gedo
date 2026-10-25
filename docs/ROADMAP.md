@@ -26,13 +26,13 @@ Each release: `## vX.Y.Z: <name>` with the fields `Status` (planned, in_progress
 
 ## v0.5.0: Team workflow on GitHub
 - **Status**: planned
-- **Goal**: Gedo value is visible on every pull request, data survives server-side merges, the merge queue is checked semantically, no work is ever lost, Cargo.toml is merged structurally and Cargo.lock regenerated, and parallel coding agents work in hidden streams that see each other's intents.
-- **Items**: FEAT-096, FEAT-097, FEAT-098, FEAT-093, FEAT-094, FEAT-095, FEAT-100, FEAT-057, FEAT-129, FEAT-130
+- **Goal**: Gedo value is visible on every pull request, data survives server-side merges, the merge queue is checked semantically, no work is ever lost, Cargo.toml is merged structurally and Cargo.lock regenerated, and parallel coding agents work in hidden streams that see each other's intents, with scopes checked for overlap before they start.
+- **Items**: FEAT-096, FEAT-097, FEAT-098, FEAT-093, FEAT-094, FEAT-095, FEAT-100, FEAT-057, FEAT-129, FEAT-130, FEAT-133
 
 ## v0.6.0: Levix stacks
 - **Status**: planned
-- **Goal**: TypeScript and Python repositories get the full Gedo experience, with package.json merged structurally and their lockfiles regenerated on merge, collisions and contract breaks show up in any LSP editor, and signed Windows binaries are installable with winget.
-- **Items**: FEAT-017, FEAT-018, FEAT-101, FEAT-102, FEAT-121, FEAT-122, FEAT-055, FEAT-131
+- **Goal**: TypeScript and Python repositories get the full Gedo experience, with package.json merged structurally and their lockfiles regenerated on merge, collisions and contract breaks show up in any LSP editor, signed Windows binaries are installable with winget, and Gedo builds and ships unsigned release archives for macOS.
+- **Items**: FEAT-017, FEAT-018, FEAT-101, FEAT-102, FEAT-121, FEAT-122, FEAT-055, FEAT-131, FEAT-124
 
 ## v0.7.0: Real-time coordination
 - **Status**: planned
@@ -66,8 +66,8 @@ Each release: `## vX.Y.Z: <name>` with the fields `Status` (planned, in_progress
 
 ## v0.13.0: More platforms and hosts
 - **Status**: planned
-- **Goal**: Gedo runs on macOS and Windows on ARM, installs from Linux package managers, works with GitLab and with SHA-256 repositories.
-- **Items**: FEAT-124, FEAT-125, FEAT-123, FEAT-099, FEAT-008
+- **Goal**: Gedo ships signed and notarized macOS binaries, runs on Windows on ARM, installs from Linux package managers, works with GitLab and with SHA-256 repositories.
+- **Items**: FEAT-125, FEAT-123, FEAT-099, FEAT-008, FEAT-134
 
 ## v0.14.0: Data and markup formats
 - **Status**: planned
