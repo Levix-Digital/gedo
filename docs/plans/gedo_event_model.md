@@ -4,10 +4,10 @@ project: gedo
 title: Event model
 kind: feature
 version: v0.3.0
-status: in_progress
+status: completed
 author: Levi Silveira
 created_at: '2026-10-29T17:48:48'
-updated_at: '2026-10-29T22:52:00'
+updated_at: '2026-10-29T23:05:12'
 session_id: null
 tags:
 - events
@@ -48,7 +48,9 @@ milestones:
   done_at: '2026-10-29'
   by: Levi Silveira
 - name: M7 Hardening and acceptance
-  done: false
+  done: true
+  done_at: '2026-10-29'
+  by: Levi Silveira
 status_log:
 - at: '2026-10-29T17:48:48'
   by: Levi Silveira
@@ -88,6 +90,17 @@ status_log:
 - at: '2026-10-29T22:52:00'
   by: Levi Silveira
   note: Milestone 'M6 Reconstruction' completed
+- at: '2026-10-29T23:05:11'
+  by: Levi Silveira
+  note: Milestone 'M7 Hardening and acceptance' completed
+- at: '2026-10-29T23:05:11'
+  by: Levi Silveira
+  status: completed
+  note: All milestones completed
+- at: '2026-10-29T23:05:12'
+  by: Levi Silveira
+  status: completed
+  note: 'Delivered in PR #15 (merged 2026-10-29)'
 ---
 
 # Event model
@@ -132,5 +145,7 @@ Benchmarks of `cargo bench -p gedo-app --bench events` (release build, Linux dev
 | Publish 1,000 events into a chain of 100,000 (5 runs) | 240 ms | 275 ms | 275 ms | under 1 s |
 | Reconstruct the events of one commit of this repository (20 runs, SC-005) | 0.11 ms | 0.29 ms | 0.41 ms | p95 under 100 ms |
 | Filter 10,000 events by one label (5 runs, SC-006) | 331 ms | 408 ms | 408 ms | under 500 ms |
+
+Fuzzing: `cargo +nightly fuzz run decode_event_record -- -max_total_time=600` ran 12,446,944 inputs in 601 s with no crash, hang or out-of-memory (SC-007, 2026-10-29). CI on PR #15 passed on Windows and Linux, including the reconstruction snapshot.
 
 Deviation from the plan: commit generations are kept in memory by `EventLog` instead of a symbol cache memo, and reconstructed events are not memoized (research R3, R10), since `IdentityIndex` already borrows the cache and the numbers above leave no need for it.

@@ -384,22 +384,6 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Structural tracking of XML files with a conformance suite.
 
-### FEAT-063: Event model with Lamport clocks and content-addressed ids
-- **Priority**: high
-- **Epic**: EPIC-005
-- **Status**: in_progress
-- **Found**: 2026-10-24
-- **Plan**: gedo_event_model
-- **Description**: Event, SemanticOp, Lamport clock and author fingerprint, with deterministic ids for reconstructed events. Each event also carries the kind of author (person or agent, with an identifier) and a map of opaque labels (key and value) that tools on top of Gedo set and filter, for example plan=... or milestone=M2 from the dev-cycle protocol; Gedo stores and returns them without knowing what they mean. Both are in the format from the start, because formats freeze at v1.0.0 (FEAT-127).
-
-### FEAT-064: Event tapes and commit index
-- **Priority**: high
-- **Epic**: EPIC-005
-- **Status**: in_progress
-- **Found**: 2026-10-24
-- **Plan**: gedo_event_model
-- **Description**: Content-addressed events grouped in tapes, with a commit-to-tape index (ADR-0008).
-
 ### FEAT-065: Re-attachment after rebase, amend and squash
 - **Priority**: high
 - **Epic**: EPIC-005
@@ -1337,3 +1321,21 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: gedo_windows_reference_lock_and_parse_performance_fixes
 - **Closed**: 2026-10-25, plan gedo_windows_reference_lock_and_parse_performance_fixes
 - **Description**: cas_stress failed once on windows-latest: gix reports 'Another IO error occurred while obtaining the lock: Access is denied' on .git/refs/gedo/<name>.lock. Windows refuses to create a file whose previous instance is pending deletion by another process, and gix does not treat that PermissionDenied as retryable, so compare_and_swap returns a backend error instead of waiting or returning Contended. Fix: in gedo-store refs.rs, treat a PermissionDenied I/O error while acquiring the lock as a busy lock on Windows (retry within REF_LOCK_WAIT_MS, then Contended).
+
+### FEAT-063: Event model with Lamport clocks and content-addressed ids
+- **Priority**: high
+- **Epic**: EPIC-005
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_event_model
+- **Closed**: 2026-10-29, PR #15
+- **Description**: Event, SemanticOp, Lamport clock and author fingerprint, with deterministic ids for reconstructed events. Each event also carries the kind of author (person or agent, with an identifier) and a map of opaque labels (key and value) that tools on top of Gedo set and filter, for example plan=... or milestone=M2 from the dev-cycle protocol; Gedo stores and returns them without knowing what they mean. Both are in the format from the start, because formats freeze at v1.0.0 (FEAT-127).
+
+### FEAT-064: Event tapes and commit index
+- **Priority**: high
+- **Epic**: EPIC-005
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_event_model
+- **Closed**: 2026-10-29, PR #15
+- **Description**: Content-addressed events grouped in tapes, with a commit-to-tape index (ADR-0008).

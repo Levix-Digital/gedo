@@ -136,6 +136,7 @@ dependencies = [
  "blake3",
  "gedo-ast",
  "gedo-core",
+ "gedo-crdt",
  "postcard",
  "serde",
  "thiserror",
@@ -161,12 +162,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "gedo-crdt"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "gedo-core",
+ "postcard",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "gedo-fuzz"
 version = "0.0.0"
 dependencies = [
  "gedo-app",
  "gedo-ast",
  "gedo-core",
+ "gedo-crdt",
  "gedo-parse",
  "libfuzzer-sys",
 ]

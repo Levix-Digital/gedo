@@ -126,7 +126,7 @@ description: "Tasks for the event model (v0.3.0, first feature)"
 
 - [x] T025 Documentation: `docs/architecture/events.md`, `core.md`, `store.md`, `TECDOC.md`, TECH_SPEC data table and `uuid` row; new `docs/adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md`; run `build_index`, `check_docs`, `check_readme`, `constitution.py generate` and `check`
 - [x] T026 Walk through `quickstart.md` steps 1 to 5 and fix any drift between the guide and the code
-- [ ] T027 Run the benchmarks on Linux and on the Windows reference machine (with the user's go) and record p50, p95 and p99 in `docs/plans/gedo_event_model.md` (SC-004 to SC-006); run the fuzz target for 10 minutes (SC-007)
+- [x] T027 Run the benchmarks on Linux and on the Windows reference machine (with the user's go; the Windows reference run is pending it) and record p50, p95 and p99 in `docs/plans/gedo_event_model.md` (SC-004 to SC-006); run the fuzz target for 10 minutes (SC-007)
 
 ---
 
