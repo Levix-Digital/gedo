@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -32,4 +32,4 @@
 ## Notes
 
 - Gedo is a code tool: events, clocks, entities, tapes and Git history are the product's domain, not implementation details. Hash constructions, crate names and the storage layout are kept out of the spec and belong to the plan.
-- Three clarifications are open for the user (reconstructed events shared or derived, consolidation of live events in a tape, the identity hashed by the author fingerprint); `/speckit-clarify` resolves them.
+- Clarifications resolved with the user (2026-10-29): reconstructed events are local derived data, tapes keep every recorded event, the author fingerprint hashes the trimmed, lowercased Git e-mail.
