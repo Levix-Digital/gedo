@@ -1,0 +1,12 @@
+---
+source: crates/core/gedo-app/tests/event_history.rs
+expression: text
+---
+77602aa70a84426d40a5b92652ad302447908d95: 55 events, generation 64, digest 06a44263fbb3ae55ad40b6ff81c7cdd32cc00bf6866a49ac4aabbfa75f1b82c3
+  dc28080f-eca6-8eb8-9683-2ee537448cb4 Clock { generation: 64, sequence: 0 }
+  0c59801d-9005-8c62-bfd4-6c53a1a6f3b7 Clock { generation: 64, sequence: 1 }
+  1647c851-2d26-828c-8bdb-08ae4c5dd95b Clock { generation: 64, sequence: 2 }
+6b32f8bbaf601a0d49ad45909a312818261aba98: 355 events, generation 73, digest 808b5fb937a47f65cfb505ffeab174cafb6d774181d48556c9857fba013b6433
+  3ead4b27-6b27-821f-b093-1fc3abccffad Clock { generation: 73, sequence: 0 }
+  949d5da5-1dc2-8c01-b89f-5292d8054aec Clock { generation: 73, sequence: 1 }
+  9f7c4e94-b145-824c-a715-9957c6d43136 Clock { generation: 73, sequence: 2 }

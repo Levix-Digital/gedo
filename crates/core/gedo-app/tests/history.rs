@@ -6,7 +6,7 @@ use gedo_app::IdentityIndex;
 use gedo_core::identity::SemanticDelta;
 use gedo_core::ids::GitOid;
 use proptest::prelude::*;
-use support::{History, files};
+use support::{History, files, generated};
 
 const LIB: &str = "pub mod billing;\n";
 
@@ -293,50 +293,6 @@ fn octopus_merges_and_several_roots_are_indexed() {
             "{path}"
         );
     }
-}
-
-/// A history with branches and merges, generated from a seed.
-fn generated(seed: u64) -> (History, Vec<GitOid>) {
-    let history = History::default();
-    let mut state = seed;
-    let mut next = |bound: u64| {
-        state = state
-            .wrapping_mul(6364136223846793005)
-            .wrapping_add(1442695040888963407);
-        (state >> 33) % bound
-    };
-    let names = ["alpha", "beta", "gamma", "delta", "omega"];
-    let mut commits: Vec<(GitOid, std::collections::BTreeMap<String, String>)> = Vec::new();
-    let root_files = files(&[("src/lib.rs", "pub fn alpha() -> u32 {\n    1\n}\n")]);
-    commits.push((history.commit(&[], &root_files), root_files));
-    for step in 0..12u64 {
-        let (parent, mut tree) = commits[next(commits.len() as u64) as usize].clone();
-        let mut parents = vec![parent];
-        if next(4) == 0 && commits.len() > 1 {
-            let other = commits[next(commits.len() as u64) as usize].0;
-            if other != parent {
-                parents.push(other);
-            }
-        }
-        let file = format!("src/f{}.rs", next(3));
-        let name = names[next(names.len() as u64) as usize];
-        let text = match next(3) {
-            0 => format!("pub fn {name}(x: u32) -> u32 {{\n    x + {step}\n}}\n"),
-            1 => format!(
-                "pub fn {name}() -> u32 {{\n    {}\n}}\n\npub struct S{step};\n",
-                next(5)
-            ),
-            _ => String::new(),
-        };
-        if text.is_empty() {
-            tree.remove(&file);
-        } else {
-            tree.insert(file, text);
-        }
-        commits.push((history.commit(&parents, &tree), tree));
-    }
-    let oids = commits.iter().map(|(oid, _)| *oid).collect();
-    (history, oids)
 }
 
 proptest! {

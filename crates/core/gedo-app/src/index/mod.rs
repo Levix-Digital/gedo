@@ -19,7 +19,7 @@ use gedo_core::StoreError;
 use gedo_core::identity::{AstNodeId, BlobAstMap, IdentityMerged, SemanticDelta};
 use gedo_core::ids::GitOid;
 use gedo_core::ports::{CommitInfo, ObjectStore, ParseError, Parser, SymbolCache};
-use gedo_core::syntax::SyntaxMap;
+use gedo_core::syntax::{StructuralHash, SyntaxMap};
 
 pub use diff::FileChange;
 pub use records::{CHECKPOINT_INTERVAL, MapDigest, NAMESPACE};
@@ -192,6 +192,21 @@ impl<'a, O: ObjectStore, P: Parser + Sync, C: SymbolCache> IdentityIndex<'a, O, 
             deltas: record.deltas,
             merges: record.merges,
         })
+    }
+
+    /// The structural hash of every entity of the files `commit` changed against its first parent,
+    /// by id as recorded at the commit (not resolved through identity merges).
+    pub fn result_hashes(&self, commit: &GitOid) -> Result<BTreeMap<AstNodeId, StructuralHash>, IndexError> {
+        let record = self
+            .record(commit)?
+            .ok_or(IndexError::NotIndexed { commit: *commit })?;
+        let mut hashes = BTreeMap::new();
+        for digest in record.files.iter().filter_map(|(_, digest)| digest.as_ref()) {
+            for node in self.load_map(digest)?.nodes {
+                hashes.insert(node.id, node.structural_hash);
+            }
+        }
+        Ok(hashes)
     }
 
     /// Resolves an id through every identity merge known to the index.
