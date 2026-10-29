@@ -160,10 +160,14 @@ impl ObjectStore for GitObjectStore {
             .message
             .to_str()
             .map_err(|_| corrupted(oid, "message is not UTF-8"))?;
+        let author = commit
+            .author()
+            .map_err(|error| corrupted(oid, format!("malformed author: {error}")))?;
         Ok(CommitInfo {
             tree: from_gix_oid(commit.tree())?,
             parents: commit.parents().map(from_gix_oid).collect::<Result<_, _>>()?,
             message: message.to_owned(),
+            author_email: String::from_utf8_lossy(author.email).into_owned(),
         })
     }
 }

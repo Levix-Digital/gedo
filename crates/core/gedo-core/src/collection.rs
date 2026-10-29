@@ -10,7 +10,7 @@
 use std::collections::{BTreeMap, HashSet, VecDeque};
 
 use crate::error::StoreError;
-use crate::ids::{EntryId, GedoRefName, GitOid};
+use crate::ids::{EntryId, FAN_OUT_PREFIX_LEN, GedoRefName, GitOid};
 use crate::ports::{EntryMode, Expected, NewCommit, ObjectStore, RefOutcome, RefStore, RefUpdate, TreeEntry};
 
 /// Compare-and-swap attempts before an update is given up as `Contended`.
@@ -83,6 +83,46 @@ impl<'a, O: ObjectStore, R: RefStore> Collection<'a, O, R> {
             Some(head) => self.entries_of(&head),
             None => Ok(EntryMap::new()),
         }
+    }
+
+    /// The entries whose id starts with `prefix`, reading only the fan-out directory of its first
+    /// two characters.
+    ///
+    /// `prefix` is lowercase hexadecimal of at least [`FAN_OUT_PREFIX_LEN`] characters.
+    pub fn entries_with_prefix(&self, prefix: &str) -> Result<EntryMap, StoreError> {
+        if prefix.len() < FAN_OUT_PREFIX_LEN
+            || !prefix
+                .bytes()
+                .all(|byte| matches!(byte, b'0'..=b'9' | b'a'..=b'f'))
+        {
+            return Err(StoreError::invalid_input(
+                "list collection entries",
+                format!(
+                    "prefix {prefix:?} is not lowercase hexadecimal of at least {FAN_OUT_PREFIX_LEN} characters"
+                ),
+            ));
+        }
+        let mut entries = EntryMap::new();
+        let Some(head) = self.head()? else {
+            return Ok(entries);
+        };
+        let root = self.objects.read_tree(&self.objects.read_commit(&head)?.tree)?;
+        let (directory, rest) = prefix.split_at(FAN_OUT_PREFIX_LEN);
+        let Some(fan_out) = find_entry(&root, directory, EntryMode::Tree) else {
+            return Ok(entries);
+        };
+        for file in self.objects.read_tree(&fan_out)? {
+            if !file.name.starts_with(rest) {
+                continue;
+            }
+            let id = EntryId::new(&format!("{directory}{}", file.name))
+                .map_err(|error| self.corrupted(error.to_string()))?;
+            if file.mode != EntryMode::Blob {
+                return Err(self.corrupted(format!("entry {id} is not stored as a fan-out file")));
+            }
+            entries.insert(id, file.oid);
+        }
+        Ok(entries)
     }
 
     /// Every entry of the chain ending at `commit`.

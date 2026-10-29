@@ -9,7 +9,7 @@ mod refs;
 mod wal;
 
 pub use cache::MemoryCache;
-pub use objects::MemoryObjectStore;
+pub use objects::{MEMORY_AUTHOR_EMAIL, MemoryObjectStore};
 pub use parser::FixedParser;
 pub use refs::MemoryRefStore;
 pub use wal::MemoryWal;

@@ -82,3 +82,20 @@ fn a_missing_identity_is_refused_before_a_commit_is_written() {
         .expect_err("refused");
     assert!(matches!(error, StoreError::MissingIdentity { .. }), "{error}");
 }
+
+#[test]
+fn commits_read_back_carry_the_author_email() {
+    let sandbox = Sandbox::new();
+    let repository = GitRepository::open_isolated(sandbox.repository("work")).expect("opens");
+    let objects = GitObjectStore::new(repository);
+    let tree = objects.write_tree(&[]).expect("tree");
+    let commit = objects
+        .write_commit(&NewCommit {
+            tree,
+            parents: vec![],
+            message: "gedo: test".into(),
+        })
+        .expect("written");
+    let info = objects.read_commit(&commit).expect("read");
+    assert_eq!(info.author_email, "test@gedo.invalid");
+}
