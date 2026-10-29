@@ -3,6 +3,7 @@ resolver = "3"
 members = [
     "crates/core/gedo-core",
     "crates/core/gedo-ast",
+    "crates/core/gedo-crdt",
     "crates/core/gedo-app",
     "crates/adapters/gedo-store",
     "crates/adapters/gedo-parse",
@@ -20,6 +21,7 @@ publish = false
 [workspace.dependencies]
 gedo-core = { path = "crates/core/gedo-core" }
 gedo-ast = { path = "crates/core/gedo-ast" }
+gedo-crdt = { path = "crates/core/gedo-crdt" }
 gedo-app = { path = "crates/core/gedo-app" }
 gedo-parse = { path = "crates/adapters/gedo-parse" }
 gedo-store = { path = "crates/adapters/gedo-store" }

@@ -11,6 +11,7 @@ publish.workspace = true
 [dependencies]
 gedo-core.workspace = true
 gedo-ast.workspace = true
+gedo-crdt.workspace = true
 blake3.workspace = true
 postcard.workspace = true
 serde.workspace = true
