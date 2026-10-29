@@ -726,7 +726,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: A relay for intents, threads and leases with second-level latency; technology decided in its own ADR.
+- **Description**: A relay for intents, threads and leases with second-level latency; technology decided in its own ADR (amending ADR-0010), which covers client authentication and the separation of teams (tenants) in the protocol from the start, even when a self-hosted relay serves one team, so a managed relay can serve several teams without changing the protocol.
 
 ### FEAT-106: gedo peek
 - **Priority**: medium
@@ -838,7 +838,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: Release archives for the MVP targets, cargo install and early reservation of the gedo crate names.
+- **Description**: Release archives for the MVP targets, cargo install and early reservation of the gedo crate names. Prebuilt static Linux binaries with checksums, so Gedo installs in a container or CI job in under 10 s (FEAT-135).
 
 ### FEAT-121: Windows code signing
 - **Priority**: medium
@@ -951,6 +951,22 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Found**: 2026-10-25, dev-cycle integration contract 2026-10-25
 - **Plan**: -
 - **Description**: Sign and notarize the macOS binaries of FEAT-124; needs the Apple Developer Program, bought when Levix decides (VISION open question).
+
+### FEAT-135: Contract commands without the daemon
+- **Priority**: high
+- **Epic**: EPIC-008
+- **Status**: open
+- **Found**: 2026-10-29, dev-cycle integration follow-ups 2026-10-29
+- **Plan**: -
+- **Description**: Every command of the ADR-0013 contract (doctor, radar, delta, trace, check contracts, version, scope, stream) gives a correct answer in a fresh clone where gedod never ran, as in short-lived cloud sessions and CI runners: it ingests what it needs on demand, or says in its JSON that the answer is partial (a freshness field in the envelope, which amends ADR-0013 when planned), never a silent stale answer. A one-shot gedo sync does what the daemon would have done since its last run (ingest and fetch), for hooks and agents to call after each task. Killing gedo at any point of gedo publish leaves no state that blocks the next run. Acceptance: on the reference repository, install, clone, gedo init and a first correct gedo radar --json in under 60 s with no daemon; each contract command has a snapshot test run without the daemon.
+
+### FEAT-136: gedo stats: local usage metrics
+- **Priority**: medium
+- **Epic**: EPIC-008
+- **Status**: open
+- **Found**: 2026-10-29, dev-cycle integration follow-ups 2026-10-29
+- **Plan**: -
+- **Description**: gedo stats --json [--since <date>] reports, from local data only and with no telemetry: collisions found and how long after they started, merges done by the driver against those that fell back to text (with the reason), contract breaks found, scope overlaps and identity reconciliations. It follows the ADR-0013 contract, so tools such as the dev-cycle protocol record it in their own metrics, and it gives the VISION success metrics real data from dogfooding. No data leaves the machine unless the user exports it.
 
 ## Improvements
 
