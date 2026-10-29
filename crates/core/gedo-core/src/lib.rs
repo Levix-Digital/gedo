@@ -9,6 +9,7 @@ pub mod collection;
 #[cfg(feature = "contract-tests")]
 pub mod contract_tests;
 pub mod error;
+pub mod event;
 pub mod identity;
 pub mod ids;
 #[cfg(feature = "memory")]
@@ -19,6 +20,10 @@ pub mod syntax;
 
 pub use collection::{Collection, MergeOutcome};
 pub use error::StoreError;
+pub use event::{
+    AgentId, Author, AuthorFingerprint, AuthorKind, Clock, Event, EventId, LabelError, LabelKey, LabelValue,
+    Labels, Origin, SemanticOp, Tape, TapeId,
+};
 pub use identity::{
     AnchoredNode, AstNodeId, BlobAstMap, IdentityMerged, Location, MatchFormat, SemanticDelta,
 };
