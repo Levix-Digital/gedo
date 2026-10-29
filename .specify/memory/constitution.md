@@ -1,7 +1,7 @@
 <!-- dev-cycle-constitution
 generated-by: dev-cycle-protocol/constitution.py (do not edit; change a source and regenerate)
-sources-sha256: dc64fdc5a19f669d9f4d3b02ac6f9ea4a14dc5df67d6658e8f1e4e10c356d822
-content-sha256: e1f6c14513388d5b32af11d4ffb0e3330fd360577ffe8e7c19202a88359f494d
+sources-sha256: 95dc943de5489e5b06e49cbbc7ff8f2bdd07fbb18bac9e46be953a481ef91cf4
+content-sha256: 472a78f684f43b79398c4e3becd20a4a8f890cd9f2fe80e01aaa244077fc689a
 -->
 # gedo Constitution
 
@@ -200,6 +200,7 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - ADR-0010: Three tiers of real-time coordination and merge queue complement (`docs/adr/0010-three-tiers-of-real-time-coordination-and-merge-queue-comple.md`)
 - ADR-0012: Identity results are local derived data computed per commit (`docs/adr/0012-identity-results-are-local-derived-data-computed-per-commit.md`)
 - ADR-0013: Versioned JSON output as the contract for tools built on Gedo (`docs/adr/0013-versioned-json-output-as-the-contract-for-tools-built-on-ged.md`)
+- ADR-0014: Event format: content-derived ids, history clocks and three collections (`docs/adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md`)
 
 ## Governance
 
@@ -207,4 +208,4 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - Amendments change the source, not this file: an ADR for decisions, the technical specification for requirements and constraints, `.dev-cycle.json` for the architecture style, the skills for principles. Then run `constitution.py generate` and commit the result with the change.
 - Gate 3 of the development cycle blocks a plan while this file is stale or edited by hand.
 
-**Version**: 1.6.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-29
+**Version**: 1.7.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-29

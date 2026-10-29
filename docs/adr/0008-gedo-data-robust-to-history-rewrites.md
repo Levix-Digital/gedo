@@ -8,7 +8,7 @@ subsystems: [store, events]
 supersedes: []
 superseded_by: []
 amends: [3]
-amended_by: []
+amended_by: [14]
 ---
 
 # ADR-0008: Gedo data robust to history rewrites

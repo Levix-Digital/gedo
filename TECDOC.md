@@ -35,8 +35,12 @@ flowchart TB
 
 A file save flows from `gedod` to the ingest use case: the parser port returns a
 neutral syntax tree, `gedo-ast` matches it against the previous `BlobAstMap` and
-emits semantic deltas, `gedo-crdt` turns them into events appended to the WAL.
-`gedo publish` packs the WAL into an event tape and a canonical Git commit.
+emits semantic deltas, and `gedo-app`'s `EventLog` turns them into events (ids,
+clocks and authors from `gedo-crdt`) appended to the WAL. `gedo publish` creates the
+canonical Git commit and packs the WAL into an event tape of it: the events, the tape
+and a commit index entry are written to three collections under `refs/gedo/`
+(ADR-0014). Commits without a tape get their events reconstructed on demand from the
+identity results.
 
 History made without Gedo is indexed by `gedo-app`'s `IdentityIndex`: it walks every
 ancestor of the given commits to every root, parses only the Rust files that differ
@@ -69,6 +73,7 @@ pushed). Source files and `refs/heads/*` stay untouched.
 <!-- architecture-docs:adrs:start -->
 | ADR | Title | Status | Version | Date |
 |---|---|---|---|---|
+| [ADR-0014](docs/adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md) | Event format: content-derived ids, history clocks and three collections | accepted | v0.3.0 | 2026-10-29 |
 | [ADR-0013](docs/adr/0013-versioned-json-output-as-the-contract-for-tools-built-on-ged.md) | Versioned JSON output as the contract for tools built on Gedo | accepted | v0.4.0 | 2026-10-25 |
 | [ADR-0012](docs/adr/0012-identity-results-are-local-derived-data-computed-per-commit.md) | Identity results are local derived data computed per commit | accepted | v0.2.0 | 2026-10-25 |
 | [ADR-0011](docs/adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md) | Gedo references as commit chains with a separate fetch namespace | proposed | v0.1.0 | 2026-10-24 |

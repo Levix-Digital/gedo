@@ -26,7 +26,7 @@ Persists Gedo data in the Git object store, the local WAL and the redb cache.
 │   ├── gedo/<collection>         # head of one commit chain per collection (pushed)
 │   └── gedo-remote/<remote>/     # each remote's chains as last fetched (never pushed)
 └── gedo/                         # strictly local runtime
-    ├── wal.log                   # micro-events not yet consolidated
+    ├── wal.log                   # live events not yet published
     ├── wal.lock                  # held by the single writer
     └── symbol_cache.db           # redb index, derived data
 ```
@@ -37,7 +37,7 @@ The repository must use SHA-1 object ids; a SHA-256 repository is refused with `
 
 ### Commit-chain collections
 
-A collection (`tapes`, `threads`, ...) is one reference, `refs/gedo/<collection>`, pointing to the head of a commit chain ([ADR-0011](../adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md)). Each commit's tree holds every entry of the collection in a two-level fan-out by entry id, `ab/cdef...`, as Git notes do; entry ids are lowercase hex. A write rewrites only the fan-out directories it touches, commits with the previous head as parent and the repository's configured identity (refused with `MissingIdentity` when there is none), then moves the reference by compare-and-swap. A lost race reloads the head and retries, up to 8 attempts, then returns `Contended`.
+A collection (`events`, `tapes`, `commit-tapes`, `threads`, ...) is one reference, `refs/gedo/<collection>`, pointing to the head of a commit chain ([ADR-0011](../adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md)). Each commit's tree holds every entry of the collection in a two-level fan-out by entry id, `ab/cdef...`, as Git notes do; entry ids are lowercase hex. A write rewrites only the fan-out directories it touches, commits with the previous head as parent and the repository's configured identity (refused with `MissingIdentity` when there is none), then moves the reference by compare-and-swap. A lost race reloads the head and retries, up to 8 attempts, then returns `Contended`.
 
 Two chains that diverged are joined by a merge commit whose tree is the union of both; an entry id present on both sides with different content is reported as `Corrupted`, since entries are content-addressed.
 
@@ -84,3 +84,5 @@ On Windows, an operation on a file another program holds open (an antivirus, an 
 - [ADR-0011](../adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md): commit chains, the `refs/gedo-remote/` fetch namespace, push without a push refspec.
 - [ADR-0008](../adr/0008-gedo-data-robust-to-history-rewrites.md): data robust to history rewrites.
 - [ADR-0009](../adr/0009-semantic-merge-driver-and-shadow-merge.md): merge driver registration and fallback.
+
+The event log has no cache namespace: commit generations are kept in memory by `EventLog`, and reconstructed events are recomputed on demand from the `identity` namespace ([ADR-0014](../adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md)).
