@@ -32,7 +32,8 @@ Shared domain model and the ports every adapter implements.
 | `AnchoredNode` | `id`, `kind`, `name`, `qualified_path` (`crate::billing::Invoice::total`), `occurrence`, `byte_range` (absent for a node carried through a syntax error), `container` (index of the enclosing node), structural, signature and body hashes, `has_error` |
 | `SemanticDelta` | `Created`, `Moved`, `Renamed`, `SignatureMutated`, `BodyModified`, `Tombstoned`, each with the id and the `Location`s or hashes it needs; ordered by variant, then id |
 | `IdentityMerged` | Two ids found for one entity at a merge commit: the `kept` (lower) id, the `merged` one and the `commit` |
-| `Event` | `event_id`, `lamport_clock`, `target_node_id`, `operation` (`SemanticOp`: Insert, Delete, Move, Rename, PatchBody), `author_fingerprint` |
+| `Event` | One change of one entity: `clock` (`Clock`: commit generation and sequence), `target`, `operation` (`SemanticOp`: a `SemanticDelta` or an identity merge), `result_hash` (the structural hash after it; none for a tombstone or a merge), `author` (`Author`: `AuthorFingerprint` and `AuthorKind`, a person or an agent with an `AgentId`), `labels` (`Labels`: at most 16 opaque `LabelKey` to `LabelValue` pairs, `gedo.` reserved) and `origin` (live or reconstructed); `check` verifies the invariants. Its `EventId` is derived from this content by `gedo-crdt` (ADR-0014) |
+| `Tape` | The ordered `EventId`s of one publish (1 to 65,536, no duplicates), without a commit id; its `TapeId` is derived from its content |
 
 ```mermaid
 flowchart LR
@@ -48,7 +49,7 @@ Ports, each with a real adapter and an in-memory adapter for tests:
 
 | Port | Purpose | Real adapter |
 |---|---|---|
-| `ObjectStore` | Read and write blobs, trees (entries with their mode: file, executable, directory, link, submodule) and commits by `GitOid`; never moves a reference | `gedo-store` (gitoxide) |
+| `ObjectStore` | Read and write blobs, trees (entries with their mode: file, executable, directory, link, submodule) and commits by `GitOid` (a commit read back carries its author's e-mail); never moves a reference | `gedo-store` (gitoxide) |
 | `RefStore` | Read and list `refs/gedo/*` and `refs/gedo-remote/*`, compare-and-swap and delete | `gedo-store` |
 | `WriteAheadLog` | Append local micro-events, durable within 100 ms; read and truncate them | `gedo-store` (`.git/gedo/wal.log`) |
 | `SymbolCache` | Fast lookups by namespace and key; rebuilt from a `CacheRebuildSource` | `gedo-store` (redb) |
@@ -56,9 +57,9 @@ Ports, each with a real adapter and an in-memory adapter for tests:
 | Clock | Wall-clock time for ids and logs | standard library, later |
 | Transport | Exchange tapes and intents with other developers | `gedo-net`, later |
 
-`Collection` is the core's logic over the object and reference ports: one commit chain per collection with a two-level fan-out tree, `put` with a compare-and-swap retry loop (8 attempts, then `Contended`), `merge_remote` that fast-forwards or merges the chain fetched from a remote, and `union` of two entry sets, which is commutative, associative and idempotent. It runs unchanged on the in-memory and the gitoxide adapters.
+`Collection` is the core's logic over the object and reference ports: one commit chain per collection with a two-level fan-out tree, `put` with a compare-and-swap retry loop (8 attempts, then `Contended`), `entries_with_prefix` that reads one fan-out directory, `merge_remote` that fast-forwards or merges the chain fetched from a remote, and `union` of two entry sets, which is commutative, associative and idempotent. It runs unchanged on the in-memory and the gitoxide adapters.
 
-The `memory` feature provides the in-memory adapters (`MemoryObjectStore`, `MemoryRefStore`, `MemoryWal`, `MemoryCache`, and `FixedParser`, which returns prepared `ParsedFile`s), with hooks to simulate a crash, the end of the durability window or a repository without identity. The `contract-tests` feature provides one contract suite per port and for `Collection`, as macros that every adapter's tests instantiate, so the in-memory and the real adapters are held to the same behavior.
+The `memory` feature provides the in-memory adapters (`MemoryObjectStore`, `MemoryRefStore`, `MemoryWal`, `MemoryCache`, and `FixedParser`, which returns prepared `ParsedFile`s), with hooks to simulate a crash, the end of the durability window, a repository without identity or the author of the commits written. The `contract-tests` feature provides one contract suite per port and for `Collection`, as macros that every adapter's tests instantiate, so the in-memory and the real adapters are held to the same behavior.
 
 ## Interfaces
 

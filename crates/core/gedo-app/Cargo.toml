@@ -11,6 +11,7 @@ publish.workspace = true
 [dependencies]
 gedo-core.workspace = true
 gedo-ast.workspace = true
+gedo-crdt.workspace = true
 blake3.workspace = true
 postcard.workspace = true
 serde.workspace = true
@@ -28,6 +29,10 @@ criterion.workspace = true
 
 [[bench]]
 name = "index_history"
+harness = false
+
+[[bench]]
+name = "events"
 harness = false
 
 [lints]

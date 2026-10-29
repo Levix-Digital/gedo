@@ -16,6 +16,7 @@ enum StoredObject {
         tree: GitOid,
         parents: Vec<GitOid>,
         message: String,
+        author_email: String,
     },
 }
 
@@ -39,7 +40,11 @@ pub struct MemoryObjectStore {
     objects: Mutex<HashMap<GitOid, StoredObject>>,
     has_identity: bool,
     commits_written: Mutex<u64>,
+    author_email: Mutex<String>,
 }
+
+/// The author e-mail of commits written by a [`MemoryObjectStore`] until another is set.
+pub const MEMORY_AUTHOR_EMAIL: &str = "gedo@memory.invalid";
 
 impl Default for MemoryObjectStore {
     fn default() -> Self {
@@ -54,6 +59,7 @@ impl MemoryObjectStore {
             objects: Mutex::new(HashMap::new()),
             has_identity: true,
             commits_written: Mutex::new(0),
+            author_email: Mutex::new(MEMORY_AUTHOR_EMAIL.to_owned()),
         }
     }
 
@@ -63,6 +69,11 @@ impl MemoryObjectStore {
             has_identity: false,
             ..MemoryObjectStore::new()
         }
+    }
+
+    /// Sets the author e-mail of the commits written from now on.
+    pub fn set_author_email(&self, email: &str) {
+        *lock(&self.author_email) = email.to_owned();
     }
 
     /// Number of objects stored.
@@ -151,6 +162,7 @@ impl ObjectStore for MemoryObjectStore {
             tree: commit.tree,
             parents: commit.parents.clone(),
             message: commit.message.clone(),
+            author_email: lock(&self.author_email).clone(),
         };
         Ok(self.insert(object, sequence))
     }
@@ -160,6 +172,7 @@ impl ObjectStore for MemoryObjectStore {
             tree,
             parents,
             message,
+            author_email,
         } = self.get(oid, "commit")?
         else {
             unreachable!("kind checked by get")
@@ -168,6 +181,7 @@ impl ObjectStore for MemoryObjectStore {
             tree,
             parents,
             message,
+            author_email,
         })
     }
 }

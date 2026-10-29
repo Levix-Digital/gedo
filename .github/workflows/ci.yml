@@ -104,6 +104,7 @@ jobs:
           cargo bench -p gedo-parse --bench parse_rust -- --quick | tee -a bench-output.txt
           cargo bench -p gedo-ast --bench match_change -- --quick | tee -a bench-output.txt
           cargo bench -p gedo-app --bench index_history -- --quick | tee -a bench-output.txt
+          cargo bench -p gedo-app --bench events -- --quick | tee -a bench-output.txt
       - uses: actions/upload-artifact@v4
         with:
           name: bench-${{ matrix.os }}

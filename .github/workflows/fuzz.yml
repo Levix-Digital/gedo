@@ -1,6 +1,6 @@
 name: Fuzz
 
-# Coverage-guided fuzzing of the parser and of the identity records (SC-007), run by hand before each release candidate.
+# Coverage-guided fuzzing of the parser, the identity records and the event records (SC-007), run by hand before each release candidate.
 on:
   workflow_dispatch:
     inputs:
@@ -48,4 +48,23 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: fuzz-artifacts-identity
+          path: fuzz/artifacts/
+
+  decode_event_record:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: fuzz
+      - run: cargo install cargo-fuzz --locked
+      - name: Fuzz the event record decoders
+        working-directory: fuzz
+        run: cargo +nightly fuzz run decode_event_record -- -max_total_time=${{ inputs.seconds }} -rss_limit_mb=2048
+      - name: Keep the crashing inputs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-artifacts-events
           path: fuzz/artifacts/

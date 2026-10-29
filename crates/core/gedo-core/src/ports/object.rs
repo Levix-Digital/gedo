@@ -55,6 +55,8 @@ pub struct CommitInfo {
     pub parents: Vec<GitOid>,
     /// The commit message.
     pub message: String,
+    /// The author's e-mail as written in the commit (invalid UTF-8 replaced).
+    pub author_email: String,
 }
 
 /// Content-addressed storage of blobs, trees and commits.

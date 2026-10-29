@@ -26,7 +26,6 @@ Gedo is a set of native command-line tools written in Rust: the `gedo` CLI, whic
 | `tree-sitter-typescript` / `tree-sitter-python` | 0.23 / 0.25 | `gedo-parse` | Next languages (after the MVP) |
 | `blake3` | 1.8 | core | Structural hash and author fingerprint |
 | `postcard` + `serde` | 1.1 + 1.0 | core, `gedo-store` | Compact, versioned binary records |
-| `uuid` (`v4`, `v7`, `serde`) | 1.29 | core | `event_id` (v0.3.0); `AstNodeId` is a v8 UUID derived with BLAKE3 and needs no crate (ADR-0007) |
 | `redb` | 4.4 | `gedo-store` | Local symbol cache (ADR-0004) |
 | `crc32fast` | 1.5 | `gedo-store` | Checksum of each write-ahead log frame |
 | `notify` | 8.2 | `gedod` | Cross-platform file-system watcher |
@@ -117,8 +116,8 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 | Entity | Where | Notes |
 |---|---|---|
 | `BlobAstMap` (nodes of one file at a commit) | `.git/gedo/symbol_cache.db`, namespace `identity` | Local, derived per commit, rebuilt by indexing the history (ADR-0012) |
-| Event | `refs/gedo/tapes/` (content-addressed by event id) | Immutable; reconstructed deterministically for commits made without Gedo |
-| Tape and commit index | `refs/gedo/tapes/` | A tape groups the events of one publish; the index maps commits to tapes and is rebuilt after rewrites |
+| Event | `refs/gedo/events` (entry: event id) | Immutable, id derived from content; carries clock, target, operation, author fingerprint and kind, labels (ADR-0014). Events of commits made without Gedo are reconstructed on demand and never stored |
+| Tape and commit index | `refs/gedo/tapes` (entry: tape id) and `refs/gedo/commit-tapes` (entry: commit id + tape id) | A tape lists the events of one publish in order and names no commit; the index maps commits to tapes and gains entries after rewrites (ADR-0008, ADR-0014) |
 | Identity alias | `.git/gedo/symbol_cache.db`, namespace `identity` | `IdentityMerged` reconciliations found while indexing; rebuilt like the maps, and shared as events from v0.3.0 (ADR-0012) |
 | Thread (intents and negotiation of a symbol) | `refs/gedo/threads/<thread-uuid>` | Append-only |
 | WAL (unconsolidated micro-events) | `.git/gedo/wal.log` | Local; truncated after `gedo publish` |

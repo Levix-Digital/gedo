@@ -625,6 +625,7 @@ dependencies = [
  "criterion",
  "gedo-ast",
  "gedo-core",
+ "gedo-crdt",
  "gedo-parse",
  "gedo-store",
  "insta",
@@ -658,6 +659,19 @@ dependencies = [
  "serde",
  "thiserror",
  "tracing",
+]
+
+[[package]]
+name = "gedo-crdt"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "gedo-core",
+ "insta",
+ "postcard",
+ "proptest",
+ "serde",
+ "thiserror",
 ]
 
 [[package]]

@@ -218,13 +218,14 @@ pub fn invalid_tree_entries_are_refused<O: ObjectStore>(make: impl Fn() -> O) {
     assert!(objects.write_tree(&duplicate).is_err());
 }
 
-/// Commits round trip with their tree, parents and message.
+/// Commits round trip with their tree, parents and message, and carry the author's e-mail.
 pub fn commits_round_trip<O: ObjectStore>(make: impl Fn() -> O) {
     let objects = make();
     let root = commit(&objects, "gedo: first");
     let info = objects.read_commit(&root).expect("read");
     assert!(info.parents.is_empty());
     assert_eq!(info.message, "gedo: first");
+    assert!(info.author_email.contains('@'), "{:?}", info.author_email);
 
     let tree = objects.write_tree(&[]).expect("written");
     let other = commit(&objects, "gedo: other");
@@ -689,6 +690,39 @@ pub fn collections_store_entries<O: ObjectStore, R: RefStore>(make: impl Fn() ->
     assert!(root.iter().all(|entry| entry.mode == EntryMode::Tree));
 }
 
+/// Entries are listed by id prefix from one fan-out directory; bad prefixes are refused.
+pub fn entries_are_listed_by_prefix<O: ObjectStore, R: RefStore>(make: impl Fn() -> (O, R)) {
+    let (objects, refs) = make();
+    let collection = Collection::new(tapes(), &objects, &refs);
+    assert!(collection.entries_with_prefix("ab").expect("list").is_empty());
+    collection
+        .put(
+            &[
+                entry("abcd01", "one"),
+                entry("abcd02", "two"),
+                entry("ab9999", "three"),
+                entry("ff00", "four"),
+            ],
+            "gedo: put",
+        )
+        .expect("put");
+    let ids = |prefix: &str| -> Vec<String> {
+        collection
+            .entries_with_prefix(prefix)
+            .expect("list")
+            .keys()
+            .map(ToString::to_string)
+            .collect()
+    };
+    assert_eq!(ids("abcd"), ["abcd01", "abcd02"]);
+    assert_eq!(ids("ab"), ["ab9999", "abcd01", "abcd02"]);
+    assert_eq!(ids("abcd02"), ["abcd02"]);
+    assert!(ids("12").is_empty());
+    for refused in ["a", "AB", "zz", ""] {
+        assert!(collection.entries_with_prefix(refused).is_err(), "{refused:?}");
+    }
+}
+
 /// The same id with different content is corruption, and nothing is written.
 pub fn conflicting_entries_are_refused<O: ObjectStore, R: RefStore>(make: impl Fn() -> (O, R)) {
     let (objects, refs) = make();
@@ -870,6 +904,10 @@ macro_rules! collection_contract {
         #[test]
         fn collections_store_entries() {
             $crate::contract_tests::collections_store_entries($make);
+        }
+        #[test]
+        fn entries_are_listed_by_prefix() {
+            $crate::contract_tests::entries_are_listed_by_prefix($make);
         }
         #[test]
         fn conflicting_entries_are_refused() {
