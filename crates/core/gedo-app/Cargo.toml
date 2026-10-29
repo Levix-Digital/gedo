@@ -31,5 +31,9 @@ criterion.workspace = true
 name = "index_history"
 harness = false
 
+[[bench]]
+name = "events"
+harness = false
+
 [lints]
 workspace = true

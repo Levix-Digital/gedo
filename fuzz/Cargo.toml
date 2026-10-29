@@ -1,4 +1,4 @@
-# Coverage-guided fuzzing of the parser and of the identity records (SC-007). Outside the workspace because cargo-fuzz needs
+# Coverage-guided fuzzing of the parser, the identity records and the event records (SC-007). Outside the workspace because cargo-fuzz needs
 # a nightly toolchain: `cargo +nightly fuzz run parse_rust -- -max_total_time=600`.
 [package]
 name = "gedo-fuzz"
@@ -16,6 +16,7 @@ gedo-core = { path = "../crates/core/gedo-core" }
 gedo-ast = { path = "../crates/core/gedo-ast" }
 gedo-parse = { path = "../crates/adapters/gedo-parse" }
 gedo-app = { path = "../crates/core/gedo-app" }
+gedo-crdt = { path = "../crates/core/gedo-crdt" }
 
 [[bin]]
 name = "parse_rust"
@@ -27,6 +28,13 @@ bench = false
 [[bin]]
 name = "decode_identity_record"
 path = "fuzz_targets/decode_identity_record.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "decode_event_record"
+path = "fuzz_targets/decode_event_record.rs"
 test = false
 doc = false
 bench = false
