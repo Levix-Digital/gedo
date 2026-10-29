@@ -22,12 +22,12 @@ Each release: `## vX.Y.Z: <name>` with the fields `Status` (planned, in_progress
 ## v0.4.0: MVP
 - **Status**: planned
 - **Goal**: The Levix team uses gedo as its only Git command on a real Rust repository: semantic merges, collisions found by the shadow merge, merges that compile, trace, graft and split publishes, with the daemon running on Windows and Linux.
-- **Items**: FEAT-070, FEAT-071, FEAT-072, FEAT-073, FEAT-074, FEAT-075, FEAT-076, FEAT-077, FEAT-078, FEAT-079, FEAT-081, FEAT-082, FEAT-083, FEAT-084, FEAT-085, FEAT-086, FEAT-087, FEAT-088, FEAT-089, FEAT-090, FEAT-091, FEAT-092, FEAT-120
+- **Items**: FEAT-070, FEAT-071, FEAT-072, FEAT-073, FEAT-074, FEAT-075, FEAT-076, FEAT-077, FEAT-078, FEAT-079, FEAT-081, FEAT-082, FEAT-083, FEAT-084, FEAT-085, FEAT-086, FEAT-087, FEAT-088, FEAT-089, FEAT-090, FEAT-091, FEAT-092, FEAT-120, FEAT-135
 
 ## v0.5.0: Team workflow on GitHub
 - **Status**: planned
 - **Goal**: Gedo value is visible on every pull request, data survives server-side merges, the merge queue is checked semantically, no work is ever lost, Cargo.toml is merged structurally and Cargo.lock regenerated, and parallel coding agents work in hidden streams that see each other's intents, with scopes checked for overlap before they start.
-- **Items**: FEAT-096, FEAT-097, FEAT-098, FEAT-093, FEAT-094, FEAT-095, FEAT-100, FEAT-057, FEAT-129, FEAT-130, FEAT-133
+- **Items**: FEAT-096, FEAT-097, FEAT-098, FEAT-093, FEAT-094, FEAT-095, FEAT-100, FEAT-057, FEAT-129, FEAT-130, FEAT-133, FEAT-136
 
 ## v0.6.0: Levix stacks
 - **Status**: planned
