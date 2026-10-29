@@ -387,17 +387,17 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### FEAT-063: Event model with Lamport clocks and content-addressed ids
 - **Priority**: high
 - **Epic**: EPIC-005
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_event_model
 - **Description**: Event, SemanticOp, Lamport clock and author fingerprint, with deterministic ids for reconstructed events. Each event also carries the kind of author (person or agent, with an identifier) and a map of opaque labels (key and value) that tools on top of Gedo set and filter, for example plan=... or milestone=M2 from the dev-cycle protocol; Gedo stores and returns them without knowing what they mean. Both are in the format from the start, because formats freeze at v1.0.0 (FEAT-127).
 
 ### FEAT-064: Event tapes and commit index
 - **Priority**: high
 - **Epic**: EPIC-005
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_event_model
 - **Description**: Content-addressed events grouped in tapes, with a commit-to-tape index (ADR-0008).
 
 ### FEAT-065: Re-attachment after rebase, amend and squash
