@@ -4,10 +4,10 @@ project: gedo
 title: Event model
 kind: feature
 version: v0.3.0
-status: active
+status: in_progress
 author: Levi Silveira
 created_at: '2026-10-29T17:48:48'
-updated_at: '2026-10-29T22:30:11'
+updated_at: '2026-10-29T22:52:00'
 session_id: null
 tags:
 - events
@@ -24,17 +24,29 @@ backlog_items:
 spec_dir: specs/004-event-model
 milestones:
 - name: M1 Setup and event model
-  done: false
+  done: true
+  done_at: '2026-10-29'
+  by: Levi Silveira
 - name: M2 Event ids
-  done: false
+  done: true
+  done_at: '2026-10-29'
+  by: Levi Silveira
 - name: M3 Authors and labels
-  done: false
+  done: true
+  done_at: '2026-10-29'
+  by: Levi Silveira
 - name: M4 Clocks
-  done: false
+  done: true
+  done_at: '2026-10-29'
+  by: Levi Silveira
 - name: M5 Record and publish
-  done: false
+  done: true
+  done_at: '2026-10-29'
+  by: Levi Silveira
 - name: M6 Reconstruction
-  done: false
+  done: true
+  done_at: '2026-10-29'
+  by: Levi Silveira
 - name: M7 Hardening and acceptance
   done: false
 status_log:
@@ -58,6 +70,24 @@ status_log:
   by: Levi Silveira
   status: active
   note: Approved by Levi on 2026-10-29
+- at: '2026-10-29T22:51:53'
+  by: Levi Silveira
+  note: Milestone 'M1 Setup and event model' completed
+- at: '2026-10-29T22:51:54'
+  by: Levi Silveira
+  note: Milestone 'M2 Event ids' completed
+- at: '2026-10-29T22:51:56'
+  by: Levi Silveira
+  note: Milestone 'M3 Authors and labels' completed
+- at: '2026-10-29T22:51:57'
+  by: Levi Silveira
+  note: Milestone 'M4 Clocks' completed
+- at: '2026-10-29T22:51:59'
+  by: Levi Silveira
+  note: Milestone 'M5 Record and publish' completed
+- at: '2026-10-29T22:52:00'
+  by: Levi Silveira
+  note: Milestone 'M6 Reconstruction' completed
 ---
 
 # Event model
@@ -90,3 +120,17 @@ First feature of release v0.3.0 Event log and convergence (scope chosen by the u
 - **Priority**: high
 - **Found**: 2026-10-24
 - **Description**: Content-addressed events grouped in tapes, with a commit-to-tape index (ADR-0008).
+
+## Results
+
+Benchmarks of `cargo bench -p gedo-app --bench events` (release build, Linux development container, 4 cores, Git store adapter, 2026-10-29); the Windows reference machine run is pending the user's go:
+
+| Requirement | p50 | p95 | p99 | Budget |
+|---|---:|---:|---:|---|
+| Record one event (2,000 runs, SC-004) | 4.0 µs | 6.0 µs | 9.1 µs | p95 under 1 ms |
+| Publish a tape of 1,000 events (10 runs, SC-004) | 90 ms | 107 ms | 107 ms | under 1 s |
+| Publish 1,000 events into a chain of 100,000 (5 runs) | 240 ms | 275 ms | 275 ms | under 1 s |
+| Reconstruct the events of one commit of this repository (20 runs, SC-005) | 0.11 ms | 0.29 ms | 0.41 ms | p95 under 100 ms |
+| Filter 10,000 events by one label (5 runs, SC-006) | 331 ms | 408 ms | 408 ms | under 500 ms |
+
+Deviation from the plan: commit generations are kept in memory by `EventLog` instead of a symbol cache memo, and reconstructed events are not memoized (research R3, R10), since `IdentityIndex` already borrows the cache and the numbers above leave no need for it.

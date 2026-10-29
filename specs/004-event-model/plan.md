@@ -14,7 +14,7 @@ Turn the semantic deltas and identity merges of feature 003 into events, the sha
 
 **Primary Dependencies**: no new third-party dependency. `gedo-crdt` uses `gedo-core`, `blake3`, `postcard`, `serde`, `thiserror`. `gedo-app` adds `gedo-crdt`. The `uuid` crate is still not added (ids are built like `AstNodeId`).
 
-**Storage**: shared: three new collections under `refs/gedo/` (research R9). Local: the write-ahead log (`.git/gedo/wal.log`, existing port) and the symbol cache namespace `events` (generations and reconstructed events).
+**Storage**: shared: three new collections under `refs/gedo/` (research R9). Local: the write-ahead log (`.git/gedo/wal.log`, existing port); generations are kept in memory and reconstructed events are recomputed from the identity results.
 
 **Testing**: `cargo test` (unit and property-based tests in `gedo-core` and `gedo-crdt`; use-case tests with crash injection, joined publishes, generated histories and a snapshot over this repository's history in `gedo-app`), `insta` snapshots, `criterion` benchmarks, a fuzz target for the record decoders.
 
@@ -93,7 +93,6 @@ crates/
 │   └── gedo-app/
 │       ├── src/events/mod.rs       # EventLog: record, publish, read, filter
 │       ├── src/events/records.rs   # WalRecord, record encoding and checked decoding
-│       ├── src/events/generation.rs  # generations memoized in the cache
 │       ├── tests/events.rs         # record, publish, crashes, joined publishes, filters
 │       ├── tests/event_history.rs  # reconstruction: generated histories, orders, snapshot
 │       ├── benches/events.rs
@@ -101,7 +100,7 @@ crates/
 └── adapters/
     └── gedo-store/src/objects.rs   # + author e-mail in read_commit
 fuzz/fuzz_targets/decode_event_record.rs
-docs/adr/0014-event-format-content-derived-ids-history-clocks-and-three-collections.md
+docs/adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md
 ```
 
 **Structure Decision**: the layout of ADR-0001, adding `gedo-crdt`, the event layer crate named by the architecture. Adapters change only by one read field.

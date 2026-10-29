@@ -16,15 +16,17 @@ pub fn reconstructed_events(
     deltas: &[SemanticDelta],
     merges: &[IdentityMerged],
     result_hash: impl Fn(AstNodeId) -> Option<StructuralHash>,
-) -> Vec<Event>;
+) -> Result<Vec<Event>, ReconstructError>;
 pub fn sort_events(events: &mut [Event]);              // total order (clock, id)
 
 impl RecordingContext {
-    pub fn person(email: &str, labels: Labels) -> Self;
-    pub fn agent(email: &str, agent: AgentId, labels: Labels) -> Self;
+    pub fn person(email: &str, labels: Labels) -> Result<Self, LabelError>;
+    pub fn agent(email: &str, agent: AgentId, labels: Labels) -> Result<Self, LabelError>;
     pub fn from_texts(email: &str, agent: Option<&str>, labels: Option<&str>) -> Result<Self, LabelError>;
 }
-impl Labels { pub fn parse(text: &str) -> Result<Labels, LabelError>; pub fn for_recording(self) -> Result<Labels, LabelError>; }
+pub fn parse_labels(text: &str) -> Result<Labels, LabelError>;
+pub fn format_labels(labels: &Labels) -> String;
+impl Labels { pub fn for_recording(self) -> Result<Labels, LabelError>; } // in gedo-core
 impl EventFilter { pub fn matches(&self, event: &Event) -> bool; }
 ```
 
@@ -34,18 +36,20 @@ impl EventFilter { pub fn matches(&self, event: &Event) -> bool; }
 ## gedo-app::events
 
 ```rust
-pub struct EventLog<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog, C: SymbolCache> { /* ... */ }
+pub struct EventLog<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> { /* ... */ }
 
-impl EventLog<'_, O, R, W, C> {
-    pub fn open(objects, refs, wal, cache, identity: &IdentityIndex<..>) -> Result<Self, EventError>;
+impl EventLog<'_, O, R, W> {
+    pub fn open(objects: &O, refs: &R, wal: &mut W) -> Result<Self, EventError>;
     pub fn record(&mut self, context: &RecordingContext, base: Option<GitOid>,
                   ops: &[(SemanticOp, Option<StructuralHash>)]) -> Result<Vec<EventId>, EventError>;
     pub fn publish(&mut self, commit: GitOid) -> Result<Option<TapeId>, EventError>;
     pub fn tapes_of(&self, commit: &GitOid) -> Result<Vec<TapeId>, EventError>;
     pub fn tape(&self, id: &TapeId) -> Result<Tape, EventError>;
     pub fn event(&self, id: &EventId) -> Result<Event, EventError>;
-    pub fn events_of_commit(&self, commit: &GitOid) -> Result<CommitEvents, EventError>;
+    pub fn events_of_commit(&mut self, commit: &GitOid, identities: &IdentityIndex<..>) -> Result<CommitEvents, EventError>;
     pub fn filter(&self, filter: &EventFilter) -> Result<Vec<Event>, EventError>;
+    pub fn pending(&self) -> Result<Vec<(LogSequence, Event)>, EventError>;
+    pub fn generation(&mut self, commit: &GitOid) -> Result<u64, EventError>;
 }
 
 pub enum CommitEvents { Published(Vec<(TapeId, Vec<Event>)>), Reconstructed(Vec<Event>) }
@@ -53,7 +57,7 @@ pub enum CommitEvents { Published(Vec<(TapeId, Vec<Event>)>), Reconstructed(Vec<
 
 - `publish` returns `None` when the log holds no event; it is idempotent and crash-safe (research R11).
 - `events_of_commit` returns the published tapes when the index has entries, otherwise the reconstructed events (research R10); `NotIndexed` when the commit's identities are not indexed yet.
-- `EventError` variants: `Store(StoreError)` (with context), `Label(LabelError)`, `TapeTooLarge { events, limit }`, `MissingTape { commit, tape }`, `MissingEvent { tape, event }`, `NotIndexed { commit }`.
+- `EventError` variants: `Store { context, source }`, `Index(IndexError)` (including `NotIndexed`), `Label(LabelError)`, `Reconstruct { commit, source }`, `TapeTooLarge { events, limit }`, `Missing { what, id }` (a tape or event named but not in the local data).
 
 ## Storage (shared)
 

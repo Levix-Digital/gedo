@@ -52,13 +52,13 @@ Types live in `gedo-core::event` unless noted. Persisted values are encoded with
 | `labels` | `Labels` | empty for reconstructed events |
 | `origin` | `Origin` | |
 
-- `Event::id()` derives the `EventId` from the encoding of these fields (research R2).
+- `gedo_crdt::event_id` derives the `EventId` from the encoding of these fields (research R2).
 - Stored record: `RecordEnvelope { format: 1, payload: postcard(Event) }` in `refs/gedo/events`, entry = id. Decoding checks the size limit, the format, the invariants above and that the derived id equals the entry name; otherwise `Corrupted` with the entry.
 
 ## Tape
 
 - `events: Vec<EventId>`: 1 to 65,536 ids, in recording order, no duplicates.
-- `Tape::id()` derives the `TapeId`.
+- `gedo_crdt::tape_id` derives the `TapeId`.
 - Stored record: format 1 in `refs/gedo/tapes`, entry = tape id, checked like events.
 
 ## Commit index entry
@@ -79,11 +79,9 @@ Types live in `gedo-core::event` unless noted. Persisted values are encoded with
 
 - `labels: Vec<(LabelKey, LabelValue)>` (all required), `author_kind: Option<Person | Agent>`, `agent: Option<AgentId>`, `fingerprint: Option<AuthorFingerprint>`.
 
-## Local derived data (symbol cache, namespace `events`)
+## Local derived data
 
-- `generation/<oid>` → `u64` (research R3).
-- `reconstructed/<oid>` → the reconstructed events of a commit (research R10).
-- Rebuilt when missing, corrupted or of another format, like the `identity` namespace.
+- Commit generations are kept in memory by `EventLog` (research R3); reconstructed events are recomputed on demand from the `identity` namespace of the symbol cache (research R10). Nothing new is stored in the cache.
 
 ## Relations
 
