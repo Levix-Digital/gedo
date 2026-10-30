@@ -57,6 +57,14 @@ otherwise) and converges them part by part: presence, place, name, signature and
 Changes that agree or touch different parts apply; distinct values of one part come
 back as conflicts with their sides and events, and nothing is written (ADR-0017).
 
+Mixed work is split-published by `EventLog::publish_split`: the final tree is committed on
+the base and indexed, `gedo-crdt` gives each change a lane (moves, renames and the reference
+updates they force are refactor; the rest is feature) and builds the refactor version of the
+changed files from their base and final tokens. A refactor commit and a feature commit on it
+are written and indexed, and kept only when the parts each changes are exactly its lane's;
+otherwise the single commit is published with the reason. Each commit gets the tape of its
+lane's events (ADR-0018).
+
 History made without Gedo is indexed by `gedo-app`'s `IdentityIndex`: it walks every
 ancestor of the given commits to every root, parses only the Rust files that differ
 from the first parent, matches them against the parent's results with `gedo-ast`, and
@@ -88,6 +96,7 @@ pushed). Source files and `refs/heads/*` stay untouched.
 <!-- architecture-docs:adrs:start -->
 | ADR | Title | Status | Version | Date |
 |---|---|---|---|---|
+| [ADR-0018](docs/adr/0018-semantic-lanes-per-part-with-a-refactor-commit-verified-by-r.md) | Semantic lanes per part with a refactor commit verified by re-indexing | accepted | v0.3.0 | 2026-10-30 |
 | [ADR-0017](docs/adr/0017-tree-crdt-as-a-three-way-convergence-of-entity-parts.md) | Tree CRDT as a three-way convergence of entity parts | accepted | v0.3.0 | 2026-10-30 |
 | [ADR-0016](docs/adr/0016-re-attachment-by-entity-state-with-a-semantic-signature-fast.md) | Re-attachment by entity state with a semantic-signature fast path | accepted | v0.3.0 | 2026-10-30 |
 | [ADR-0015](docs/adr/0015-packed-batch-writes-and-an-event-cache.md) | Packed batch writes and an event cache | accepted | v0.3.0 | 2026-10-30 |

@@ -39,7 +39,7 @@ flowchart LR
 | Command | Use case |
 |---|---|
 | `gedo init` | Prepare `.git/gedo/`, write the `refs/gedo/*` refspecs, install and chain the hooks, build the first AST maps |
-| `gedo publish [--split-lanes]` | Pack the WAL into canonical tapes and create the native Git commit; with `--split-lanes`, a refactor commit followed by a feature commit |
+| `gedo publish [--split-lanes]` | Pack the WAL into canonical tapes and create the native Git commit; with `--split-lanes`, `EventLog::publish_split` writes a refactor commit followed by a feature commit (or one commit and the reason) and the command moves the branch to the last one |
 | `gedo delta` | Semantic diff: moved, renamed, refactored or changed |
 | `gedo stream <name>` | Switch to or create a virtual stream in memory |
 | `gedo radar` | Collisions found by the shadow merge and overlay state |

@@ -15,6 +15,7 @@
 pub mod converge;
 pub mod reattach;
 pub mod records;
+pub mod split;
 
 use std::collections::{BTreeSet, HashMap};
 
@@ -137,6 +138,9 @@ impl CommitEvents {
     }
 }
 
+/// The events of the log by id, with the sequence of the last record read.
+type PendingEvents = (LogSequence, Vec<(EventId, Event)>);
+
 /// The event log of one repository.
 pub struct EventLog<'a, O, R, W> {
     objects: &'a O,
@@ -229,75 +233,119 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
     /// Idempotent and crash-safe: every entry is content-addressed, and the log is truncated only
     /// after the index entry is written. Events appended after the log was read stay in it.
     pub fn publish(&mut self, commit: GitOid) -> Result<Option<TapeId>, EventError> {
+        let Some((last_sequence, events)) = self.pending_unique()? else {
+            return Ok(None);
+        };
+        let tapes = self.store_tapes(&[(commit, events)], last_sequence)?;
+        Ok(tapes.into_iter().next().flatten())
+    }
+
+    /// The events of the log deduplicated by id, in recording order, with the sequence of the last
+    /// record read; `None` when the log is empty.
+    fn pending_unique(&self) -> Result<Option<PendingEvents>, EventError> {
         let pending = self.pending()?;
         let Some((last_sequence, _)) = pending.last() else {
             return Ok(None);
         };
         let last_sequence = *last_sequence;
         let mut seen = BTreeSet::new();
-        let events: Vec<(EventId, Event)> = pending
+        let events = pending
             .into_iter()
             .map(|(_, event)| (event_id(&event), event))
             .filter(|(id, _)| seen.insert(*id))
             .collect();
-        if events.len() > MAX_TAPE_EVENTS {
-            tracing::warn!(
-                events = events.len(),
-                limit = MAX_TAPE_EVENTS,
-                "publish refused: tape too large"
-            );
-            return Err(EventError::TapeTooLarge {
-                events: events.len(),
-                limit: MAX_TAPE_EVENTS,
-            });
-        }
-        let tape = Tape {
-            events: events.iter().map(|(id, _)| *id).collect(),
-        };
-        let tape = (tape_id(&tape), tape);
-        let message = format!("gedo: publish {} for {commit}", tape.0);
+        Ok(Some((last_sequence, events)))
+    }
 
-        let mut entries = Vec::with_capacity(events.len());
-        for (id, event) in &events {
+    /// Stores one tape per commit (none for a commit without events): every event, then every
+    /// tape, then every index entry, then truncates the log through `last_sequence` (ADR-0014).
+    /// Returns the tape of each commit, in order.
+    fn store_tapes(
+        &mut self,
+        groups: &[(GitOid, Vec<(EventId, Event)>)],
+        last_sequence: LogSequence,
+    ) -> Result<Vec<Option<TapeId>>, EventError> {
+        for (_, events) in groups {
+            if events.len() > MAX_TAPE_EVENTS {
+                tracing::warn!(
+                    events = events.len(),
+                    limit = MAX_TAPE_EVENTS,
+                    "publish refused: tape too large"
+                );
+                return Err(EventError::TapeTooLarge {
+                    events: events.len(),
+                    limit: MAX_TAPE_EVENTS,
+                });
+            }
+        }
+        let tapes: Vec<Option<(TapeId, Tape)>> = groups
+            .iter()
+            .map(|(_, events)| {
+                (!events.is_empty()).then(|| {
+                    let tape = Tape {
+                        events: events.iter().map(|(id, _)| *id).collect(),
+                    };
+                    (tape_id(&tape), tape)
+                })
+            })
+            .collect();
+        let message = match groups
+            .iter()
+            .zip(&tapes)
+            .find_map(|((commit, _), tape)| tape.as_ref().map(|(id, _)| (commit, id)))
+        {
+            Some((commit, tape)) if groups.len() == 1 => format!("gedo: publish {tape} for {commit}"),
+            Some((commit, tape)) => format!("gedo: publish {tape} and more for {commit} and more"),
+            None => String::new(),
+        };
+
+        let mut entries = Vec::new();
+        let mut cached = Vec::new();
+        for (id, event) in groups.iter().flat_map(|(_, events)| events) {
+            let bytes = records::encode_event(event).context(|| format!("encode event {id}"))?;
             entries.push((
                 records::event_entry(id).context(|| "name an event".into())?,
-                records::encode_event(event).context(|| format!("encode event {id}"))?,
+                bytes.clone(),
+            ));
+            cached.push((*id, bytes));
+        }
+        if !entries.is_empty() {
+            self.collection(EVENTS_COLLECTION)?
+                .put(&entries, &message)
+                .context(|| "store the events".into())?;
+        }
+        let mut tape_entries = Vec::new();
+        let mut index_entries = Vec::new();
+        for ((commit, _), tape) in groups.iter().zip(&tapes) {
+            let Some((id, tape)) = tape else { continue };
+            tape_entries.push((
+                records::tape_entry(id).context(|| "name the tape".into())?,
+                records::encode_tape(tape).context(|| "encode the tape".into())?,
+            ));
+            index_entries.push((
+                records::index_entry(commit, id).context(|| "name the index entry".into())?,
+                records::encode_index_entry().context(|| "encode the index entry".into())?,
             ));
         }
-        self.collection(EVENTS_COLLECTION)?
-            .put(&entries, &message)
-            .context(|| "store the events".into())?;
-        self.collection(TAPES_COLLECTION)?
-            .put(
-                &[(
-                    records::tape_entry(&tape.0).context(|| "name the tape".into())?,
-                    records::encode_tape(&tape.1).context(|| "encode the tape".into())?,
-                )],
-                &message,
-            )
-            .context(|| "store the tape".into())?;
-        self.collection(COMMIT_TAPES_COLLECTION)?
-            .put(
-                &[(
-                    records::index_entry(&commit, &tape.0).context(|| "name the index entry".into())?,
-                    records::encode_index_entry().context(|| "encode the index entry".into())?,
-                )],
-                &message,
-            )
-            .context(|| "store the index entry".into())?;
-        self.cache_records(
-            entries
-                .iter()
-                .zip(&events)
-                .map(|((_, bytes), (id, _))| (*id, bytes.clone()))
-                .collect(),
-        );
+        if !tape_entries.is_empty() {
+            self.collection(TAPES_COLLECTION)?
+                .put(&tape_entries, &message)
+                .context(|| "store the tape".into())?;
+            self.collection(COMMIT_TAPES_COLLECTION)?
+                .put(&index_entries, &message)
+                .context(|| "store the index entry".into())?;
+        }
+        self.cache_records(cached);
         self.wal
             .truncate_through(last_sequence)
             .context(|| "remove the published events from the log".into())?;
         self.last = self.pending()?.last().map(|(_, event)| event.clock);
-        tracing::info!(%commit, tape = %tape.0, events = events.len(), "events published");
-        Ok(Some(tape.0))
+        for ((commit, events), tape) in groups.iter().zip(&tapes) {
+            if let Some((tape, _)) = tape {
+                tracing::info!(%commit, %tape, events = events.len(), "events published");
+            }
+        }
+        Ok(tapes.into_iter().map(|tape| tape.map(|(id, _)| id)).collect())
     }
 
     /// The tapes published for `commit`, by id.

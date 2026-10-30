@@ -43,6 +43,7 @@ tree-sitter = "0.27"
 tree-sitter-rust = "0.24"
 blake3 = "1.8"
 insta = { version = "1.49", features = ["yaml"] }
+similar = "2.7"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
