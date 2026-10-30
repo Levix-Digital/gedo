@@ -8,6 +8,7 @@
 pub mod events;
 pub mod index;
 
+pub use events::converge::{ConvergeReport, Side};
 pub use events::reattach::{CacheFill, CommitReattachment, DEFAULT_GRACE_DAYS, DetachedTape, ReattachReport};
 pub use events::{CommitEvents, EventError, EventLog};
 pub use index::{CommitChanges, IdentityIndex, IndexError, IndexReport};

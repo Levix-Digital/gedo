@@ -39,5 +39,9 @@ harness = false
 name = "reattach"
 harness = false
 
+[[bench]]
+name = "converge"
+harness = false
+
 [lints]
 workspace = true

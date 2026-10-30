@@ -1,5 +1,5 @@
-//! Publishing, refusing a publish, re-attaching, reporting detached tapes and filling the event
-//! cache are visible as `tracing` events.
+//! Publishing, refusing a publish, re-attaching, reporting detached tapes, filling the event cache
+//! and converging sides are visible as `tracing` events.
 //!
 //! One test in its own binary: tracing caches whether a call site is enabled process-wide, so
 //! concurrent tests without a subscriber would disable the events for this one.
@@ -8,7 +8,7 @@ mod support;
 
 use std::sync::{Arc, Mutex};
 
-use gedo_app::{DEFAULT_GRACE_DAYS, EventLog, IdentityIndex};
+use gedo_app::{DEFAULT_GRACE_DAYS, EventLog, IdentityIndex, Side};
 use gedo_core::event::{Labels, MAX_TAPE_EVENTS, SemanticOp};
 use gedo_core::identity::{AstNodeId, SemanticDelta};
 use gedo_core::memory::{MemoryRefStore, MemoryWal};
@@ -91,6 +91,8 @@ fn publishing_and_refusals_are_traced() {
         assert_eq!(report.attached(), 1);
         log.detached(&[amended], 0, DEFAULT_GRACE_DAYS).expect("report");
         log.fill_cache().expect("filled");
+        log.converge(&base, &[Side::commit(base)], &index)
+            .expect("converged");
     });
     let messages = messages.0.lock().expect("not poisoned").clone();
     assert!(
@@ -106,6 +108,7 @@ fn publishing_and_refusals_are_traced() {
         "re-attachment done",
         "detached tapes",
         "event cache filled",
+        "sides converged",
     ] {
         assert!(
             messages.iter().any(|message| message == expected),

@@ -1,0 +1,165 @@
+---
+source: crates/core/gedo-app/tests/converge.rs
+expression: report.convergence
+---
+Convergence {
+    state: TreeState {
+        entities: {
+            AstNodeId(358df8c9-0716-8883-840f-9f798c22b32f): EntityState {
+                kind: Method,
+                present: true,
+                place: Place {
+                    unit: "src",
+                    path: "src/lib.rs",
+                    container: "crate::Invoice",
+                },
+                name: "total",
+                signature: Some(
+                    StructuralHash(18a0b80a8beb9cb2ddeeb4f6b8e9949814017833ccf9992887ad683b0e589b85),
+                ),
+                body: Some(
+                    StructuralHash(48ca2db1ab814a591a6981fe6bc2f0c39399c737044c6ec9bf7c6a8570f24158),
+                ),
+                structural: Some(
+                    StructuralHash(311714fe499d8fb70e87e62b722468a66ea13f9b73ec981e76aac7113a9d3af6),
+                ),
+            },
+            AstNodeId(48eb7596-f6c0-85ab-bc3b-e14ee04cb0ad): EntityState {
+                kind: Function,
+                present: true,
+                place: Place {
+                    unit: "src",
+                    path: "src/lib.rs",
+                    container: "crate",
+                },
+                name: "f",
+                signature: Some(
+                    StructuralHash(1507b444cc8ee538c1c356ab819e2ae61efeb58dc0e2e4677473ac03b8ad8125),
+                ),
+                body: Some(
+                    StructuralHash(48ca2db1ab814a591a6981fe6bc2f0c39399c737044c6ec9bf7c6a8570f24158),
+                ),
+                structural: Some(
+                    StructuralHash(57cfeeaa6c4a8acc9dcd605e3c696299f6f2b00587b45bd36a65c9ec751cec70),
+                ),
+            },
+            AstNodeId(76b4526d-ca3c-8bb1-ba8c-582fbdb7e837): EntityState {
+                kind: Function,
+                present: false,
+                place: Place {
+                    unit: "src",
+                    path: "src/lib.rs",
+                    container: "crate",
+                },
+                name: "g",
+                signature: Some(
+                    StructuralHash(17a1461d2a453db67402f7f3fd3066ca83554d477f6cedf4d0508b787187373b),
+                ),
+                body: Some(
+                    StructuralHash(c2db9e1dff34b55bcacaf9cca2e4b9cce745f56b217ac15d263f7a2420e13c16),
+                ),
+                structural: Some(
+                    StructuralHash(fc57b71e1c228ea89b9ba9e6ffc047862c060f80be0cb426dd2a15bf767736e0),
+                ),
+            },
+            AstNodeId(c6a1e4ba-7474-850b-bdaf-8717ccb23921): EntityState {
+                kind: Method,
+                present: true,
+                place: Place {
+                    unit: "src",
+                    path: "src/lib.rs",
+                    container: "crate::Invoice",
+                },
+                name: "tax",
+                signature: None,
+                body: None,
+                structural: Some(
+                    StructuralHash(70e3eeae73cbe7579f00a7dd9919ebd050a7454a99c3aae6116a76c7f7ced3ca),
+                ),
+            },
+            AstNodeId(d720494c-c1d6-880c-80da-4bc197924409): EntityState {
+                kind: Struct,
+                present: true,
+                place: Place {
+                    unit: "src",
+                    path: "src/lib.rs",
+                    container: "crate",
+                },
+                name: "Invoice",
+                signature: Some(
+                    StructuralHash(d222c6e6d0d0d2b446e82980e853755f6d36b778b884d17db4de7405ec654898),
+                ),
+                body: Some(
+                    StructuralHash(d9abe1b8c1bb4a04ee0a822f65493d2e52eabfcded5b99b9f959be98ee53b437),
+                ),
+                structural: Some(
+                    StructuralHash(2ab7ae0d81646f27f64308a9a58bfd1c065cacfcb2a3ce89d174541bf909db88),
+                ),
+            },
+            AstNodeId(f6acb7cc-268b-869b-82b3-b4b08836c7ae): EntityState {
+                kind: Impl,
+                present: true,
+                place: Place {
+                    unit: "src",
+                    path: "src/lib.rs",
+                    container: "crate",
+                },
+                name: "<impl Invoice>",
+                signature: Some(
+                    StructuralHash(8ecfcbb1ba40f493b54b2f2c2392aa053ca540b05b3ddba37f34870bfd62e4a1),
+                ),
+                body: Some(
+                    StructuralHash(cbd7a3837863547e5e3b023ce4693c608b74695c1a1f60a893693ed1e04d7c49),
+                ),
+                structural: Some(
+                    StructuralHash(949b89977daccb4736497f89bf3834433cf1de2a44e394007a535bebc5d461e6),
+                ),
+            },
+        },
+    },
+    links: [],
+    conflicts: [
+        Conflict {
+            entity: AstNodeId(48eb7596-f6c0-85ab-bc3b-e14ee04cb0ad),
+            kind: Part(
+                Body,
+            ),
+            base: Some(
+                Body(
+                    Some(
+                        StructuralHash(48ca2db1ab814a591a6981fe6bc2f0c39399c737044c6ec9bf7c6a8570f24158),
+                    ),
+                ),
+            ),
+            values: [
+                ConflictValue {
+                    value: Body(
+                        Some(
+                            StructuralHash(e861b013d8efb7d5bb202a734d5d41f2186e5fca91bc93e714f34acea33bd4cd),
+                        ),
+                    ),
+                    sides: [
+                        0,
+                    ],
+                    events: [
+                        EventId(392b7574-1030-8aae-b34a-89b2a7dcf022),
+                    ],
+                },
+                ConflictValue {
+                    value: Body(
+                        Some(
+                            StructuralHash(f8e44810a300a481ba0b9f84e01134921edad0857a564a5f3e8fd113062ececb),
+                        ),
+                    ),
+                    sides: [
+                        1,
+                    ],
+                    events: [
+                        EventId(2f09f8b0-3c71-8a5b-bd58-0b3bdeef580c),
+                    ],
+                },
+            ],
+            others: [],
+        },
+    ],
+}

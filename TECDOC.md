@@ -49,6 +49,14 @@ compares entity states from `gedo-crdt`, and only commit index entries are added
 (ADR-0016). Detached tapes are reported for the 90-day retention, and the event cache
 is filled when new events arrive.
 
+Concurrent work converges through the tree CRDT of `gedo-crdt`: `EventLog::converge`
+takes a common base commit and the tips of several sides (with live events on top when
+the caller has them), builds the base state from the identity results of the files the
+sides changed, folds each side's events (live where tapes are attached, reconstructed
+otherwise) and converges them part by part: presence, place, name, signature and body.
+Changes that agree or touch different parts apply; distinct values of one part come
+back as conflicts with their sides and events, and nothing is written (ADR-0017).
+
 History made without Gedo is indexed by `gedo-app`'s `IdentityIndex`: it walks every
 ancestor of the given commits to every root, parses only the Rust files that differ
 from the first parent, matches them against the parent's results with `gedo-ast`, and
@@ -80,6 +88,7 @@ pushed). Source files and `refs/heads/*` stay untouched.
 <!-- architecture-docs:adrs:start -->
 | ADR | Title | Status | Version | Date |
 |---|---|---|---|---|
+| [ADR-0017](docs/adr/0017-tree-crdt-as-a-three-way-convergence-of-entity-parts.md) | Tree CRDT as a three-way convergence of entity parts | accepted | v0.3.0 | 2026-10-30 |
 | [ADR-0016](docs/adr/0016-re-attachment-by-entity-state-with-a-semantic-signature-fast.md) | Re-attachment by entity state with a semantic-signature fast path | accepted | v0.3.0 | 2026-10-30 |
 | [ADR-0015](docs/adr/0015-packed-batch-writes-and-an-event-cache.md) | Packed batch writes and an event cache | accepted | v0.3.0 | 2026-10-30 |
 | [ADR-0014](docs/adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md) | Event format: content-derived ids, history clocks and three collections | accepted | v0.3.0 | 2026-10-29 |
