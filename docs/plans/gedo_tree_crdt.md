@@ -7,7 +7,7 @@ version: v0.3.0
 status: completed
 author: LeviGuilherme
 created_at: '2026-10-30T15:23:02'
-updated_at: '2026-10-30T15:57:10'
+updated_at: '2026-10-30T17:10:30'
 session_id: null
 tags:
 - crdt
@@ -95,6 +95,10 @@ status_log:
   by: LeviGuilherme
   status: completed
   note: All milestones completed
+- at: '2026-10-30T17:10:30'
+  by: LeviGuilherme
+  status: completed
+  note: 'Delivered in PR #20 (merged 2026-10-30)'
 ---
 
 # Tree CRDT with deterministic convergence
@@ -148,3 +152,5 @@ The container's p95 for SC-004 is above the 50 ms budget, which is set for the r
 Tests: 27 tests in `crates/core/gedo-crdt/tests/tree.rs` (one per acceptance scenario of User Stories 1 to 4, six properties of 256 cases each, a pinned convergence), 8 scripted branch tests in `crates/core/gedo-app/tests/converge.rs` (additions to one type, two bodies, removal against edit, a graft, published against reconstructed events, live events on top, a base not indexed, a pinned convergence) and the `sides converged` event in `tests/event_tracing.rs`.
 
 Deviations from the plan: a rename takes its name from the qualified path it records, so `TreeError::InconsistentRename` was dropped; the container path is the parent of the qualified path, so a method's container is its type, and implementation blocks are left out of the added-on-both-sides rule (both in ADR-0017); the use case does not time itself (the core has no clock); `docs/architecture/core.md` needed no change, since `gedo-core` did not change.
+
+CI on PR #20 passed on Windows and Linux (tests, deny, MSRV and the benches, including the new `tree` and `converge` benches).
