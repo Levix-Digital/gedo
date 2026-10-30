@@ -5,6 +5,11 @@
 //! Events, tapes and index entries are content-addressed entries of three collections, so a
 //! publish is idempotent and data written on several machines joins without conflict.
 //! Reconstructed events are never stored: they are a pure function of the commit.
+//!
+//! With a symbol cache ([`EventLog::with_cache`]), stored event records are also kept in its
+//! `events` namespace, so reads and filters do not open one object per event (BUG-010). The
+//! cache is local derived data: a missing, unreadable or refused entry is read from the
+//! collection again, and a cache failure never fails an operation.
 
 pub mod records;
 
@@ -12,7 +17,7 @@ use std::collections::{BTreeSet, HashMap};
 
 use gedo_core::event::{Event, EventId, MAX_TAPE_EVENTS, SemanticOp, Tape, TapeId};
 use gedo_core::ids::{GedoRefName, GitOid};
-use gedo_core::ports::{LogSequence, ObjectStore, RefStore, WriteAheadLog};
+use gedo_core::ports::{LogSequence, ObjectStore, RefStore, SymbolCache, WriteAheadLog};
 use gedo_core::syntax::StructuralHash;
 use gedo_core::{Collection, LabelError, StoreError};
 use gedo_crdt::clock::order_key;
@@ -22,7 +27,9 @@ use gedo_crdt::{
 };
 
 use crate::index::{IdentityIndex, IndexError};
-use records::{COMMIT_TAPES_COLLECTION, EVENTS_COLLECTION, TAPES_COLLECTION, WalRecord};
+use records::{
+    COMMIT_TAPES_COLLECTION, EVENTS_CACHE_NAMESPACE, EVENTS_COLLECTION, TAPES_COLLECTION, WalRecord,
+};
 
 /// Why an event log operation failed.
 #[derive(Debug, thiserror::Error)]
@@ -111,6 +118,7 @@ pub struct EventLog<'a, O, R, W> {
     objects: &'a O,
     refs: &'a R,
     wal: &'a mut W,
+    cache: Option<&'a dyn SymbolCache>,
     /// The clock of the last event in the log, to continue its sequence.
     last: Option<gedo_core::event::Clock>,
     generations: HashMap<GitOid, u64>,
@@ -123,11 +131,18 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
             objects,
             refs,
             wal,
+            cache: None,
             last: None,
             generations: HashMap::new(),
         };
         log.last = log.pending()?.last().map(|(_, event)| event.clock);
         Ok(log)
+    }
+
+    /// Keeps stored event records in `cache` too, and reads them from it first.
+    pub fn with_cache(mut self, cache: &'a dyn SymbolCache) -> Self {
+        self.cache = Some(cache);
+        self
     }
 
     /// Records live events of `context` on top of `base` (none: an empty history) into the
@@ -246,6 +261,13 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
                 &message,
             )
             .context(|| "store the index entry".into())?;
+        self.cache_records(
+            entries
+                .iter()
+                .zip(&events)
+                .map(|((_, bytes), (id, _))| (*id, bytes.clone()))
+                .collect(),
+        );
         self.wal
             .truncate_through(last_sequence)
             .context(|| "remove the published events from the log".into())?;
@@ -290,16 +312,32 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
 
     /// The event `id`.
     pub fn event(&self, id: &EventId) -> Result<Event, EventError> {
-        let entry = records::event_entry(id).context(|| "name the event".into())?;
-        let bytes = self
-            .collection(EVENTS_COLLECTION)?
-            .get(&entry)
-            .context(|| format!("read event {id}"))?
-            .ok_or_else(|| EventError::Missing {
-                what: "event",
-                id: id.to_string(),
-            })?;
-        records::decode_event(&bytes, id).context(|| format!("decode event {id}"))
+        Ok(self.events(std::slice::from_ref(id))?.remove(0))
+    }
+
+    /// The events `ids`, in the same order.
+    pub fn events(&self, ids: &[EventId]) -> Result<Vec<Event>, EventError> {
+        let collection = self.collection(EVENTS_COLLECTION)?;
+        let mut found = Vec::with_capacity(ids.len());
+        let mut read = Vec::new();
+        for id in ids {
+            if let Some(event) = self.cached_event(id) {
+                found.push(event);
+                continue;
+            }
+            let entry = records::event_entry(id).context(|| "name the event".into())?;
+            let bytes = collection
+                .get(&entry)
+                .context(|| format!("read event {id}"))?
+                .ok_or_else(|| EventError::Missing {
+                    what: "event",
+                    id: id.to_string(),
+                })?;
+            found.push(records::decode_event(&bytes, id).context(|| format!("decode event {id}"))?);
+            read.push((*id, bytes));
+        }
+        self.cache_records(read);
+        Ok(found)
     }
 
     /// The events of `commit`: its published tapes, or, when it has none, the events
@@ -318,12 +356,7 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
             let mut published = Vec::with_capacity(tapes.len());
             for id in tapes {
                 let tape = self.tape(&id)?;
-                let events = tape
-                    .events
-                    .iter()
-                    .map(|event| self.event(event))
-                    .collect::<Result<_, _>>()?;
-                published.push((id, events));
+                published.push((id, self.events(&tape.events)?));
             }
             return Ok(CommitEvents::Published(published));
         }
@@ -350,6 +383,7 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
     pub fn filter(&self, filter: &EventFilter) -> Result<Vec<Event>, EventError> {
         let collection = self.collection(EVENTS_COLLECTION)?;
         let mut found = Vec::new();
+        let mut read = Vec::new();
         for (entry, blob) in collection.entries().context(|| "list the events".into())? {
             let id = EventId::from_entry_name(entry.as_str()).ok_or_else(|| EventError::Store {
                 context: "list the events".into(),
@@ -359,15 +393,24 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
                     reason: format!("entry {entry} is not an event id"),
                 },
             })?;
-            let bytes = self
-                .objects
-                .read_blob(&blob)
-                .context(|| format!("read event {id}"))?;
-            let event = records::decode_event(&bytes, &id).context(|| format!("decode event {id}"))?;
+            let event = match self.cached_event(&id) {
+                Some(event) => event,
+                None => {
+                    let bytes = self
+                        .objects
+                        .read_blob(&blob)
+                        .context(|| format!("read event {id}"))?;
+                    let event =
+                        records::decode_event(&bytes, &id).context(|| format!("decode event {id}"))?;
+                    read.push((id, bytes));
+                    event
+                }
+            };
             if filter.matches(&event) {
                 found.push(event);
             }
         }
+        self.cache_records(read);
         sort_events(&mut found);
         Ok(found)
     }
@@ -412,6 +455,40 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
             parents_of.insert(oid, parents);
         }
         Ok(self.generations.get(commit).copied().unwrap_or(1))
+    }
+
+    /// The event `id` from the cache, when it holds a valid record of it.
+    fn cached_event(&self, id: &EventId) -> Option<Event> {
+        let cache = self.cache?;
+        let bytes = match cache.get(EVENTS_CACHE_NAMESPACE, &id.0) {
+            Ok(bytes) => bytes?,
+            Err(error) => {
+                tracing::warn!(%id, %error, "could not read the event cache");
+                return None;
+            }
+        };
+        match records::decode_event(&bytes, id) {
+            Ok(event) => Some(event),
+            Err(error) => {
+                tracing::warn!(%id, %error, "cached event refused; reading it from the collection");
+                None
+            }
+        }
+    }
+
+    /// Keeps stored event records in the cache, in one transaction.
+    fn cache_records(&self, records: Vec<(EventId, Vec<u8>)>) {
+        let Some(cache) = self.cache else { return };
+        if records.is_empty() {
+            return;
+        }
+        let entries: Vec<(Vec<u8>, Vec<u8>)> = records
+            .into_iter()
+            .map(|(id, bytes)| (id.0.to_vec(), bytes))
+            .collect();
+        if let Err(error) = cache.put(EVENTS_CACHE_NAMESPACE, &entries) {
+            tracing::warn!(%error, events = entries.len(), "could not write the event cache");
+        }
     }
 
     fn collection(&self, name: &str) -> Result<Collection<'a, O, R>, EventError> {

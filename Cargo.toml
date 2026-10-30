@@ -26,6 +26,8 @@ gedo-app = { path = "crates/core/gedo-app" }
 gedo-parse = { path = "crates/adapters/gedo-parse" }
 gedo-store = { path = "crates/adapters/gedo-store" }
 gix = { version = "0.90", default-features = false }
+# Only to enable pack writing in the `gix-pack` that `gix` already uses; versions move together.
+gix-pack = { version = "0.77", default-features = false }
 redb = "4.4"
 postcard = { version = "1.1", features = ["alloc"] }
 serde = { version = "1.0", features = ["derive"] }

@@ -1,14 +1,26 @@
 use std::collections::BTreeMap;
+use std::sync::Mutex;
 
 use crate::error::StoreError;
 use crate::ports::cache::validate_namespace;
 use crate::ports::{CacheRebuildSource, CacheStatus, RebuildReason, SymbolCache};
 
+type Entries = BTreeMap<(String, Vec<u8>), Vec<u8>>;
+
 /// A symbol cache in memory.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct MemoryCache {
-    entries: BTreeMap<(String, Vec<u8>), Vec<u8>>,
+    entries: Mutex<Entries>,
     status: CacheStatus,
+}
+
+impl Clone for MemoryCache {
+    fn clone(&self) -> Self {
+        MemoryCache {
+            entries: Mutex::new(self.lock().clone()),
+            status: self.status,
+        }
+    }
 }
 
 impl MemoryCache {
@@ -25,7 +37,7 @@ impl MemoryCache {
             entries.insert((namespace, key), value);
         }
         Ok(MemoryCache {
-            entries,
+            entries: Mutex::new(entries),
             status: CacheStatus::Rebuilt { reason },
         })
     }
@@ -33,9 +45,16 @@ impl MemoryCache {
     /// The same cache, as found valid on a later open.
     pub fn reopen(&self) -> Self {
         MemoryCache {
-            entries: self.entries.clone(),
+            entries: Mutex::new(self.lock().clone()),
             status: CacheStatus::Ready,
         }
+    }
+
+    fn lock(&self) -> std::sync::MutexGuard<'_, Entries> {
+        // A panic while holding the lock leaves the map whole: every write is one insert.
+        self.entries
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
     }
 }
 
@@ -46,20 +65,20 @@ impl SymbolCache for MemoryCache {
 
     fn get(&self, namespace: &str, key: &[u8]) -> Result<Option<Vec<u8>>, StoreError> {
         validate_namespace(namespace)?;
-        Ok(self.entries.get(&(namespace.to_owned(), key.to_vec())).cloned())
+        Ok(self.lock().get(&(namespace.to_owned(), key.to_vec())).cloned())
     }
 
-    fn put(&mut self, namespace: &str, entries: &[(Vec<u8>, Vec<u8>)]) -> Result<(), StoreError> {
+    fn put(&self, namespace: &str, entries: &[(Vec<u8>, Vec<u8>)]) -> Result<(), StoreError> {
         validate_namespace(namespace)?;
+        let mut stored = self.lock();
         for (key, value) in entries {
-            self.entries
-                .insert((namespace.to_owned(), key.clone()), value.clone());
+            stored.insert((namespace.to_owned(), key.clone()), value.clone());
         }
         Ok(())
     }
 
-    fn clear(&mut self) -> Result<(), StoreError> {
-        self.entries.clear();
+    fn clear(&self) -> Result<(), StoreError> {
+        self.lock().clear();
         Ok(())
     }
 }

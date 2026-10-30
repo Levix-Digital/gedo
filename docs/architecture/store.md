@@ -41,6 +41,8 @@ A collection (`events`, `tapes`, `commit-tapes`, `threads`, ...) is one referenc
 
 Two chains that diverged are joined by a merge commit whose tree is the union of both; an entry id present on both sides with different content is reported as `Corrupted`, since entries are content-addressed.
 
+Entries are written in one batch per write (`ObjectStore::write_blobs`): a batch of at least 100 blobs not stored yet becomes one pack with its index in `.git/objects/pack/`, smaller batches loose objects, like Git's `fetch.unpackLimit` ([ADR-0015](../adr/0015-packed-batch-writes-and-an-event-cache.md)). The pack goes to a temporary file and is renamed with its index last, so it is complete or not seen; no `.keep` file is left, so `git gc` repacks it. Trees and commits are loose. Repositories are opened with at least 1,024 pack index slots, so a long-running process can keep writing packs (gitoxide cannot read a pack beyond its slots).
+
 All records are Postcard-encoded inside an envelope that starts with a `u16` format version; a reader that does not know the version returns `UnsupportedFormat` with the versions it supports. A blob or record over 64 MiB is refused with `TooLarge`.
 
 ### Push and fetch
@@ -55,9 +57,11 @@ All records are Postcard-encoded inside an envelope that starts with a `u16` for
 
 ### Symbol cache
 
-`.git/gedo/symbol_cache.db` is a redb database with a `meta` table holding the schema version and one table per namespace. It is derived data: when it is missing, unreadable or of another schema version it is rebuilt from the repository on open, into `symbol_cache.db.tmp` that replaces it only once complete, so an interrupted rebuild never opens as valid. The open status says whether the cache was ready or rebuilt, and why.
+`.git/gedo/symbol_cache.db` is a redb database, opened once per process and shared by its use cases (writes take `&self`), with a `meta` table holding the schema version and one table per namespace. It is derived data: when it is missing, unreadable or of another schema version it is rebuilt from the repository on open, into `symbol_cache.db.tmp` that replaces it only once complete, so an interrupted rebuild never opens as valid. The open status says whether the cache was ready or rebuilt, and why.
 
 The `identity` namespace holds the results of history indexing ([ADR-0012](../adr/0012-identity-results-are-local-derived-data-computed-per-commit.md)): `commit/<oid>` per indexed commit, `map/<digest>` per distinct `BlobAstMap`, `checkpoint/<oid>` every 64 first-parent commits and `merges`. They are not rebuilt from the repository on open: a missing or refused record is recomputed by indexing again.
+
+The `events` namespace keeps the records of `refs/gedo/events` by event id (16 bytes), written by a publish and by reads that missed them ([ADR-0015](../adr/0015-packed-batch-writes-and-an-event-cache.md)). It is not rebuilt either: event ids derive from content, so an entry never becomes stale, and a missing or refused one is read from the collection again.
 
 Tree entries carry their mode: regular and executable files, directories, symbolic links and submodules, written back exactly as read.
 
@@ -84,5 +88,6 @@ On Windows, an operation on a file another program holds open (an antivirus, an 
 - [ADR-0011](../adr/0011-gedo-references-as-commit-chains-with-a-separate-fetch-names.md): commit chains, the `refs/gedo-remote/` fetch namespace, push without a push refspec.
 - [ADR-0008](../adr/0008-gedo-data-robust-to-history-rewrites.md): data robust to history rewrites.
 - [ADR-0009](../adr/0009-semantic-merge-driver-and-shadow-merge.md): merge driver registration and fallback.
+- [ADR-0015](../adr/0015-packed-batch-writes-and-an-event-cache.md): large batches as packs, the pack index slots, the `events` cache namespace.
 
-The event log has no cache namespace: commit generations are kept in memory by `EventLog`, and reconstructed events are recomputed on demand from the `identity` namespace ([ADR-0014](../adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md)).
+Commit generations are kept in memory by `EventLog`, and reconstructed events are recomputed on demand from the `identity` namespace, never cached ([ADR-0014](../adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md)).

@@ -46,7 +46,7 @@ fn set_schema_version(path: &Path, version: u32) {
 #[test]
 fn a_valid_cache_opens_ready_with_its_contents() {
     let directory = tempfile::tempdir().expect("temporary directory");
-    let mut cache = RedbCache::open(directory.path(), &source()).expect("opens");
+    let cache = RedbCache::open(directory.path(), &source()).expect("opens");
     assert_eq!(
         *cache.open_status(),
         CacheStatus::Rebuilt {

@@ -29,8 +29,8 @@ fn the_identities_of_a_fixed_commit_match_the_snapshot() {
     let objects = GitObjectStore::new(repository);
     let commit = GitOid::from_hex(COMMIT).expect("valid id");
     let parser = TreeSitterParser::new();
-    let mut cache = support::cache();
-    let mut index = IdentityIndex::open(&objects, &parser, &mut cache).expect("index opens");
+    let cache = support::cache();
+    let mut index = IdentityIndex::open(&objects, &parser, &cache).expect("index opens");
     match index.index_history(&[commit]) {
         Ok(report) => assert!(report.commits_indexed > 0),
         Err(error) => {

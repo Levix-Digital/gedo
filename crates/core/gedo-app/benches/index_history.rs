@@ -172,7 +172,7 @@ fn real_repository() {
     let parser = TreeSitterParser::new();
     let mut cache = cache();
     let started = Instant::now();
-    let report = IdentityIndex::open(&objects, &parser, &mut cache)
+    let report = IdentityIndex::open(&objects, &parser, &cache)
         .expect("opens")
         .index_history(&recent[..1])
         .expect("indexed");
@@ -193,8 +193,8 @@ fn bench(criterion: &mut Criterion) {
     group.sample_size(10);
     group.bench_function("generated_60_commits", |bencher| {
         bencher.iter(|| {
-            let mut cache = cache();
-            IdentityIndex::open(&objects, &parser, &mut cache)
+            let cache = cache();
+            IdentityIndex::open(&objects, &parser, &cache)
                 .expect("opens")
                 .index_history(&[tip])
                 .expect("indexed")

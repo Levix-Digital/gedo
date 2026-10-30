@@ -68,10 +68,20 @@ pub trait ObjectStore {
     fn object_hash(&self) -> ObjectHash;
     /// Stores a blob.
     fn write_blob(&self, data: &[u8]) -> Result<GitOid, StoreError>;
+    /// Stores several blobs at once and returns their ids in the same order; a store may write a
+    /// large batch as one unit (a pack) instead of one object at a time.
+    fn write_blobs(&self, blobs: &[&[u8]]) -> Result<Vec<GitOid>, StoreError> {
+        blobs.iter().map(|data| self.write_blob(data)).collect()
+    }
     /// Reads a blob; `ObjectNotFound` if absent, `TooLarge` above [`MAX_BLOB_BYTES`].
     fn read_blob(&self, oid: &GitOid) -> Result<Vec<u8>, StoreError>;
     /// Stores a tree; entries may come in any order and are written in Git's order.
     fn write_tree(&self, entries: &[TreeEntry]) -> Result<GitOid, StoreError>;
+    /// Stores several trees at once and returns their ids in the same order, like
+    /// [`ObjectStore::write_blobs`].
+    fn write_trees(&self, trees: &[Vec<TreeEntry>]) -> Result<Vec<GitOid>, StoreError> {
+        trees.iter().map(|entries| self.write_tree(entries)).collect()
+    }
     /// Reads a tree, entries in Git's order.
     fn read_tree(&self, oid: &GitOid) -> Result<Vec<TreeEntry>, StoreError>;
     /// Stores a commit signed with the repository identity; `MissingIdentity` if none is set.

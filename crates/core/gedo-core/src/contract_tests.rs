@@ -70,6 +70,57 @@ pub fn blobs_round_trip<O: ObjectStore>(make: impl Fn() -> O) {
     assert_eq!(objects.read_blob(&empty).expect("read"), b"");
 }
 
+/// A batch of blobs gets the ids single writes give, in order, with repeated content allowed;
+/// sizes around a store's packing threshold are covered by `sizes`.
+pub fn blob_batches_round_trip<O: ObjectStore>(make: impl Fn() -> O) {
+    let objects = make();
+    assert_eq!(objects.write_blobs(&[]).expect("written"), Vec::<GitOid>::new());
+    for size in [1, 99, 100, 101, 250] {
+        let contents: Vec<Vec<u8>> = (0..size)
+            .map(|n| format!("batch of {size}, blob {}", n % 97).into_bytes())
+            .collect();
+        let batch: Vec<&[u8]> = contents.iter().map(Vec::as_slice).collect();
+        let ids = objects.write_blobs(&batch).expect("written");
+        assert_eq!(ids.len(), size);
+        for (id, content) in ids.iter().zip(&contents) {
+            assert_eq!(objects.read_blob(id).expect("read"), *content);
+            assert_eq!(
+                objects.write_blob(content).expect("written"),
+                *id,
+                "same id as a single write"
+            );
+        }
+        assert_eq!(objects.write_blobs(&batch).expect("written again"), ids);
+    }
+}
+
+/// A batch of trees gets the ids single writes give, in order, below and above a packing threshold.
+pub fn tree_batches_round_trip<O: ObjectStore>(make: impl Fn() -> O) {
+    let objects = make();
+    let blob = objects.write_blob(b"tree batch").expect("written");
+    for size in [1, 150] {
+        let trees: Vec<Vec<TreeEntry>> = (0..size)
+            .map(|n| {
+                vec![TreeEntry {
+                    name: format!("file-{size}-{n}"),
+                    mode: EntryMode::Blob,
+                    oid: blob,
+                }]
+            })
+            .collect();
+        let ids = objects.write_trees(&trees).expect("written");
+        assert_eq!(ids.len(), size);
+        for (id, entries) in ids.iter().zip(&trees) {
+            assert_eq!(objects.read_tree(id).expect("read"), *entries);
+            assert_eq!(
+                objects.write_tree(entries).expect("written"),
+                *id,
+                "same id as a single write"
+            );
+        }
+    }
+}
+
 /// Reading an absent object, or an object of another kind, is `ObjectNotFound`.
 pub fn missing_objects_are_not_found<O: ObjectStore>(make: impl Fn() -> O) {
     let objects = make();
@@ -249,6 +300,14 @@ macro_rules! object_store_contract {
         #[test]
         fn blobs_round_trip() {
             $crate::contract_tests::blobs_round_trip($make);
+        }
+        #[test]
+        fn blob_batches_round_trip() {
+            $crate::contract_tests::blob_batches_round_trip($make);
+        }
+        #[test]
+        fn tree_batches_round_trip() {
+            $crate::contract_tests::tree_batches_round_trip($make);
         }
         #[test]
         fn missing_objects_are_not_found() {
@@ -568,7 +627,7 @@ pub fn new_caches_are_built_from_the_source<C: SymbolCache>(open: impl Fn(&dyn C
 
 /// Entries can be added, replaced and cleared.
 pub fn cache_entries_can_change<C: SymbolCache>(open: impl Fn(&dyn CacheRebuildSource) -> C) {
-    let mut cache = open(&FixedSource(vec![]));
+    let cache = open(&FixedSource(vec![]));
     cache
         .put(
             "symbols",
@@ -587,7 +646,7 @@ pub fn cache_entries_can_change<C: SymbolCache>(open: impl Fn(&dyn CacheRebuildS
 
 /// Invalid namespace names are refused.
 pub fn invalid_cache_namespaces_are_refused<C: SymbolCache>(open: impl Fn(&dyn CacheRebuildSource) -> C) {
-    let mut cache = open(&FixedSource(vec![]));
+    let cache = open(&FixedSource(vec![]));
     for bad in ["", "meta", "Upper", "a/b", &"x".repeat(65)] {
         assert!(
             cache.put(bad, &[(b"k".to_vec(), b"v".to_vec())]).is_err(),

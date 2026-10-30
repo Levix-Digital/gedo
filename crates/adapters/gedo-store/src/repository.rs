@@ -7,6 +7,11 @@ use gedo_core::StoreError;
 /// Directory, inside the repository's common Git directory, holding Gedo's local runtime files.
 pub const GEDO_DIR_NAME: &str = "gedo";
 
+/// Smallest number of pack index slots of the object database. gitoxide fixes the number when a
+/// repository is opened (32 by default for a repository with few packs) and cannot read a pack
+/// beyond it, so a long-running process that writes packs ([`crate::pack`]) needs room for them.
+const MIN_OBJECT_STORE_SLOTS: usize = 1024;
+
 /// The identity chain commits are written with.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Identity {
@@ -44,6 +49,10 @@ impl GitRepository {
     }
 
     fn open_with(path: &Path, options: gix::open::Options) -> Result<Self, StoreError> {
+        let options = options.object_store_slots(gix::odb::store::init::Slots::AsNeededByDiskState {
+            multiplier: 1.1,
+            minimum: MIN_OBJECT_STORE_SLOTS,
+        });
         let repo = gix::ThreadSafeRepository::open_opts(path, options).map_err(|error| {
             StoreError::backend("open repository", format!("{}: {error}", path.display()))
         })?;

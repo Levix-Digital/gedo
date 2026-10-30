@@ -62,15 +62,15 @@ fn run(repository: &str, revision: &str) -> Result<(), Box<dyn std::error::Error
     let opened = GitRepository::open(repository)?;
     let gedo_dir = opened.gedo_dir()?;
     std::fs::create_dir_all(&gedo_dir)?;
-    let mut cache = RedbCache::open(&gedo_dir, &NothingToRebuild)?;
+    let cache = RedbCache::open(&gedo_dir, &NothingToRebuild)?;
     let objects = GitObjectStore::new(opened.clone());
     let refs = GitRefStore::new(opened.clone());
     let parser = TreeSitterParser::new();
-    let mut index = IdentityIndex::open(&objects, &parser, &mut cache)?;
+    let mut index = IdentityIndex::open(&objects, &parser, &cache)?;
     index.index_history(&[commit])?;
 
     let mut wal = FileWal::open(&gedo_dir)?;
-    let mut log = EventLog::open(&objects, &refs, &mut wal)?;
+    let mut log = EventLog::open(&objects, &refs, &mut wal)?.with_cache(&cache);
     let events = log.events_of_commit(&commit, &index)?;
     let events = events.events();
     println!("{} events at {commit}", events.len());

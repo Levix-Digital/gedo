@@ -101,7 +101,7 @@ pub struct CommitChanges {
 pub struct IdentityIndex<'a, O, P, C> {
     objects: &'a O,
     parser: &'a P,
-    cache: &'a mut C,
+    cache: &'a C,
     merges: MergeList,
     aliases: AliasTable,
 }
@@ -113,7 +113,7 @@ type ParseResult = Result<Arc<SyntaxMap>, ParseError>;
 
 impl<'a, O: ObjectStore, P: Parser + Sync, C: SymbolCache> IdentityIndex<'a, O, P, C> {
     /// Opens the index kept in `cache`.
-    pub fn open(objects: &'a O, parser: &'a P, cache: &'a mut C) -> Result<Self, IndexError> {
+    pub fn open(objects: &'a O, parser: &'a P, cache: &'a C) -> Result<Self, IndexError> {
         let merges: MergeList = match cache
             .get(NAMESPACE, records::MERGES_KEY)
             .context(|| "read the merge list".into())?

@@ -146,6 +146,16 @@ Benchmarks of `cargo bench -p gedo-app --bench events` (release build, Linux dev
 | Reconstruct the events of one commit of this repository (20 runs, SC-005) | 0.11 ms | 0.29 ms | 0.41 ms | p95 under 100 ms |
 | Filter 10,000 events by one label (5 runs, SC-006) | 331 ms | 408 ms | 408 ms | under 500 ms |
 
+Windows reference machine (i7-12700KF, rustc 1.98.1, main at 3f820f2, 2026-10-29):
+
+| Requirement | p50 | p95 | p99 | Budget |
+|---|---:|---:|---:|---|
+| Record one event | 4.9 µs | 5.9 µs | 14.4 µs | p95 under 1 ms |
+| Publish a tape of 1,000 events | 1.19 s | 1.31 s | 1.31 s | under 1 s: **missed (BUG-009)** |
+| Publish 1,000 events into a chain of 100,000 | 1.35 s | 1.49 s | 1.49 s | under 1 s: **missed (BUG-009)** |
+| Reconstruct the events of one commit | 0.25 ms | 0.46 ms | 1.01 ms | p95 under 100 ms |
+| Filter 10,000 events by one label | 1.19 s | 1.34 s | 1.34 s | under 500 ms: **missed (BUG-010)** |
+
 Fuzzing: `cargo +nightly fuzz run decode_event_record -- -max_total_time=600` ran 12,446,944 inputs in 601 s with no crash, hang or out-of-memory (SC-007, 2026-10-29). CI on PR #15 passed on Windows and Linux, including the reconstruction snapshot.
 
 Deviation from the plan: commit generations are kept in memory by `EventLog` instead of a symbol cache memo, and reconstructed events are not memoized (research R3, R10), since `IdentityIndex` already borrows the cache and the numbers above leave no need for it.

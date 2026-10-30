@@ -9,6 +9,7 @@ use gix::bstr::ByteSlice;
 use gix::objs::tree::EntryKind;
 
 use crate::convert::{from_gix_oid, to_gix_oid};
+use crate::pack::{PACK_THRESHOLD, write_pack};
 use crate::repository::GitRepository;
 
 /// Objects in a Git repository.
@@ -21,6 +22,31 @@ impl GitObjectStore {
     /// The object store of `repository`.
     pub fn new(repository: GitRepository) -> Self {
         GitObjectStore { repository }
+    }
+
+    /// Writes a batch of objects, as one pack when at least [`PACK_THRESHOLD`] of them are new.
+    fn write_batch(&self, objects: &[(gix::object::Kind, &[u8])]) -> Result<Vec<GitOid>, StoreError> {
+        let repo = self.repository.local();
+        let mut ids = Vec::with_capacity(objects.len());
+        let mut seen = std::collections::HashSet::new();
+        let mut new = Vec::new();
+        for (kind, data) in objects {
+            let id = gix::objs::compute_hash(gix::hash::Kind::Sha1, *kind, data)
+                .map_err(|error| StoreError::backend("hash object", error))?;
+            if seen.insert(id) && !repo.objects.exists_without_refresh(&id) {
+                new.push((*kind, *data));
+            }
+            ids.push(from_gix_oid(id)?);
+        }
+        if new.len() >= PACK_THRESHOLD {
+            write_pack(&repo, &new)?;
+        } else {
+            for (kind, data) in new {
+                gix::objs::Write::write_buf(&repo, kind, data)
+                    .map_err(|error| StoreError::backend("write object", error))?;
+            }
+        }
+        Ok(ids)
     }
 
     /// Reads an object of the `expected` kind, checking its size against `limit` before loading it.
@@ -59,6 +85,28 @@ impl GitObjectStore {
     }
 }
 
+/// A tree in gitoxide's form, entries in Git's order.
+fn gix_tree(entries: &[TreeEntry]) -> Result<gix::objs::Tree, StoreError> {
+    let entries = sorted_tree_entries(entries)?
+        .into_iter()
+        .map(|entry| {
+            let mode = match entry.mode {
+                EntryMode::Blob => EntryKind::Blob,
+                EntryMode::Tree => EntryKind::Tree,
+                EntryMode::ExecutableBlob => EntryKind::BlobExecutable,
+                EntryMode::Link => EntryKind::Link,
+                EntryMode::Submodule => EntryKind::Commit,
+            };
+            Ok(gix::objs::tree::Entry {
+                mode: mode.into(),
+                filename: entry.name.into(),
+                oid: to_gix_oid(&entry.oid)?,
+            })
+        })
+        .collect::<Result<Vec<_>, StoreError>>()?;
+    Ok(gix::objs::Tree { entries })
+}
+
 fn kind_name(kind: gix::object::Kind) -> &'static str {
     match kind {
         gix::object::Kind::Blob => "blob",
@@ -78,29 +126,37 @@ impl ObjectStore for GitObjectStore {
         from_gix_oid(id.map_err(|error| StoreError::backend("write blob", error))?)
     }
 
+    /// A batch with at least [`PACK_THRESHOLD`] blobs not stored yet is written as one pack.
+    fn write_blobs(&self, blobs: &[&[u8]]) -> Result<Vec<GitOid>, StoreError> {
+        let objects: Vec<_> = blobs
+            .iter()
+            .map(|data| (gix::object::Kind::Blob, *data))
+            .collect();
+        self.write_batch(&objects)
+    }
+
+    /// A batch with at least [`PACK_THRESHOLD`] trees not stored yet is written as one pack.
+    fn write_trees(&self, trees: &[Vec<TreeEntry>]) -> Result<Vec<GitOid>, StoreError> {
+        let mut encoded = Vec::with_capacity(trees.len());
+        for entries in trees {
+            let mut data = Vec::new();
+            gix::objs::WriteTo::write_to(&gix_tree(entries)?, &mut data)
+                .map_err(|error| StoreError::backend("encode tree", error))?;
+            encoded.push(data);
+        }
+        let objects: Vec<_> = encoded
+            .iter()
+            .map(|data| (gix::object::Kind::Tree, data.as_slice()))
+            .collect();
+        self.write_batch(&objects)
+    }
+
     fn read_blob(&self, oid: &GitOid) -> Result<Vec<u8>, StoreError> {
         self.read(oid, gix::object::Kind::Blob, Some(MAX_BLOB_BYTES))
     }
 
     fn write_tree(&self, entries: &[TreeEntry]) -> Result<GitOid, StoreError> {
-        let entries = sorted_tree_entries(entries)?
-            .into_iter()
-            .map(|entry| {
-                let mode = match entry.mode {
-                    EntryMode::Blob => EntryKind::Blob,
-                    EntryMode::Tree => EntryKind::Tree,
-                    EntryMode::ExecutableBlob => EntryKind::BlobExecutable,
-                    EntryMode::Link => EntryKind::Link,
-                    EntryMode::Submodule => EntryKind::Commit,
-                };
-                Ok(gix::objs::tree::Entry {
-                    mode: mode.into(),
-                    filename: entry.name.into(),
-                    oid: to_gix_oid(&entry.oid)?,
-                })
-            })
-            .collect::<Result<Vec<_>, StoreError>>()?;
-        let tree = gix::objs::Tree { entries };
+        let tree = gix_tree(entries)?;
         let id = self.repository.local().write_object(&tree).map(|id| id.detach());
         from_gix_oid(id.map_err(|error| StoreError::backend("write tree", error))?)
     }
