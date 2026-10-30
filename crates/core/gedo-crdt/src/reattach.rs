@@ -622,4 +622,15 @@ mod tests {
         let two = match_commit(&changes, results(&[(1, 12)]), &[second.clone()], |id| id);
         assert_eq!(two.attached, vec![second.tape]);
     }
+
+    /// The known limit of research R7: without a pair, an unrelated tape whose only events are
+    /// superseded by a later matched event of the same entity is attached too.
+    #[test]
+    fn an_unrelated_tape_only_superseded_is_attached_the_known_limit() {
+        let ours = tape(vec![event(6, 0, body(1, 1, 2), Some(11))], false);
+        let theirs = tape(vec![event(5, 0, body(1, 1, 3), Some(13))], false);
+        let changes = vec![SemanticOp::Delta(body(1, 0, 2))];
+        let result = match_commit(&changes, results(&[(1, 11)]), &[ours, theirs], |id| id);
+        assert_eq!(result.attached.len(), 2);
+    }
 }

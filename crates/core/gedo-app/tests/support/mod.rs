@@ -42,6 +42,16 @@ impl Default for History {
 impl History {
     /// A commit whose tree holds exactly `files`.
     pub fn commit(&self, parents: &[GitOid], files: &BTreeMap<String, String>) -> GitOid {
+        self.commit_with_message(parents, files, "commit")
+    }
+
+    /// A commit whose tree holds exactly `files`, with `message`.
+    pub fn commit_with_message(
+        &self,
+        parents: &[GitOid],
+        files: &BTreeMap<String, String>,
+        message: &str,
+    ) -> GitOid {
         let tree = self.tree(
             files
                 .iter()
@@ -52,7 +62,7 @@ impl History {
             .write_commit(&NewCommit {
                 tree,
                 parents: parents.to_vec(),
-                message: "commit".into(),
+                message: message.into(),
             })
             .expect("commit is written")
     }
