@@ -962,6 +962,22 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: EventLog::detached and reattach_new walk the history from the tips until every indexed commit is found; when some tape is really detached they walk the whole history on every call. Fast on the benchmark (a few hundred commits) but linear in the history on large repositories. Keep commit generations as local derived data (or use the commit-graph) and stop the walk below the lowest generation of the indexed commits still unseen; measure on a large repository first.
 
+### IMP-007: Follow moves in whole use declarations of a split publish
+- **Priority**: low
+- **Epic**: EPIC-005
+- **Status**: open
+- **Found**: 2026-10-30, 2026-10-30, PR #22, protocol review
+- **Plan**: -
+- **Description**: The refactor builder of a split publish (FEAT-067) treats a use declaration that is added or removed as a whole, because a move needs it, as feature text, so the refactor commit keeps the base imports and may not build (ADR-0018, known limits). Recognize a whole use declaration whose path names the new (or old) path of an entity moved in the same publish as a follow-up, and cover it with a scripted move whose callers need a new import.
+
+### IMP-008: Forget the identity records of commits a split publish rejects
+- **Priority**: low
+- **Epic**: EPIC-005
+- **Status**: open
+- **Found**: 2026-10-30, 2026-10-30, PR #22, protocol review
+- **Plan**: -
+- **Description**: A split publish (FEAT-067) indexes the single commit and, when it splits, the refactor and feature commits; the commits it does not keep stay unreferenced and are removed by git gc, but their identity records stay in the local symbol cache. The cache is derived data, so this is only growth: drop the records of the commits a publish did not keep, or let gedo gc (FEAT-087) prune records of unreachable commits.
+
 ## Adjustments
 
 ## Epics
