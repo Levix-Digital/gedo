@@ -165,15 +165,13 @@ pub struct LanePlan {
     /// The follow-ups of the publish's moves and renames.
     pub follow_ups: FollowUps,
     containers: BTreeSet<AstNodeId>,
+    lanes: BTreeMap<(AstNodeId, Part), Lane>,
 }
 
 impl LanePlan {
     /// The lane of a part of an entity, when the publish changes it.
     pub fn lane_of(&self, id: AstNodeId, part: Part) -> Option<Lane> {
-        self.changes
-            .iter()
-            .find(|change| change.delta.id() == id && change.part == part)
-            .map(|change| change.lane)
+        self.lanes.get(&(id, part)).copied()
     }
 
     /// Whether some change is in `lane`.
@@ -301,10 +299,17 @@ pub fn classify(deltas: &[SemanticDelta], files: &[FileVersions<'_>]) -> LanePla
             change.lane = Lane::Feature;
         }
     }
+    let mut lanes = BTreeMap::new();
+    for change in &changes {
+        lanes
+            .entry((change.delta.id(), change.part))
+            .or_insert(change.lane);
+    }
     LanePlan {
         changes,
         follow_ups,
         containers,
+        lanes,
     }
 }
 

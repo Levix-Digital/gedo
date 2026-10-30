@@ -30,7 +30,7 @@ impl EventLog<'_, O, R, W> {
 }
 ```
 
-- The base must be indexed; the commits it writes are indexed by the call.
+- The base and the commits the call writes are indexed by the call.
 - Writes commits and `refs/gedo/*` only; never moves a branch. The last commit of the outcome always has `request.tree` as its tree.
 - `Split`: refactor commit (parent `base`), feature commit (parent the refactor commit), one tape each for the lanes that have events, the log truncated once.
 - `Single`: one commit (parent `base`, `request.message`) with every event, as `publish`; `reason` says why it was not split.
