@@ -7,7 +7,7 @@ version: v0.3.0
 status: completed
 author: LeviGuilherme
 created_at: '2026-10-30T14:01:11'
-updated_at: '2026-10-30T14:40:57'
+updated_at: '2026-10-30T15:00:30'
 session_id: null
 tags:
 - reattachment
@@ -97,6 +97,10 @@ status_log:
   by: LeviGuilherme
   status: completed
   note: All milestones completed
+- at: '2026-10-30T15:00:30'
+  by: LeviGuilherme
+  status: completed
+  note: 'Delivered in PR #18 (merged 2026-10-30)'
 ---
 
 # Re-attachment after history rewrites
@@ -149,3 +153,5 @@ Benchmarks of `cargo bench -p gedo-app --bench reattach` (release build, Linux d
 Tests: 21 scripted rewrite scenarios in `crates/core/gedo-app/tests/reattach.rs` (rebase, amend, resolved conflict, interactive squash, split, server squash with the identity link, unrelated branch, server rebase merge, never-published commit, idempotence, additive writes, processing order with an index snapshot, retention, cache filling, a crash before the index write, two machines joining), property tests in `crates/core/gedo-crdt/tests/reattach.rs` and unit tests of the matching, including the known limit of research R7.
 
 Deviation from the plan: `reattach_new` processes commits in generation order and leaves out, for each commit, the tapes attached to its ancestors in the same call, so a server rebase merge gives each replayed commit its own tape; a change matches the latest event of the entity that leaves the same state (not only the last one), for the same reason. Both are in ADR-0016.
+
+CI on PR #18 passed on Windows and Linux (tests, deny, MSRV and the benches, including the new `reattach` bench). The Windows reference machine run is pending.
