@@ -77,6 +77,11 @@ pub trait ObjectStore {
     fn read_blob(&self, oid: &GitOid) -> Result<Vec<u8>, StoreError>;
     /// Stores a tree; entries may come in any order and are written in Git's order.
     fn write_tree(&self, entries: &[TreeEntry]) -> Result<GitOid, StoreError>;
+    /// Stores several trees at once and returns their ids in the same order, like
+    /// [`ObjectStore::write_blobs`].
+    fn write_trees(&self, trees: &[Vec<TreeEntry>]) -> Result<Vec<GitOid>, StoreError> {
+        trees.iter().map(|entries| self.write_tree(entries)).collect()
+    }
     /// Reads a tree, entries in Git's order.
     fn read_tree(&self, oid: &GitOid) -> Result<Vec<TreeEntry>, StoreError>;
     /// Stores a commit signed with the repository identity; `MissingIdentity` if none is set.

@@ -5,8 +5,10 @@ mod support;
 
 use std::path::Path;
 
+use gedo_core::Collection;
+use gedo_core::ids::{EntryId, GedoRefName};
 use gedo_core::ports::ObjectStore;
-use gedo_store::{GitObjectStore, GitRepository};
+use gedo_store::{GitObjectStore, GitRefStore, GitRepository};
 use support::Sandbox;
 
 fn contents(prefix: &str, count: usize) -> Vec<Vec<u8>> {
@@ -134,4 +136,38 @@ fn a_pack_left_without_its_index_is_ignored() {
     for (id, content) in ids.iter().zip(&blobs) {
         assert_eq!(objects.read_blob(id).expect("read"), *content);
     }
+}
+
+#[test]
+fn a_large_collection_write_leaves_only_its_root_and_commit_loose() {
+    let sandbox = Sandbox::new();
+    let work = sandbox.repository("work");
+    let repository = GitRepository::open_isolated(&work).expect("opens");
+    let git_dir = repository.git_dir().to_path_buf();
+    let objects = GitObjectStore::new(repository.clone());
+    let refs = GitRefStore::new(repository);
+    let collection = Collection::new(GedoRefName::collection("events").expect("valid"), &objects, &refs);
+    let entries: Vec<(EntryId, Vec<u8>)> = (0..1_000u32)
+        .map(|n| {
+            let id = format!("{:08x}{:024x}", n.wrapping_mul(2_654_435_761), n);
+            (
+                EntryId::new(&id).expect("valid"),
+                format!("entry {n}").into_bytes(),
+            )
+        })
+        .collect();
+    let loose_before = loose_objects(&git_dir);
+    collection.put(&entries, "gedo: test").expect("put");
+    assert_eq!(
+        loose_objects(&git_dir),
+        loose_before + 2,
+        "the root tree and the commit"
+    );
+    assert_eq!(
+        pack_files(&git_dir, "pack"),
+        2,
+        "the blobs, then the fan-out trees"
+    );
+    assert_eq!(collection.entries().expect("entries").len(), 1_000);
+    sandbox.git(&work, &["fsck", "--strict", "--no-dangling"]);
 }

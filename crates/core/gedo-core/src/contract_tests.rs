@@ -94,6 +94,33 @@ pub fn blob_batches_round_trip<O: ObjectStore>(make: impl Fn() -> O) {
     }
 }
 
+/// A batch of trees gets the ids single writes give, in order, below and above a packing threshold.
+pub fn tree_batches_round_trip<O: ObjectStore>(make: impl Fn() -> O) {
+    let objects = make();
+    let blob = objects.write_blob(b"tree batch").expect("written");
+    for size in [1, 150] {
+        let trees: Vec<Vec<TreeEntry>> = (0..size)
+            .map(|n| {
+                vec![TreeEntry {
+                    name: format!("file-{size}-{n}"),
+                    mode: EntryMode::Blob,
+                    oid: blob,
+                }]
+            })
+            .collect();
+        let ids = objects.write_trees(&trees).expect("written");
+        assert_eq!(ids.len(), size);
+        for (id, entries) in ids.iter().zip(&trees) {
+            assert_eq!(objects.read_tree(id).expect("read"), *entries);
+            assert_eq!(
+                objects.write_tree(entries).expect("written"),
+                *id,
+                "same id as a single write"
+            );
+        }
+    }
+}
+
 /// Reading an absent object, or an object of another kind, is `ObjectNotFound`.
 pub fn missing_objects_are_not_found<O: ObjectStore>(make: impl Fn() -> O) {
     let objects = make();
@@ -277,6 +304,10 @@ macro_rules! object_store_contract {
         #[test]
         fn blob_batches_round_trip() {
             $crate::contract_tests::blob_batches_round_trip($make);
+        }
+        #[test]
+        fn tree_batches_round_trip() {
+            $crate::contract_tests::tree_batches_round_trip($make);
         }
         #[test]
         fn missing_objects_are_not_found() {

@@ -208,7 +208,8 @@ impl<'a, O: ObjectStore, R: RefStore> Collection<'a, O, R> {
             let (directory, file) = id.fan_out();
             by_directory.entry(directory).or_default().push((file, id, *blob));
         }
-        let mut changed = false;
+        let mut changed_directories = Vec::new();
+        let mut changed_trees = Vec::new();
         for (directory, additions) in by_directory {
             let mut files = match root.get(directory) {
                 Some(subtree) => self.objects.read_tree(subtree)?,
@@ -229,9 +230,16 @@ impl<'a, O: ObjectStore, R: RefStore> Collection<'a, O, R> {
                 }
             }
             if files.len() != before {
-                root.insert(directory.to_owned(), self.objects.write_tree(&files)?);
-                changed = true;
+                changed_directories.push(directory);
+                changed_trees.push(files);
             }
+        }
+        let changed = !changed_directories.is_empty();
+        for (directory, tree) in changed_directories
+            .into_iter()
+            .zip(self.objects.write_trees(&changed_trees)?)
+        {
+            root.insert(directory.to_owned(), tree);
         }
         if !changed && head.is_some() {
             return Ok(None);

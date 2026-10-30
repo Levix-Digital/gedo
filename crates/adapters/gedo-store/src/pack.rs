@@ -14,12 +14,12 @@ use gix::odb::pack::{Bundle, bundle};
 /// objects, like `git`'s `fetch.unpackLimit` default.
 pub(crate) const PACK_THRESHOLD: usize = 100;
 
-/// Pack entry type of a blob.
-const BLOB_TYPE: u8 = 3;
-
-/// Writes `blobs`, none of which is in the object database yet, as one pack.
-pub(crate) fn write_blob_pack(repo: &gix::Repository, blobs: &[&[u8]]) -> Result<(), StoreError> {
-    let stream = pack_stream(blobs)?;
+/// Writes `objects`, none of which is in the object database yet, as one pack.
+pub(crate) fn write_pack(
+    repo: &gix::Repository,
+    objects: &[(gix::object::Kind, &[u8])],
+) -> Result<(), StoreError> {
+    let stream = pack_stream(objects)?;
     let directory = repo.objects.store_ref().path().join("pack");
     std::fs::create_dir_all(&directory)
         .map_err(|error| StoreError::io("create directory", &directory, error))?;
@@ -46,20 +46,20 @@ pub(crate) fn write_blob_pack(repo: &gix::Repository, blobs: &[&[u8]]) -> Result
     Ok(())
 }
 
-/// The bytes of a version 2 pack holding `blobs` undeltified, with its trailing checksum.
-fn pack_stream(blobs: &[&[u8]]) -> Result<Vec<u8>, StoreError> {
-    let count = u32::try_from(blobs.len())
+/// The bytes of a version 2 pack holding `objects` undeltified, with its trailing checksum.
+fn pack_stream(objects: &[(gix::object::Kind, &[u8])]) -> Result<Vec<u8>, StoreError> {
+    let count = u32::try_from(objects.len())
         .map_err(|_| StoreError::invalid_input("write pack", "too many objects in one pack"))?;
-    let mut pack = Vec::with_capacity(12 + blobs.iter().map(|blob| blob.len() + 16).sum::<usize>());
+    let mut pack = Vec::with_capacity(12 + objects.iter().map(|(_, data)| data.len() + 16).sum::<usize>());
     pack.extend_from_slice(b"PACK");
     pack.extend_from_slice(&2u32.to_be_bytes());
     pack.extend_from_slice(&count.to_be_bytes());
-    for blob in blobs {
-        entry_header(&mut pack, BLOB_TYPE, blob.len() as u64);
+    for (kind, data) in objects {
+        entry_header(&mut pack, entry_type(*kind), data.len() as u64);
         let mut deflate =
             gix::zlib::stream::deflate::Write::new(&mut pack, gix::zlib::Compression::BEST_SPEED);
         deflate
-            .write_all(blob)
+            .write_all(data)
             .and_then(|()| deflate.flush())
             .map_err(|error| StoreError::backend("compress pack entry", error))?;
     }
@@ -70,6 +70,16 @@ fn pack_stream(blobs: &[&[u8]]) -> Result<Vec<u8>, StoreError> {
         .map_err(|error| StoreError::backend("hash pack", error))?;
     pack.extend_from_slice(checksum.as_bytes());
     Ok(pack)
+}
+
+/// The pack entry type of an object kind.
+fn entry_type(kind: gix::object::Kind) -> u8 {
+    match kind {
+        gix::object::Kind::Commit => 1,
+        gix::object::Kind::Tree => 2,
+        gix::object::Kind::Blob => 3,
+        gix::object::Kind::Tag => 4,
+    }
 }
 
 /// An entry header: the type and the size of the uncompressed object, 4 bits then 7 per byte.
@@ -92,7 +102,7 @@ mod tests {
     fn entry_headers_follow_the_pack_format() {
         let header = |size| {
             let mut bytes = Vec::new();
-            entry_header(&mut bytes, BLOB_TYPE, size);
+            entry_header(&mut bytes, entry_type(gix::object::Kind::Blob), size);
             bytes
         };
         assert_eq!(header(0), [0x30]);
