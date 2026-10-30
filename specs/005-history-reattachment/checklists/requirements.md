@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,5 +31,5 @@
 
 ## Notes
 
-- Three clarifications (FR-005, FR-006, FR-010) are open and go to the user through `/speckit-clarify`.
+- Clarifications resolved with the user (2026-10-30): tape attachment rule (one match with a pair, all matched or superseded without), identity link as local derived data with the ADR-0007 rule, detachment date from the local state.
 - Git, commits, refs and the structural hash are domain terms of a Git overlay, not implementation details, as in specs 001 to 004.
