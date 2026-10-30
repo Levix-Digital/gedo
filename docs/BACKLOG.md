@@ -387,9 +387,9 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### FEAT-067: Semantic lanes and split publish
 - **Priority**: high
 - **Epic**: EPIC-005
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_semantic_lanes
 - **Description**: Classify events into refactor and feature lanes; gedo publish --split-lanes creates a refactor commit then a feature commit.
 
 ### FEAT-068: Virtual streams
