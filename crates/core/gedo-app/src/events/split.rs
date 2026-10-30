@@ -271,28 +271,29 @@ impl<O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'_, O, R, W> {
             Ok(files) => files,
             Err(error) => return Ok(Err(NotSplit::Build(error))),
         };
-        let mut replacements = BTreeMap::new();
         for file in &files {
-            let blob = match &file.text {
-                Some(text) => {
-                    match parser.parse(&file.path, text) {
-                        Ok(parsed) if !parsed.has_error => {}
-                        _ => {
-                            return Ok(Err(NotSplit::SyntaxError {
-                                path: file.path.clone(),
-                            }));
-                        }
+            if let Some(text) = &file.text {
+                match parser.parse(&file.path, text) {
+                    Ok(parsed) if !parsed.has_error => {}
+                    _ => {
+                        return Ok(Err(NotSplit::SyntaxError {
+                            path: file.path.clone(),
+                        }));
                     }
-                    Some(
-                        self.objects
-                            .write_blob(text)
-                            .context(|| format!("write the refactor version of {}", file.path))?,
-                    )
                 }
-                None => None,
-            };
-            replacements.insert(file.path.clone(), blob);
+            }
         }
+        // One batch, so a large refactor is written as one pack (ADR-0015).
+        let texts: Vec<&[u8]> = files.iter().filter_map(|file| file.text.as_deref()).collect();
+        let mut blobs = self
+            .objects
+            .write_blobs(&texts)
+            .context(|| "write the refactor files".into())?
+            .into_iter();
+        let replacements: BTreeMap<String, Option<GitOid>> = files
+            .iter()
+            .map(|file| (file.path.clone(), file.text.as_ref().and_then(|_| blobs.next())))
+            .collect();
         let refactor_tree = self.replace_files(Some(base_tree), &replacements)?;
         tracing::debug!(files = files.len(), "refactor tree built");
         let refactor_tree = refactor_tree.unwrap_or(self.empty_tree()?);
@@ -367,13 +368,15 @@ impl<O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'_, O, R, W> {
                 .tree,
         ];
         let mut files = Vec::new();
+        // Every changed file walks the same trees, so each is read once.
+        let mut read = BTreeMap::new();
         for path in identities.changed_files(&single)? {
             let mut sides = [None, None];
             for (side, (commit, tree)) in [(base, trees[0]), (single, trees[1])].into_iter().enumerate() {
                 let Some(map) = identities.map_at(&commit, &path)? else {
                     continue;
                 };
-                let Some(blob) = self.blob_at(tree, &path)? else {
+                let Some(blob) = self.blob_at(tree, &path, &mut read)? else {
                     continue;
                 };
                 let source = self
@@ -392,15 +395,24 @@ impl<O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'_, O, R, W> {
     }
 
     /// The blob at `path` in `tree`.
-    fn blob_at(&self, tree: GitOid, path: &str) -> Result<Option<GitOid>, EventError> {
+    fn blob_at(
+        &self,
+        tree: GitOid,
+        path: &str,
+        read: &mut BTreeMap<GitOid, Vec<TreeEntry>>,
+    ) -> Result<Option<GitOid>, EventError> {
         let mut current = tree;
         let mut segments = path.split('/').peekable();
         while let Some(segment) = segments.next() {
-            let entries = self
-                .objects
-                .read_tree(&current)
-                .context(|| format!("read tree {current}"))?;
-            let Some(entry) = entries.into_iter().find(|entry| entry.name == segment) else {
+            let entries = match read.entry(current) {
+                std::collections::btree_map::Entry::Occupied(entry) => entry.into_mut(),
+                std::collections::btree_map::Entry::Vacant(entry) => entry.insert(
+                    self.objects
+                        .read_tree(&current)
+                        .context(|| format!("read tree {current}"))?,
+                ),
+            };
+            let Some(entry) = entries.iter().find(|entry| entry.name == segment) else {
                 return Ok(None);
             };
             match (segments.peek(), entry.mode) {
