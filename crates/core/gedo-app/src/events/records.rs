@@ -10,6 +10,8 @@ use gedo_core::event::{Event, EventId, Tape, TapeId};
 use gedo_core::ids::{EntryId, GitOid};
 use gedo_core::record::RecordEnvelope;
 use gedo_crdt::{event_id, tape_id};
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 
 /// The collection of events, by event id.
@@ -22,6 +24,11 @@ pub const COMMIT_TAPES_COLLECTION: &str = "commit-tapes";
 /// Symbol cache namespace keeping stored event records by event id (local derived data).
 pub const EVENTS_CACHE_NAMESPACE: &str = "events";
 
+/// Symbol cache namespace of the retention record (local state, research R9 of feature 005).
+pub const RETENTION_CACHE_NAMESPACE: &str = "retention";
+/// Key of the retention record in its namespace.
+pub const RETENTION_KEY: &[u8] = b"detached";
+
 /// Format of event records.
 pub const EVENT_FORMAT: u16 = 1;
 /// Format of tape records.
@@ -30,6 +37,15 @@ pub const TAPE_FORMAT: u16 = 1;
 pub const INDEX_FORMAT: u16 = 1;
 /// Format of write-ahead log records.
 pub const WAL_FORMAT: u16 = 1;
+/// Format of the retention record.
+pub const RETENTION_FORMAT: u16 = 1;
+
+/// When this machine first saw each detached tape detached, in Unix seconds.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RetentionRecord {
+    /// Detached tapes and the time they were first seen detached.
+    pub detached: BTreeMap<TapeId, u64>,
+}
 
 /// A record of the write-ahead log. Later features append their variants at the end.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -55,6 +71,23 @@ pub fn index_entry(commit: &GitOid, tape: &TapeId) -> Result<EntryId, StoreError
         commit.to_hex(),
         tape.entry_name()
     ))?)
+}
+
+/// The commit and the tape of an index entry, from its name alone.
+pub fn parse_index_entry(entry: &EntryId) -> Result<(GitOid, TapeId), StoreError> {
+    let name = entry.as_str();
+    let corrupted = || StoreError::Corrupted {
+        path: format!("refs/gedo/{COMMIT_TAPES_COLLECTION}"),
+        offset: None,
+        reason: format!("entry {entry} is not a commit followed by a tape"),
+    };
+    let split = name.len().checked_sub(32).ok_or_else(corrupted)?;
+    let commit = name.get(..split).and_then(|hex| GitOid::from_hex(hex).ok());
+    let tape = name.get(split..).and_then(TapeId::from_entry_name);
+    match (commit, tape) {
+        (Some(commit), Some(tape)) => Ok((commit, tape)),
+        _ => Err(corrupted()),
+    }
 }
 
 /// The tape named by an index entry of `commit`.
@@ -119,6 +152,17 @@ pub fn decode_index_entry(bytes: &[u8], source: &str) -> Result<(), StoreError> 
     } else {
         Err(corrupted(source, "an index entry has a payload".into()))
     }
+}
+
+/// Encodes the retention record.
+pub fn encode_retention(record: &RetentionRecord) -> Result<Vec<u8>, StoreError> {
+    RecordEnvelope::wrap(RETENTION_FORMAT, record)?.encode()
+}
+
+/// Decodes the retention record.
+pub fn decode_retention(bytes: &[u8]) -> Result<RetentionRecord, StoreError> {
+    let source = "retention record";
+    RecordEnvelope::decode(bytes, &[RETENTION_FORMAT], source)?.unwrap(source)
 }
 
 /// Encodes a write-ahead log record.

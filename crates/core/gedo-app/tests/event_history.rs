@@ -186,7 +186,8 @@ fn a_published_commit_returns_its_tapes_instead_of_reconstructing() {
     let ids = log.record(&context, Some(root), &ops).expect("recorded");
     let tape = log.publish(next).expect("published").expect("tape");
     match log.events_of_commit(&next, &index).expect("events") {
-        CommitEvents::Published(tapes) => {
+        CommitEvents::Published { tapes, remainder } => {
+            assert!(remainder.is_empty(), "the tape covers the commit: {remainder:?}");
             assert_eq!(tapes.len(), 1);
             assert_eq!(tapes[0].0, tape);
             assert_eq!(tapes[0].1.iter().map(event_id).collect::<Vec<_>>(), ids);
