@@ -4,10 +4,10 @@ project: gedo
 title: Re-attachment after history rewrites
 kind: feature
 version: v0.3.0
-status: active
+status: completed
 author: LeviGuilherme
 created_at: '2026-10-30T14:01:11'
-updated_at: '2026-10-30T14:18:53'
+updated_at: '2026-10-30T14:40:57'
 session_id: null
 tags:
 - reattachment
@@ -25,21 +25,37 @@ backlog_items:
 spec_dir: specs/005-history-reattachment
 milestones:
 - name: M1 Setup
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M2 Matching rules
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M3 Local rewrites
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M4 Server squash
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M5 Determinism
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M6 Retention
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M7 Cache filling
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M8 Hardening and docs
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 status_log:
 - at: '2026-10-30T14:01:11'
   by: LeviGuilherme
@@ -53,6 +69,34 @@ status_log:
   by: LeviGuilherme
   status: active
   note: Approved by Levi on 2026-10-30
+- at: '2026-10-30T14:38:12'
+  by: LeviGuilherme
+  note: Milestone 'M1 Setup' completed
+- at: '2026-10-30T14:38:13'
+  by: LeviGuilherme
+  note: Milestone 'M2 Matching rules' completed
+- at: '2026-10-30T14:38:15'
+  by: LeviGuilherme
+  note: Milestone 'M3 Local rewrites' completed
+- at: '2026-10-30T14:38:17'
+  by: LeviGuilherme
+  note: Milestone 'M4 Server squash' completed
+- at: '2026-10-30T14:38:19'
+  by: LeviGuilherme
+  note: Milestone 'M5 Determinism' completed
+- at: '2026-10-30T14:38:21'
+  by: LeviGuilherme
+  note: Milestone 'M6 Retention' completed
+- at: '2026-10-30T14:38:22'
+  by: LeviGuilherme
+  note: Milestone 'M7 Cache filling' completed
+- at: '2026-10-30T14:40:57'
+  by: LeviGuilherme
+  note: Milestone 'M8 Hardening and docs' completed
+- at: '2026-10-30T14:40:57'
+  by: LeviGuilherme
+  status: completed
+  note: All milestones completed
 ---
 
 # Re-attachment after history rewrites
@@ -90,3 +134,18 @@ Second feature of release v0.3.0 Event log and convergence (scope chosen by the 
 ## Milestones
 
 Taken from the phases of [`tasks.md`](../../specs/005-history-reattachment/tasks.md): M1 Setup, M2 Matching rules, M3 Local rewrites, M4 Server squash, M5 Determinism, M6 Retention, M7 Cache filling, M8 Hardening and docs.
+
+## Results
+
+Benchmarks of `cargo bench -p gedo-app --bench reattach` (release build, Linux development container, Git store adapter, 2026-10-30); the Windows reference machine run is pending the user's go:
+
+| Requirement | p50 | p95 | p99 | Budget |
+|---|---:|---:|---:|---|
+| Re-attach one fetched squash, 10,000 stored events of which 1,000 detached (25 runs, SC-004) | 18.0 ms | 19.0 ms | 19.3 ms | p95 under 100 ms |
+| Re-attach one rebased commit through the fast path (25 runs) | 1.5 ms | 1.6 ms | 1.7 ms | p95 under 100 ms |
+| Fill an empty cache with 10,000 events (5 runs, SC-005) | 435 ms | 469 ms | 469 ms | under 2 s |
+| First filter by one label after filling (5 runs, SC-005) | 48 ms | 81 ms | 81 ms | under 500 ms |
+
+Tests: 21 scripted rewrite scenarios in `crates/core/gedo-app/tests/reattach.rs` (rebase, amend, resolved conflict, interactive squash, split, server squash with the identity link, unrelated branch, server rebase merge, never-published commit, idempotence, additive writes, processing order with an index snapshot, retention, cache filling, a crash before the index write, two machines joining), property tests in `crates/core/gedo-crdt/tests/reattach.rs` and unit tests of the matching, including the known limit of research R7.
+
+Deviation from the plan: `reattach_new` processes commits in generation order and leaves out, for each commit, the tapes attached to its ancestors in the same call, so a server rebase merge gives each replayed commit its own tape; a change matches the latest event of the entity that leaves the same state (not only the last one), for the same reason. Both are in ADR-0016.
