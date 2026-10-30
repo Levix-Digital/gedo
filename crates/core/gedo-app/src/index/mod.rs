@@ -194,6 +194,14 @@ impl<'a, O: ObjectStore, P: Parser + Sync, C: SymbolCache> IdentityIndex<'a, O, 
         })
     }
 
+    /// The Rust files of `commit` that differ from its first parent (deleted ones included), sorted.
+    pub fn changed_files(&self, commit: &GitOid) -> Result<Vec<String>, IndexError> {
+        let record = self
+            .record(commit)?
+            .ok_or(IndexError::NotIndexed { commit: *commit })?;
+        Ok(record.files.into_iter().map(|(path, _)| path).collect())
+    }
+
     /// The structural hash of every entity of the files `commit` changed against its first parent,
     /// by id as recorded at the commit (not resolved through identity merges).
     pub fn result_hashes(&self, commit: &GitOid) -> Result<BTreeMap<AstNodeId, StructuralHash>, IndexError> {

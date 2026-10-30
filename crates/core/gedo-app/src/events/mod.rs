@@ -12,6 +12,7 @@
 //! cache is local derived data: a missing, unreadable or refused entry is read from the
 //! collection again, and a cache failure never fails an operation.
 
+pub mod converge;
 pub mod reattach;
 pub mod records;
 
@@ -71,6 +72,16 @@ pub enum EventError {
         events: usize,
         /// The limit.
         limit: usize,
+    },
+
+    /// The events of a side cannot be folded over the base (an event about an unknown entity).
+    #[error("converge side {side}: {source}")]
+    Tree {
+        /// The side's position in the input.
+        side: usize,
+        /// What went wrong.
+        #[source]
+        source: gedo_crdt::TreeError,
     },
 
     /// A stored record named another record that is not in the local data (a partial fetch).

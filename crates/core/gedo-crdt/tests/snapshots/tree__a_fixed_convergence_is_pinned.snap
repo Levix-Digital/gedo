@@ -1,0 +1,159 @@
+---
+source: crates/core/gedo-crdt/tests/tree.rs
+expression: result
+---
+Convergence {
+    state: TreeState {
+        entities: {
+            AstNodeId(01010101-0101-0101-0101-010101010101): EntityState {
+                kind: Impl,
+                present: true,
+                place: Place {
+                    unit: "src",
+                    path: "src/lib.rs",
+                    container: "crate",
+                },
+                name: "<impl Invoice>",
+                signature: Some(
+                    StructuralHash(0101010101010101010101010101010101010101010101010101010101010101),
+                ),
+                body: Some(
+                    StructuralHash(6565656565656565656565656565656565656565656565656565656565656565),
+                ),
+                structural: Some(
+                    StructuralHash(c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9),
+                ),
+            },
+            AstNodeId(02020202-0202-0202-0202-020202020202): EntityState {
+                kind: Method,
+                present: false,
+                place: Place {
+                    unit: "src",
+                    path: "src/lib.rs",
+                    container: "crate::<impl Invoice>",
+                },
+                name: "total",
+                signature: Some(
+                    StructuralHash(0202020202020202020202020202020202020202020202020202020202020202),
+                ),
+                body: Some(
+                    StructuralHash(6666666666666666666666666666666666666666666666666666666666666666),
+                ),
+                structural: Some(
+                    StructuralHash(cacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacaca),
+                ),
+            },
+            AstNodeId(03030303-0303-0303-0303-030303030303): EntityState {
+                kind: Function,
+                present: true,
+                place: Place {
+                    unit: "src",
+                    path: "src/lib.rs",
+                    container: "crate",
+                },
+                name: "f",
+                signature: Some(
+                    StructuralHash(0303030303030303030303030303030303030303030303030303030303030303),
+                ),
+                body: Some(
+                    StructuralHash(6767676767676767676767676767676767676767676767676767676767676767),
+                ),
+                structural: Some(
+                    StructuralHash(cbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcb),
+                ),
+            },
+            AstNodeId(04040404-0404-0404-0404-040404040404): EntityState {
+                kind: Function,
+                present: true,
+                place: Place {
+                    unit: "src",
+                    path: "src/other.rs",
+                    container: "crate::other",
+                },
+                name: "h",
+                signature: Some(
+                    StructuralHash(2121212121212121212121212121212121212121212121212121212121212121),
+                ),
+                body: Some(
+                    StructuralHash(6868686868686868686868686868686868686868686868686868686868686868),
+                ),
+                structural: None,
+            },
+            AstNodeId(0a0a0a0a-0a0a-0a0a-0a0a-0a0a0a0a0a0a): EntityState {
+                kind: Method,
+                present: true,
+                place: Place {
+                    unit: "src",
+                    path: "src/lib.rs",
+                    container: "crate::<impl Invoice>",
+                },
+                name: "tax",
+                signature: None,
+                body: None,
+                structural: Some(
+                    StructuralHash(0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a),
+                ),
+            },
+            AstNodeId(0c0c0c0c-0c0c-0c0c-0c0c-0c0c0c0c0c0c): EntityState {
+                kind: Function,
+                present: true,
+                place: Place {
+                    unit: "src",
+                    path: "src/lib.rs",
+                    container: "crate",
+                },
+                name: "k",
+                signature: None,
+                body: None,
+                structural: Some(
+                    StructuralHash(0707070707070707070707070707070707070707070707070707070707070707),
+                ),
+            },
+        },
+    },
+    links: [],
+    conflicts: [
+        Conflict {
+            entity: AstNodeId(03030303-0303-0303-0303-030303030303),
+            kind: Part(
+                Body,
+            ),
+            base: Some(
+                Body(
+                    Some(
+                        StructuralHash(6767676767676767676767676767676767676767676767676767676767676767),
+                    ),
+                ),
+            ),
+            values: [
+                ConflictValue {
+                    value: Body(
+                        Some(
+                            StructuralHash(2929292929292929292929292929292929292929292929292929292929292929),
+                        ),
+                    ),
+                    sides: [
+                        0,
+                    ],
+                    events: [
+                        EventId(1ce40e27-80a2-8e5e-a3b1-6d78f42e98c6),
+                    ],
+                },
+                ConflictValue {
+                    value: Body(
+                        Some(
+                            StructuralHash(2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a),
+                        ),
+                    ),
+                    sides: [
+                        1,
+                    ],
+                    events: [
+                        EventId(be1c1e39-0926-8e90-9784-285b9cfe0d42),
+                    ],
+                },
+            ],
+            others: [],
+        },
+    ],
+}
