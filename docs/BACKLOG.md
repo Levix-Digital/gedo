@@ -9,7 +9,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### BUG-009: Publishing a tape of 1,000 events takes over 1 s on Windows
 - **Severity**: medium
 - **Epic**: EPIC-005
-- **Status**: planned
+- **Status**: in_progress
 - **Found**: 2026-10-29, PR #15, Windows reference benchmark
 - **Plan**: gedo_windows_event_publish_and_filter_performance_fixes
 - **Description**: On the Windows reference machine (i7-12700KF), cargo bench -p gedo-app --bench events gives p50 1.19 s and p95 1.31 s for publishing 1,000 events (1.49 s p95 into a chain of 100,000), above the 1 s budget of gedo publish (TECH_SPEC, SC-004 of 004-event-model); Linux p95 is 107 ms. Each event is a separate loose blob in refs/gedo/events, so a publish writes about 1,000 loose object files.
@@ -17,7 +17,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### BUG-010: Filtering 10,000 events by a label takes over 1 s on Windows
 - **Severity**: medium
 - **Epic**: EPIC-005
-- **Status**: planned
+- **Status**: in_progress
 - **Found**: 2026-10-29, PR #15, Windows reference benchmark
 - **Plan**: gedo_windows_event_publish_and_filter_performance_fixes
 - **Description**: On the Windows reference machine, EventLog::filter over 10,000 stored events gives p50 1.19 s and p95 1.34 s, above the 500 ms of SC-006 of 004-event-model; Linux p95 is 408 ms. The filter reads every event blob of refs/gedo/events; a label index in the symbol cache or fewer, larger objects would avoid it.

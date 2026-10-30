@@ -4,10 +4,10 @@ project: gedo
 title: Windows event publish and filter performance fixes
 kind: bug
 version: v0.3.0
-status: active
+status: in_progress
 author: Levi Silveira
 created_at: '2026-10-29T23:42:03'
-updated_at: '2026-10-30T01:13:18'
+updated_at: '2026-10-30T01:30:01'
 session_id: null
 tags: []
 supersedes: null
@@ -18,9 +18,13 @@ backlog_items:
 - BUG-010
 milestones:
 - name: M1 Packed batch writes
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: Levi Silveira
 - name: M2 Event cache
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: Levi Silveira
 - name: M3 Reference machine and documentation
   done: false
 status_log:
@@ -44,6 +48,12 @@ status_log:
   by: Levi Silveira
   status: active
   note: Approved by Levi on 2026-10-30
+- at: '2026-10-30T01:30:00'
+  by: Levi Silveira
+  note: 'Milestone ''M1 Packed batch writes'' completed: write_blobs and the pack writer; Linux publish p95 about 80 ms'
+- at: '2026-10-30T01:30:01'
+  by: Levi Silveira
+  note: 'Milestone ''M2 Event cache'' completed: events cache namespace; Linux cached filter p95 52 ms'
 ---
 
 ---
@@ -155,3 +165,23 @@ One branch `fix/windows-event-performance` from `main` (it carries the backlog c
 1. M1 Packed batch writes: `write_blobs`, the pack writer, the slots, their tests, the Linux benchmark and the Windows CI benchmark of the pull request.
 2. M2 Event cache: the `events` namespace, the read path, one lookup per read if it helps, their tests and benchmarks.
 3. M3 Reference machine and documentation: the benchmark on Levi's Windows machine through Remote Control (Levi approves the session), section 7, the checkers; then BUG-009 and BUG-010 close, or the remaining gap goes to Levi as a decision.
+
+## Results
+
+Changes against section 4, found while implementing:
+
+- **Shared cache**: the identity index held the cache as `&mut`, and redb opens a database file once per process, so the event log could not use the same cache next to it. `SymbolCache::put` and `clear` now take `&self` (redb transactions already do), `IdentityIndex::open` takes `&C`, and `EventLog::with_cache` takes a shared `&dyn SymbolCache`. No stored data changes.
+- **Cached records keep every check**, the id derivation included: it costs about 1 µs per event, so the exception planned in section 4 is not needed.
+- **No `get_many`**: one read transaction per event is fast enough (a cached filter of 10,000 events takes 50 ms on Linux).
+- **One lookup per read rejected**: reading an object without the header lookup made a filter with an empty cache over loose events 30% faster on Linux (366 to 250 ms), but the 64 MiB limit would only be checked after the whole object is in memory.
+- **Trees stay loose**: packing the blobs was enough on Linux; `write_trees` waits for the Windows numbers.
+
+`cargo bench -p gedo-app --bench events` on Linux (the cloud container, p95; the container's timings vary by about 2 times between runs):
+
+| Benchmark | `main` 3f820f2 | M1 packs | M2 packs and cache |
+|---|---|---|---|
+| Publish a tape of 1,000 events | 107 to 824 ms | 74 to 87 ms | 152 ms (the cache transaction) |
+| Filter 10,000 events (tapes of 1,000) | 326 to 459 ms | 72 ms | 52 ms; 128 ms with an empty cache |
+| Filter 10,000 events (tapes of 20, loose) | 348 ms | 348 ms | 53 ms; 390 ms with an empty cache |
+
+The new benchmark case, 10,000 events in 500 tapes of 20, is the common shape (one publish per commit) and stays loose under the pack threshold; only the cache fixes it. A filter with an empty cache (a fresh clone, a deleted cache) still reads every event once.
