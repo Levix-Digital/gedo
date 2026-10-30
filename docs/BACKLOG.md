@@ -1391,5 +1391,5 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: done
 - **Found**: 2026-10-24
 - **Plan**: gedo_semantic_lanes
-- **Closed**: 2026-10-30, plan gedo_semantic_lanes
+- **Closed**: 2026-10-30, PR #22
 - **Description**: Classify events into refactor and feature lanes; gedo publish --split-lanes creates a refactor commit then a feature commit.
