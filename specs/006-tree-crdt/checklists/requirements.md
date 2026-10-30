@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,5 +31,5 @@
 
 ## Notes
 
-- Clarifications (2026-10-30): removal against change is a conflict and entities added on both sides are one entity when equal, a conflict otherwise (both follow ADR-0009 and ADR-0007); signature on one side against body on the other is asked of the user.
+- Clarifications (2026-10-30): removal against change is a conflict and entities added on both sides are one entity when equal, a conflict otherwise (both follow ADR-0009 and ADR-0007); signature on one side against body on the other converge (the user chose it on 2026-10-30).
 - Git, commits, entities and the structural hash are domain terms of a Git overlay, not implementation details, as in specs 001 to 005.

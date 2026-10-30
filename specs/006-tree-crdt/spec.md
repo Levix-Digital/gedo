@@ -20,7 +20,7 @@ Like the earlier features, this one has no end-user command. Its users are the l
 
 ### Session 2026-10-30
 
-- Q: One side changes an entity's signature and the other changes its body; do the two converge? → A: [NEEDS CLARIFICATION: signature on one side and body on the other: converge both (the post-merge contract check, FEAT-076, reports a call that no longer fits) or report a conflict for the entity?]
+- Q: One side changes an entity's signature and the other changes its body; do the two converge? → A: Both converge: the entity takes the signature of one side and the body of the other; the post-merge contract check (FEAT-076) reports a call that no longer fits.
 - Q: One side removes an entity and the other changes it (or adds a member inside it): who wins? → A: Neither: it is a conflict, reported with both sides (ADR-0009, never hide a conflict).
 - Q: Two sides create an entity with the same kind and qualified path: one entity or two? → A: One entity when their content is the same (equal structural hash): the two identities are linked, the lower id kept (ADR-0007, like the links of ADR-0016); a conflict ("added on both sides") when the content differs.
 
@@ -135,7 +135,7 @@ A later layer asks Gedo to converge two or more commits over their common base (
 - **FR-003**: Events MUST be deduplicated by id before folding, within a side and across sides: an event present twice, or on several sides, MUST apply once.
 - **FR-004**: Convergence MUST take a base state and one or more sides and give, for every part of every entity, the base value when no side changed it, the side value when the sides that changed it agree on one value, and a **conflict** otherwise; a side changes a part when its value differs from the base value.
 - **FR-005**: Members of a container MUST behave as a set: an addition or removal by one side MUST apply whatever the other sides did to other members of the same container; members MUST be keyed by identity, never by position.
-- **FR-006**: Changes to different parts of the same entity by different sides MUST commute: place and name with any other part, signature and body with each other [NEEDS CLARIFICATION: see the first question of the clarifications].
+- **FR-006**: Changes to different parts of the same entity by different sides MUST commute: place and name with any other part, signature and body with each other (clarification); the structural hash of an entity whose parts come from different sides is unknown until the merge driver renders it.
 - **FR-007**: A removal by one side and a change of any part (or a new member inside the entity) by another MUST be a conflict; a removal by several sides MUST NOT.
 - **FR-008**: Two entities created by different sides with the same kind and qualified path MUST be one entity when their structural hashes are equal (their identities linked, the lower id kept, ADR-0007) and a conflict "added on both sides" otherwise.
 - **FR-009**: Each conflict MUST name the entity, the part, the base value, each distinct value with the sides that hold it and the ids of the events that set it; the part MUST keep its base value in the converged state (an entity added on both sides keeps neither), so the state is always fully determined.
