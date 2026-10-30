@@ -108,6 +108,7 @@ jobs:
           cargo bench -p gedo-app --bench reattach -- --quick | tee -a bench-output.txt
           cargo bench -p gedo-crdt --bench tree -- --quick | tee -a bench-output.txt
           cargo bench -p gedo-app --bench converge -- --quick | tee -a bench-output.txt
+          cargo bench -p gedo-app --bench split -- --quick | tee -a bench-output.txt
       - uses: actions/upload-artifact@v4
         with:
           name: bench-${{ matrix.os }}

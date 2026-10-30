@@ -1,5 +1,5 @@
 //! Publishing, refusing a publish, re-attaching, reporting detached tapes, filling the event cache
-//! and converging sides are visible as `tracing` events.
+//! converging sides and split publishes are visible as `tracing` events.
 //!
 //! One test in its own binary: tracing caches whether a call site is enabled process-wide, so
 //! concurrent tests without a subscriber would disable the events for this one.
@@ -8,10 +8,11 @@ mod support;
 
 use std::sync::{Arc, Mutex};
 
-use gedo_app::{DEFAULT_GRACE_DAYS, EventLog, IdentityIndex, Side};
+use gedo_app::{DEFAULT_GRACE_DAYS, EventLog, IdentityIndex, Side, SplitRequest};
 use gedo_core::event::{Labels, MAX_TAPE_EVENTS, SemanticOp};
 use gedo_core::identity::{AstNodeId, SemanticDelta};
 use gedo_core::memory::{MemoryRefStore, MemoryWal};
+use gedo_core::ports::ObjectStore;
 use gedo_core::syntax::StructuralHash;
 use gedo_crdt::RecordingContext;
 use support::{History, files};
@@ -94,6 +95,30 @@ fn publishing_and_refusals_are_traced() {
         log.converge(&base, &[Side::commit(base)], &index)
             .expect("converged");
     });
+    // A rename with a feature beside it, split-published.
+    let renamed = history.commit(
+        &[base],
+        &files(&[(
+            "src/lib.rs",
+            "pub fn g() {}
+
+pub fn h() {}
+",
+        )]),
+    );
+    let tree = history.objects.read_commit(&renamed).expect("commit").tree;
+    tracing::subscriber::with_default(messages.clone(), || {
+        let mut wal = MemoryWal::new();
+        let mut log = EventLog::open(&history.objects, &refs, &mut wal).expect("opens");
+        let request = SplitRequest {
+            base,
+            tree,
+            message: "feat: h".into(),
+            refactor_message: None,
+        };
+        log.publish_split(&request, &mut index, &history.parser)
+            .expect("published");
+    });
     let messages = messages.0.lock().expect("not poisoned").clone();
     assert!(
         messages.iter().any(|message| message == "events published"),
@@ -101,6 +126,12 @@ fn publishing_and_refusals_are_traced() {
     );
     assert!(
         messages.iter().any(|message| message.contains("tape too large")),
+        "{messages:?}"
+    );
+    assert!(
+        messages
+            .iter()
+            .any(|message| message.starts_with("split published")),
         "{messages:?}"
     );
     for expected in [

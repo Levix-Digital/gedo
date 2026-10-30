@@ -1,0 +1,48 @@
+---
+source: crates/core/gedo-app/tests/split.rs
+expression: text
+---
+commit f241e0a89b10ea1ae3dfacf12135b7d2f1655dcb
+message "refactor: rename crate::Invoice::sum to total\n\nrename crate::Invoice::sum to total\n"
+--- src/lib.rs
+pub struct Invoice {
+    pub amount: u32,
+}
+
+impl Invoice {
+    pub fn total(&self) -> u32 {
+        self.amount
+    }
+}
+
+pub fn report(invoice: &Invoice) -> u32 {
+    invoice.total() + 1
+}
+
+pub fn audit(invoice: &Invoice) -> u32 {
+    invoice.total()
+}
+commit a85a3ef1412bd9b339c5072b0e87485aa3cf4c7c
+message "feat: discounts"
+--- src/lib.rs
+pub struct Invoice {
+    pub amount: u32,
+}
+
+impl Invoice {
+    pub fn total(&self) -> u32 {
+        self.amount
+    }
+}
+
+pub fn report(invoice: &Invoice) -> u32 {
+    invoice.total() + 2
+}
+
+pub fn discount() -> u32 {
+    1
+}
+
+pub fn audit(invoice: &Invoice) -> u32 {
+    invoice.total()
+}

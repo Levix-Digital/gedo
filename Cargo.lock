@@ -672,6 +672,7 @@ dependencies = [
  "postcard",
  "proptest",
  "serde",
+ "similar",
  "thiserror",
 ]
 
