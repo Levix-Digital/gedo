@@ -1374,5 +1374,5 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: done
 - **Found**: 2026-10-24
 - **Plan**: gedo_tree_crdt
-- **Closed**: 2026-10-30, plan gedo_tree_crdt
+- **Closed**: 2026-10-30, PR #20
 - **Description**: Set semantics for members of a structure, commutative move and edit, idempotent events; same result in any arrival order.
