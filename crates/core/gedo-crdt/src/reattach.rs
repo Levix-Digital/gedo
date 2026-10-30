@@ -351,7 +351,7 @@ fn fold(
             }
         }
     }
-    events.sort_by(|left, right| (left.0, left.1, left.2).cmp(&(right.0, right.1, right.2)));
+    events.sort_by_key(|event| (event.0, event.1, event.2));
     events.dedup_by(|left, right| left.1 == right.1 && left.2 == right.2);
 
     let mut by_entity: BTreeMap<AstNodeId, Vec<(usize, &Event, &SemanticDelta)>> = BTreeMap::new();
@@ -619,7 +619,12 @@ mod tests {
         );
         assert_eq!(one.attached, vec![first.tape]);
         let changes = vec![SemanticOp::Delta(body(1, 2, 3))];
-        let two = match_commit(&changes, results(&[(1, 12)]), &[second.clone()], |id| id);
+        let two = match_commit(
+            &changes,
+            results(&[(1, 12)]),
+            std::slice::from_ref(&second),
+            |id| id,
+        );
         assert_eq!(two.attached, vec![second.tape]);
     }
 

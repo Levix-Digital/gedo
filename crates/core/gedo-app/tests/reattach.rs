@@ -528,3 +528,97 @@ fn filling_without_a_cache_does_nothing() {
     let log = EventLog::open(&repo.history.objects, &repo.refs, &mut wal).expect("opens");
     assert_eq!(log.fill_cache().expect("filled"), gedo_app::CacheFill::default());
 }
+
+/// References whose writes fail, as if the process stopped before the index entry was written.
+struct StoppedRefs<'a>(&'a MemoryRefStore);
+
+impl gedo_core::ports::RefStore for StoppedRefs<'_> {
+    fn read(&self, name: &GedoRefName) -> Result<Option<GitOid>, gedo_core::StoreError> {
+        self.0.read(name)
+    }
+    fn list(&self, prefix: &GedoRefName) -> Result<Vec<(GedoRefName, GitOid)>, gedo_core::StoreError> {
+        self.0.list(prefix)
+    }
+    fn list_remote(&self, remote: &str) -> Result<Vec<(String, GitOid)>, gedo_core::StoreError> {
+        self.0.list_remote(remote)
+    }
+    fn compare_and_swap(
+        &self,
+        _: &gedo_core::ports::RefUpdate,
+    ) -> Result<gedo_core::ports::RefOutcome, gedo_core::StoreError> {
+        Err(gedo_core::StoreError::invalid_input(
+            "simulated crash",
+            "the process stopped",
+        ))
+    }
+    fn delete(
+        &self,
+        name: &GedoRefName,
+        expected: GitOid,
+    ) -> Result<gedo_core::ports::RefOutcome, gedo_core::StoreError> {
+        self.0.delete(name, expected)
+    }
+}
+
+#[test]
+fn a_crash_before_the_index_write_leaves_nothing_and_a_rerun_completes() {
+    let uninterrupted = {
+        let repo = Repo::new();
+        let (_, _, squash) = squash_setup(&repo);
+        repo.fetched(&[squash], &[squash]);
+        repo.index_entries()
+    };
+    let repo = Repo::new();
+    let (_, _, squash) = squash_setup(&repo);
+    let before = repo.index_entries();
+    repo.index(&[squash]);
+    {
+        let identities = repo.identities();
+        let stopped = StoppedRefs(&repo.refs);
+        let mut wal = MemoryWal::new();
+        let mut log = EventLog::open(&repo.history.objects, &stopped, &mut wal)
+            .expect("opens")
+            .with_cache(&repo.events);
+        assert!(log.reattach_new(&[squash], &[squash], &identities).is_err());
+    }
+    assert_eq!(repo.index_entries(), before);
+    repo.fetched(&[squash], &[squash]);
+    assert_eq!(repo.index_entries(), uninterrupted);
+}
+
+#[test]
+fn two_machines_join_their_index_entries() {
+    use gedo_core::ports::{Expected, RefStore, RefUpdate};
+    let repo = Repo::new();
+    let (_, _, squash) = squash_setup(&repo);
+    // A second machine with the same Gedo data re-attaches the same commit on its own.
+    let other = MemoryRefStore::new();
+    for collection in ["events", "tapes", COMMIT_TAPES_COLLECTION] {
+        let name = GedoRefName::collection(collection).expect("valid");
+        let head = repo.refs.read(&name).expect("read").expect("published");
+        other
+            .compare_and_swap(&RefUpdate {
+                name,
+                expected: Expected::Absent,
+                new: head,
+                log_message: "gedo: test copy".into(),
+            })
+            .expect("copied");
+    }
+    repo.fetched(&[squash], &[squash]);
+    let alone = repo.index_entries();
+    repo.index(&[squash]);
+    {
+        let identities = repo.identities();
+        let mut wal = MemoryWal::new();
+        let mut log = EventLog::open(&repo.history.objects, &other, &mut wal).expect("opens");
+        log.reattach_new(&[squash], &[squash], &identities)
+            .expect("re-attached");
+    }
+    let name = GedoRefName::collection(COMMIT_TAPES_COLLECTION).expect("valid");
+    let theirs = other.read(&name).expect("read").expect("written");
+    Collection::new(name, &repo.history.objects, &repo.refs)
+        .merge(theirs)
+        .expect("joined without conflict");
+    assert_eq!(repo.index_entries(), alone);
+}
