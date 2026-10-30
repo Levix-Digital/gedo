@@ -37,6 +37,8 @@ Records semantic events and converges concurrent changes deterministically.
 
 **Reading.** `tapes_of(commit)` reads the index entries of the commit from one fan-out directory; `tape` and `event` read records, check their format, invariants and that their content matches their id; a tape or event named by an index or a tape but missing locally (a partial fetch) is `Missing`. `events_of_commit` returns the published tapes of a commit, or, when it has none, the events reconstructed from its identity record: its deltas against the first parent, then its identity merges, with the ids as recorded at the commit (never resolved through later aliases), the commit author and the commit's generation. Reconstructed events are never written to `refs/gedo/*`. `filter` scans the stored events and returns the matching ones in the total order.
 
+**Event cache.** With a symbol cache (`EventLog::with_cache`), a publish also keeps the records of its events in the cache's `events` namespace, after the index entry and before the log is truncated, and `event`, `events`, `events_of_commit` and `filter` read the cache first and the collection on a miss, keeping what they read, so a filter reads one database instead of one object per event ([ADR-0015](../adr/0015-packed-batch-writes-and-an-event-cache.md)). Cached records go through every check of stored ones; a refused entry is read again, and a cache failure is only a warning.
+
 **Observability.** `tracing` events: events recorded (debug), events published (info, with the commit, the tape and the count), publish refused because the tape is too large (warn), events reconstructed (debug).
 
 ## Interfaces
@@ -52,3 +54,4 @@ Records semantic events and converges concurrent changes deterministically.
 - [ADR-0009](../adr/0009-semantic-merge-driver-and-shadow-merge.md): merge rules shared by the driver and the shadow merge.
 - [ADR-0013](../adr/0013-versioned-json-output-as-the-contract-for-tools-built-on-ged.md): opaque labels and author kind inherited from streams, reserved `gedo.` prefix.
 - [ADR-0014](../adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md): content-derived ids, history clocks, the three collections, reconstructed events kept local.
+- [ADR-0015](../adr/0015-packed-batch-writes-and-an-event-cache.md): large publishes written as packs, stored events read through the `events` cache namespace.

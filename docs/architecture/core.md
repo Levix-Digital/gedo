@@ -49,10 +49,10 @@ Ports, each with a real adapter and an in-memory adapter for tests:
 
 | Port | Purpose | Real adapter |
 |---|---|---|
-| `ObjectStore` | Read and write blobs, trees (entries with their mode: file, executable, directory, link, submodule) and commits by `GitOid` (a commit read back carries its author's e-mail); never moves a reference | `gedo-store` (gitoxide) |
+| `ObjectStore` | Read and write blobs (one at a time or as a batch, which an adapter may write as one pack), trees (entries with their mode: file, executable, directory, link, submodule) and commits by `GitOid` (a commit read back carries its author's e-mail); never moves a reference | `gedo-store` (gitoxide) |
 | `RefStore` | Read and list `refs/gedo/*` and `refs/gedo-remote/*`, compare-and-swap and delete | `gedo-store` |
 | `WriteAheadLog` | Append local micro-events, durable within 100 ms; read and truncate them | `gedo-store` (`.git/gedo/wal.log`) |
-| `SymbolCache` | Fast lookups by namespace and key; rebuilt from a `CacheRebuildSource` | `gedo-store` (redb) |
+| `SymbolCache` | Fast lookups by namespace and key, shared by the use cases of one process (writes take `&self`); rebuilt from a `CacheRebuildSource` | `gedo-store` (redb) |
 | `Parser` | Source bytes of a file into a `ParsedFile`; detects the language from the path | `gedo-parse` (Tree-sitter) |
 | Clock | Wall-clock time for ids and logs | standard library, later |
 | Transport | Exchange tapes and intents with other developers | `gedo-net`, later |
