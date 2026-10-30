@@ -4,14 +4,17 @@ mod support;
 
 use std::cell::Cell;
 
-use gedo_app::events::records::{self, COMMIT_TAPES_COLLECTION, EVENTS_COLLECTION, TAPES_COLLECTION};
+use gedo_app::events::records::{
+    self, COMMIT_TAPES_COLLECTION, EVENTS_CACHE_NAMESPACE, EVENTS_COLLECTION, TAPES_COLLECTION,
+};
 use gedo_app::{EventError, EventLog};
 use gedo_core::event::{AgentId, AuthorKind, Clock, Labels, Origin, SemanticOp, Tape};
 use gedo_core::identity::{AstNodeId, Location, SemanticDelta};
 use gedo_core::ids::{GedoRefName, GitOid};
-use gedo_core::memory::{MemoryRefStore, MemoryWal};
+use gedo_core::memory::{MemoryCache, MemoryRefStore, MemoryWal};
 use gedo_core::ports::{
-    LogSequence, ObjectStore, OpenReport, RefOutcome, RefStore, RefUpdate, WriteAheadLog,
+    CacheEntry, CacheRebuildSource, LogSequence, ObjectStore, OpenReport, RefOutcome, RefStore, RefUpdate,
+    SymbolCache, WriteAheadLog,
 };
 use gedo_core::syntax::{EntityKind, StructuralHash};
 use gedo_core::{Collection, StoreError};
@@ -506,4 +509,120 @@ fn corrupted_records_are_errors_with_context() {
     assert!(records::decode_tape(&tape_bytes, &gedo_core::event::TapeId([0; 16])).is_err());
     let empty = records::encode_tape(&Tape { events: vec![] }).expect("encoded");
     assert!(records::decode_tape(&empty, &gedo_crdt::tape_id(&Tape { events: vec![] })).is_err());
+}
+
+fn cache() -> MemoryCache {
+    MemoryCache::open(&NoSource).expect("opens")
+}
+
+struct NoSource;
+
+impl CacheRebuildSource for NoSource {
+    fn entries(&self) -> Result<Vec<CacheEntry>, StoreError> {
+        Ok(Vec::new())
+    }
+}
+
+fn cached(cache: &MemoryCache, id: &gedo_core::event::EventId) -> Option<Vec<u8>> {
+    cache.get(EVENTS_CACHE_NAMESPACE, &id.0).expect("read")
+}
+
+#[test]
+fn reads_through_the_event_cache_give_the_same_events() {
+    let (history, base, next) = two_commits();
+    let refs = MemoryRefStore::new();
+    let mut wal = MemoryWal::new();
+    let filled = cache();
+    let mut log = EventLog::open(&history.objects, &refs, &mut wal)
+        .expect("opens")
+        .with_cache(&filled);
+    let mut ids = log
+        .record(&person(), Some(base), &[created(1)])
+        .expect("recorded");
+    ids.extend(
+        log.record(&agent(), Some(base), &[created(2), body(2, 5)])
+            .expect("recorded"),
+    );
+    log.publish(next).expect("published");
+    for id in &ids {
+        assert!(cached(&filled, id).is_some(), "publish fills the cache");
+    }
+    let all = EventFilter::default();
+    let with_cache = (
+        log.filter(&all).expect("filter"),
+        log.events(&ids).expect("events"),
+    );
+    drop(log);
+
+    let without_cache = {
+        let log = EventLog::open(&history.objects, &refs, &mut wal).expect("opens");
+        (
+            log.filter(&all).expect("filter"),
+            log.events(&ids).expect("events"),
+        )
+    };
+    assert_eq!(with_cache, without_cache);
+
+    // An empty cache is filled by the first filter.
+    let empty = cache();
+    let log = EventLog::open(&history.objects, &refs, &mut wal)
+        .expect("opens")
+        .with_cache(&empty);
+    assert_eq!(log.filter(&all).expect("filter"), without_cache.0);
+    assert!(ids.iter().all(|id| cached(&empty, id).is_some()));
+    drop(log);
+
+    // A cached record that does not match its id is refused, read again and replaced.
+    let good = cached(&filled, &ids[0]).expect("cached");
+    filled
+        .put(
+            EVENTS_CACHE_NAMESPACE,
+            &[(ids[0].0.to_vec(), cached(&filled, &ids[1]).expect("cached"))],
+        )
+        .expect("written");
+    filled
+        .put(
+            EVENTS_CACHE_NAMESPACE,
+            &[(ids[1].0.to_vec(), b"not a record".to_vec())],
+        )
+        .expect("written");
+    let log = EventLog::open(&history.objects, &refs, &mut wal)
+        .expect("opens")
+        .with_cache(&filled);
+    assert_eq!(log.events(&ids).expect("events"), without_cache.1);
+    assert_eq!(log.filter(&all).expect("filter"), without_cache.0);
+    assert_eq!(
+        cached(&filled, &ids[0]),
+        Some(good),
+        "the refused entry is replaced"
+    );
+}
+
+#[test]
+fn a_publish_stopped_after_the_cache_completes_with_the_same_result() {
+    let (history, base, next) = two_commits();
+    let refs = MemoryRefStore::new();
+    let mut wal = MemoryWal::new();
+    record_three(&history, &refs, &mut wal, base);
+    let events_cache = cache();
+    let mut stopping = NoTruncate(&mut wal);
+    let outcome = EventLog::open(&history.objects, &refs, &mut stopping)
+        .expect("opens")
+        .with_cache(&events_cache)
+        .publish(next);
+    assert!(outcome.is_err(), "the truncation stops the publish");
+
+    let mut recovered = wal.crash();
+    let mut log = EventLog::open(&history.objects, &refs, &mut recovered)
+        .expect("reopens")
+        .with_cache(&events_cache);
+    let published = log.pending().expect("pending");
+    assert_eq!(published.len(), 3, "no event lost");
+    log.publish(next).expect("published");
+    assert!(log.pending().expect("pending").is_empty());
+    let found = log.filter(&EventFilter::default()).expect("filter");
+    assert_eq!(found.len(), 3);
+    for (_, event) in published {
+        assert!(cached(&events_cache, &event_id(&event)).is_some());
+    }
 }

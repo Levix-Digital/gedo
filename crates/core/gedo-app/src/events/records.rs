@@ -19,6 +19,9 @@ pub const TAPES_COLLECTION: &str = "tapes";
 /// The commit index: one entry per commit and tape.
 pub const COMMIT_TAPES_COLLECTION: &str = "commit-tapes";
 
+/// Symbol cache namespace keeping stored event records by event id (local derived data).
+pub const EVENTS_CACHE_NAMESPACE: &str = "events";
+
 /// Format of event records.
 pub const EVENT_FORMAT: u16 = 1;
 /// Format of tape records.

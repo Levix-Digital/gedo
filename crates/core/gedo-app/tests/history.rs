@@ -87,8 +87,7 @@ fn renames_and_moves_across_commits_keep_ids() {
         original
     );
 
-    let index =
-        IdentityIndex::open(&linear.history.objects, &linear.history.parser, &mut cache).expect("opens");
+    let index = IdentityIndex::open(&linear.history.objects, &linear.history.parser, &cache).expect("opens");
     let changes = index.changes_of(&linear.moved).expect("indexed");
     assert!(
         changes
@@ -107,7 +106,7 @@ fn indexing_again_writes_nothing_and_resumes_where_it_stopped() {
     let linear = linear();
     let mut cache = support::cache();
     let mut index =
-        IdentityIndex::open(&linear.history.objects, &linear.history.parser, &mut cache).expect("opens");
+        IdentityIndex::open(&linear.history.objects, &linear.history.parser, &cache).expect("opens");
     assert_eq!(
         index
             .index_history(&[linear.renamed])
@@ -142,8 +141,8 @@ fn a_parse_timeout_stops_indexing_without_recording_the_commit() {
         objects: linear.history.objects,
         parser: gedo_parse::TreeSitterParser::with_timeout(std::time::Duration::ZERO),
     };
-    let mut cache = support::cache();
-    let mut index = IdentityIndex::open(&slow.objects, &slow.parser, &mut cache).expect("opens");
+    let cache = support::cache();
+    let mut index = IdentityIndex::open(&slow.objects, &slow.parser, &cache).expect("opens");
     assert!(matches!(
         index.index_history(&[linear.root]),
         Err(gedo_app::IndexError::ParseTimeout { .. })
@@ -157,9 +156,8 @@ fn a_parse_timeout_stops_indexing_without_recording_the_commit() {
 #[test]
 fn unindexed_commits_are_reported() {
     let linear = linear();
-    let mut cache = linear.history.index(&[&[linear.root]]);
-    let index =
-        IdentityIndex::open(&linear.history.objects, &linear.history.parser, &mut cache).expect("opens");
+    let cache = linear.history.index(&[&[linear.root]]);
+    let index = IdentityIndex::open(&linear.history.objects, &linear.history.parser, &cache).expect("opens");
     assert!(matches!(
         index.map_at(&linear.moved, "src/rates.rs"),
         Err(gedo_app::IndexError::NotIndexed { .. })
@@ -206,8 +204,8 @@ fn two_ids_for_one_entity_are_reconciled_to_the_lower() {
         let diverged = diverged(keeps);
         let mut cache = diverged.history.index(&[&[diverged.merge]]);
         // Each branch created its own id; lookups resolve them, so read the creations.
-        let mut created = |commit: &GitOid| {
-            let index = IdentityIndex::open(&diverged.history.objects, &diverged.history.parser, &mut cache)
+        let created = |commit: &GitOid| {
+            let index = IdentityIndex::open(&diverged.history.objects, &diverged.history.parser, &cache)
                 .expect("opens");
             index
                 .changes_of(commit)
@@ -229,8 +227,8 @@ fn two_ids_for_one_entity_are_reconciled_to_the_lower() {
         assert_ne!(left, right);
         assert_eq!(merged, lower, "merge keeps {keeps}");
 
-        let index = IdentityIndex::open(&diverged.history.objects, &diverged.history.parser, &mut cache)
-            .expect("opens");
+        let index =
+            IdentityIndex::open(&diverged.history.objects, &diverged.history.parser, &cache).expect("opens");
         let changes = index.changes_of(&diverged.merge).expect("indexed");
         assert_eq!(
             changes.merges.len(),

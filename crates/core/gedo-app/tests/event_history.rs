@@ -56,7 +56,7 @@ proptest! {
     #[test]
     fn events_of_a_commit_are_later_than_those_of_its_parents(seed in any::<u64>()) {
         let (history, commits) = generated(seed);
-        let mut cache = history.index(&[&commits]);
+        let cache = history.index(&[&commits]);
         let refs = MemoryRefStore::new();
         let mut wal = MemoryWal::new();
         let mut log = EventLog::open(&history.objects, &refs, &mut wal).expect("opens");
@@ -66,7 +66,7 @@ proptest! {
                 prop_assert!(own > log.generation(&parent).expect("generation"));
             }
         }
-        let index = IdentityIndex::open(&history.objects, &history.parser, &mut cache).expect("opens");
+        let index = IdentityIndex::open(&history.objects, &history.parser, &cache).expect("opens");
         for commit in &commits {
             let generation = log.generation(commit).expect("generation");
             for event in log.events_of_commit(commit, &index).expect("events").events() {
@@ -95,11 +95,11 @@ fn reconstructed_events_describe_the_commit_as_its_author() {
             ("README.md", "y"),
         ]),
     );
-    let mut cache = history.index(&[&[docs]]);
+    let cache = history.index(&[&[docs]]);
     let refs = MemoryRefStore::new();
     let mut wal = MemoryWal::new();
     let mut log = EventLog::open(&history.objects, &refs, &mut wal).expect("opens");
-    let index = IdentityIndex::open(&history.objects, &history.parser, &mut cache).expect("opens");
+    let index = IdentityIndex::open(&history.objects, &history.parser, &cache).expect("opens");
 
     let events: Vec<Event> = log
         .events_of_commit(&edit, &index)
@@ -152,7 +152,7 @@ fn identity_merges_become_events_with_the_ids_recorded_at_the_commit() {
     let refs = MemoryRefStore::new();
     let mut wal = MemoryWal::new();
     let mut log = EventLog::open(&history.objects, &refs, &mut wal).expect("opens");
-    let index = IdentityIndex::open(&history.objects, &history.parser, &mut after).expect("opens");
+    let index = IdentityIndex::open(&history.objects, &history.parser, &after).expect("opens");
     let events = log.events_of_commit(&merge, &index).expect("events");
     let merges: Vec<&Event> = events
         .events()
@@ -169,11 +169,11 @@ fn a_published_commit_returns_its_tapes_instead_of_reconstructing() {
     let history = History::default();
     let root = history.commit(&[], &files(&[("src/lib.rs", "pub fn f() {}\n")]));
     let next = history.commit(&[root], &files(&[("src/lib.rs", "pub fn g() {}\n")]));
-    let mut cache = history.index(&[&[next]]);
+    let cache = history.index(&[&[next]]);
     let refs = MemoryRefStore::new();
     let mut wal = MemoryWal::new();
     let mut log = EventLog::open(&history.objects, &refs, &mut wal).expect("opens");
-    let index = IdentityIndex::open(&history.objects, &history.parser, &mut cache).expect("opens");
+    let index = IdentityIndex::open(&history.objects, &history.parser, &cache).expect("opens");
     let CommitEvents::Reconstructed(reconstructed) = log.events_of_commit(&next, &index).expect("events")
     else {
         panic!("nothing published yet");
@@ -216,8 +216,8 @@ fn the_reconstructed_events_of_fixed_commits_match_the_snapshot() {
         .map(|hex| GitOid::from_hex(hex).expect("valid"))
         .collect();
     let parser = TreeSitterParser::new();
-    let mut cache = support::cache();
-    let mut index = IdentityIndex::open(&objects, &parser, &mut cache).expect("index opens");
+    let cache = support::cache();
+    let mut index = IdentityIndex::open(&objects, &parser, &cache).expect("index opens");
     if let Err(error) = index.index_history(&commits) {
         // A shallow clone (the default checkout in CI) does not have the history.
         eprintln!("skipped: the history is not available ({error})");

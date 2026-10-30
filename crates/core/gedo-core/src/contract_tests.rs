@@ -596,7 +596,7 @@ pub fn new_caches_are_built_from_the_source<C: SymbolCache>(open: impl Fn(&dyn C
 
 /// Entries can be added, replaced and cleared.
 pub fn cache_entries_can_change<C: SymbolCache>(open: impl Fn(&dyn CacheRebuildSource) -> C) {
-    let mut cache = open(&FixedSource(vec![]));
+    let cache = open(&FixedSource(vec![]));
     cache
         .put(
             "symbols",
@@ -615,7 +615,7 @@ pub fn cache_entries_can_change<C: SymbolCache>(open: impl Fn(&dyn CacheRebuildS
 
 /// Invalid namespace names are refused.
 pub fn invalid_cache_namespaces_are_refused<C: SymbolCache>(open: impl Fn(&dyn CacheRebuildSource) -> C) {
-    let mut cache = open(&FixedSource(vec![]));
+    let cache = open(&FixedSource(vec![]));
     for bad in ["", "meta", "Upper", "a/b", &"x".repeat(65)] {
         assert!(
             cache.put(bad, &[(b"k".to_vec(), b"v".to_vec())]).is_err(),

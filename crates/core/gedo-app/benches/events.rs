@@ -22,7 +22,7 @@ use gedo_core::ports::{CacheEntry, CacheRebuildSource, NewCommit, ObjectStore};
 use gedo_core::syntax::StructuralHash;
 use gedo_crdt::{EventFilter, RecordingContext};
 use gedo_parse::TreeSitterParser;
-use gedo_store::{FileWal, GitObjectStore, GitRefStore, GitRepository};
+use gedo_store::{FileWal, GitObjectStore, GitRefStore, GitRepository, RedbCache};
 
 struct Empty;
 
@@ -54,6 +54,7 @@ struct Scratch {
     objects: GitObjectStore,
     refs: GitRefStore,
     gedo_dir: std::path::PathBuf,
+    cache: RedbCache,
     commit: GitOid,
 }
 
@@ -83,11 +84,13 @@ fn scratch() -> Scratch {
             message: "bench".into(),
         })
         .expect("commit");
+    let cache = RedbCache::open(&gedo_dir, &Empty).expect("cache opens");
     Scratch {
         _directory: directory,
         objects,
         refs,
         gedo_dir,
+        cache,
         commit,
     }
 }
@@ -117,7 +120,9 @@ fn context(milestone: usize) -> RecordingContext {
 /// Publishes `tapes` tapes of `events` events each; returns the time of each publish.
 fn publish_tapes(scratch: &Scratch, tapes: usize, events: u32, offset: u32) -> Vec<Duration> {
     let mut wal = FileWal::open(&scratch.gedo_dir).expect("log opens");
-    let mut log = EventLog::open(&scratch.objects, &scratch.refs, &mut wal).expect("opens");
+    let mut log = EventLog::open(&scratch.objects, &scratch.refs, &mut wal)
+        .expect("opens")
+        .with_cache(&scratch.cache);
     let mut times = Vec::with_capacity(tapes);
     for tape in 0..tapes {
         let start = offset + tape as u32 * events;
@@ -129,6 +134,31 @@ fn publish_tapes(scratch: &Scratch, tapes: usize, events: u32, offset: u32) -> V
         times.push(started.elapsed());
     }
     times
+}
+
+/// Filters with the cache the publishes filled, and with an empty cache that the first filter
+/// fills (a clone that never cached the events, or a cache that was rebuilt).
+fn report_filters(name: &str, scratch: &Scratch, filter: &EventFilter) {
+    let mut wal = FileWal::open(&scratch.gedo_dir).expect("log opens");
+    let run = |cache: &RedbCache, wal: &mut FileWal| {
+        let log = EventLog::open(&scratch.objects, &scratch.refs, wal)
+            .expect("opens")
+            .with_cache(cache);
+        let started = Instant::now();
+        let found = log.filter(filter).expect("filter");
+        assert_eq!(found.len(), 1_000);
+        started.elapsed()
+    };
+    let samples = (0..5).map(|_| run(&scratch.cache, &mut wal)).collect();
+    report(name, samples);
+    let cold = (0..5)
+        .map(|_| {
+            let empty = tempfile::tempdir().expect("temporary directory");
+            let cache = RedbCache::open(empty.path(), &Empty).expect("cache opens");
+            run(&cache, &mut wal)
+        })
+        .collect();
+    report(&format!("{name}, empty cache"), cold);
 }
 
 fn report_log() {
@@ -158,17 +188,17 @@ fn report_log() {
         labels: vec![(key.clone(), LabelValue::new(&key, "m3").expect("valid"))],
         ..EventFilter::default()
     };
-    let mut wal = FileWal::open(&scratch.gedo_dir).expect("log opens");
-    let log = EventLog::open(&scratch.objects, &scratch.refs, &mut wal).expect("opens");
-    let samples = (0..5)
-        .map(|_| {
-            let started = Instant::now();
-            let found = log.filter(&filter).expect("filter");
-            assert_eq!(found.len(), 1_000);
-            started.elapsed()
-        })
-        .collect();
-    report("filter 10,000 events by one label", samples);
+    report_filters("filter 10,000 events by one label", &scratch, &filter);
+
+    // Commits usually publish a few events each, and tapes under the pack threshold of the store
+    // stay loose objects: the same 10,000 events in 500 tapes of 20.
+    let small = self::scratch();
+    publish_tapes(&small, 500, 20, 0);
+    report_filters(
+        "filter 10,000 events published in tapes of 20 by one label",
+        &small,
+        &filter,
+    );
 
     if std::env::var_os("GEDO_BENCH_LARGE").is_some() {
         let large = self::scratch();
@@ -199,8 +229,8 @@ fn report_reconstruction() {
     let objects = GitObjectStore::new(repository.clone());
     let refs = GitRefStore::new(repository);
     let parser = TreeSitterParser::new();
-    let mut cache = MemoryCache::open(&Empty).expect("cache opens");
-    let mut index = IdentityIndex::open(&objects, &parser, &mut cache).expect("index opens");
+    let cache = MemoryCache::open(&Empty).expect("cache opens");
+    let mut index = IdentityIndex::open(&objects, &parser, &cache).expect("index opens");
     index.index_history(&commits[..1]).expect("indexed");
     let directory = tempfile::tempdir().expect("temporary directory");
     let mut wal = FileWal::open(directory.path()).expect("log opens");

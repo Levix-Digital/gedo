@@ -82,10 +82,9 @@ impl History {
 
     /// Indexes `tips` in a new cache and returns it.
     pub fn index(&self, tips: &[&[GitOid]]) -> MemoryCache {
-        let mut cache = cache();
+        let cache = cache();
         for group in tips {
-            let mut index =
-                IdentityIndex::open(&self.objects, &self.parser, &mut cache).expect("index opens");
+            let mut index = IdentityIndex::open(&self.objects, &self.parser, &cache).expect("index opens");
             index.index_history(group).expect("history is indexed");
         }
         cache

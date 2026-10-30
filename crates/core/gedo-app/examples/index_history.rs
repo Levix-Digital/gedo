@@ -56,10 +56,10 @@ fn run(repository: &str, revision: &str, query: Option<&str>) -> Result<(), Box<
     }
     let commit = GitOid::from_hex(String::from_utf8(output.stdout)?.trim())?;
     let opened = GitRepository::open(repository)?;
-    let mut cache = RedbCache::open(&opened.gedo_dir()?, &NothingToRebuild)?;
+    let cache = RedbCache::open(&opened.gedo_dir()?, &NothingToRebuild)?;
     let objects = GitObjectStore::new(opened);
     let parser = TreeSitterParser::new();
-    let mut index = IdentityIndex::open(&objects, &parser, &mut cache)?;
+    let mut index = IdentityIndex::open(&objects, &parser, &cache)?;
     let started = std::time::Instant::now();
     let report = index.index_history(&[commit])?;
     println!(

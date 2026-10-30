@@ -188,7 +188,7 @@ impl SymbolCache for RedbCache {
         Ok(value.map(|value| value.value().to_vec()))
     }
 
-    fn put(&mut self, namespace: &str, entries: &[(Vec<u8>, Vec<u8>)]) -> Result<(), StoreError> {
+    fn put(&self, namespace: &str, entries: &[(Vec<u8>, Vec<u8>)]) -> Result<(), StoreError> {
         validate_namespace(namespace)?;
         let write = self
             .database
@@ -210,7 +210,7 @@ impl SymbolCache for RedbCache {
             .map_err(|error| backend("commit symbol cache", &self.path, error))
     }
 
-    fn clear(&mut self) -> Result<(), StoreError> {
+    fn clear(&self) -> Result<(), StoreError> {
         let write = self
             .database
             .begin_write()

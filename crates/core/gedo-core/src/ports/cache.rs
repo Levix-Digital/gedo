@@ -32,15 +32,18 @@ pub enum CacheStatus {
 }
 
 /// A local key-value cache, split into namespaces, that can always be rebuilt from `refs/gedo/*`.
+///
+/// Writes take `&self`, so the use cases of one process (the identity index and the event log)
+/// can share one cache.
 pub trait SymbolCache {
     /// What opening found.
     fn open_status(&self) -> &CacheStatus;
     /// The value of `key` in `namespace`.
     fn get(&self, namespace: &str, key: &[u8]) -> Result<Option<Vec<u8>>, StoreError>;
     /// Inserts or replaces entries of `namespace` in one transaction.
-    fn put(&mut self, namespace: &str, entries: &[(Vec<u8>, Vec<u8>)]) -> Result<(), StoreError>;
+    fn put(&self, namespace: &str, entries: &[(Vec<u8>, Vec<u8>)]) -> Result<(), StoreError>;
     /// Removes every entry of every namespace.
-    fn clear(&mut self) -> Result<(), StoreError>;
+    fn clear(&self) -> Result<(), StoreError>;
 }
 
 /// One cache entry: `(namespace, key, value)`.
