@@ -61,7 +61,9 @@ All records are Postcard-encoded inside an envelope that starts with a `u16` for
 
 The `identity` namespace holds the results of history indexing ([ADR-0012](../adr/0012-identity-results-are-local-derived-data-computed-per-commit.md)): `commit/<oid>` per indexed commit, `map/<digest>` per distinct `BlobAstMap`, `checkpoint/<oid>` every 64 first-parent commits and `merges`. They are not rebuilt from the repository on open: a missing or refused record is recomputed by indexing again.
 
-The `events` namespace keeps the records of `refs/gedo/events` by event id (16 bytes), written by a publish and by reads that missed them ([ADR-0015](../adr/0015-packed-batch-writes-and-an-event-cache.md)). It is not rebuilt either: event ids derive from content, so an entry never becomes stale, and a missing or refused one is read from the collection again.
+The `events` namespace keeps the records of `refs/gedo/events` by event id (16 bytes), written by a publish and by reads that missed them ([ADR-0015](../adr/0015-packed-batch-writes-and-an-event-cache.md)). It is not rebuilt either: event ids derive from content, so an entry never becomes stale, and a missing or refused one is read from the collection again. `EventLog::fill_cache` writes it in batches when new events arrive.
+
+The `retention` namespace holds one record (key `detached`, format 1): the time this machine first saw each detached tape detached, for the 90-day grace period before `gedo gc` ([ADR-0016](../adr/0016-re-attachment-by-entity-state-with-a-semantic-signature-fast.md)). It is local state, never pushed; a lost or refused record only restarts the period.
 
 Tree entries carry their mode: regular and executable files, directories, symbolic links and submodules, written back exactly as read.
 
@@ -71,7 +73,7 @@ On Windows, an operation on a file another program holds open (an antivirus, an 
 
 ### Later features
 
-- Events are stored by id and indexed by commit; after a rewrite the index is rebuilt by re-attachment (ADR-0008). Unreachable events are kept for 90 days before `gedo gc`.
+- Events are stored by id and indexed by commit; after a rewrite, re-attachment adds index entries for the rewritten commits and never changes events or tapes (ADR-0008, ADR-0016). Detached tapes are kept for 90 days before `gedo gc`.
 - Textual three-way merges for the merge driver's fallback are computed with gitoxide's merge, without a subprocess; `gedo init` registers the merge driver in `.git/config` and `.git/info/attributes` (local, never committed).
 
 ## Interfaces
@@ -89,5 +91,6 @@ On Windows, an operation on a file another program holds open (an antivirus, an 
 - [ADR-0008](../adr/0008-gedo-data-robust-to-history-rewrites.md): data robust to history rewrites.
 - [ADR-0009](../adr/0009-semantic-merge-driver-and-shadow-merge.md): merge driver registration and fallback.
 - [ADR-0015](../adr/0015-packed-batch-writes-and-an-event-cache.md): large batches as packs, the pack index slots, the `events` cache namespace.
+- [ADR-0016](../adr/0016-re-attachment-by-entity-state-with-a-semantic-signature-fast.md): the `retention` cache record.
 
 Commit generations are kept in memory by `EventLog`, and reconstructed events are recomputed on demand from the `identity` namespace, never cached ([ADR-0014](../adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md)).
