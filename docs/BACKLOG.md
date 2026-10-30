@@ -384,14 +384,6 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Structural tracking of XML files with a conformance suite.
 
-### FEAT-067: Semantic lanes and split publish
-- **Priority**: high
-- **Epic**: EPIC-005
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_semantic_lanes
-- **Description**: Classify events into refactor and feature lanes; gedo publish --split-lanes creates a refactor commit then a feature commit.
-
 ### FEAT-068: Virtual streams
 - **Priority**: high
 - **Epic**: EPIC-005
@@ -1376,3 +1368,12 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: gedo_tree_crdt
 - **Closed**: 2026-10-30, PR #20
 - **Description**: Set semantics for members of a structure, commutative move and edit, idempotent events; same result in any arrival order.
+
+### FEAT-067: Semantic lanes and split publish
+- **Priority**: high
+- **Epic**: EPIC-005
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_semantic_lanes
+- **Closed**: 2026-10-30, plan gedo_semantic_lanes
+- **Description**: Classify events into refactor and feature lanes; gedo publish --split-lanes creates a refactor commit then a feature commit.

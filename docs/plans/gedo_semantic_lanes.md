@@ -4,10 +4,10 @@ project: gedo
 title: Semantic lanes and split publish
 kind: feature
 version: v0.3.0
-status: active
+status: completed
 author: LeviGuilherme
 created_at: '2026-10-30T17:52:01'
-updated_at: '2026-10-30T21:28:51'
+updated_at: '2026-10-30T21:52:31'
 session_id: null
 tags: []
 supersedes: null
@@ -18,17 +18,29 @@ backlog_items:
 spec_dir: specs/007-semantic-lanes
 milestones:
 - name: M1 Setup
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M2 Lanes
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M3 Refactor builder
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M4 Split publish
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M5 Safe fallback
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M6 Hardening and docs
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 status_log:
 - at: '2026-10-30T17:52:01'
   by: LeviGuilherme
@@ -42,6 +54,28 @@ status_log:
   by: LeviGuilherme
   status: active
   note: Approved by Levi on 2026-10-30
+- at: '2026-10-30T21:52:22'
+  by: LeviGuilherme
+  note: Milestone 'M1 Setup' completed
+- at: '2026-10-30T21:52:24'
+  by: LeviGuilherme
+  note: Milestone 'M2 Lanes' completed
+- at: '2026-10-30T21:52:26'
+  by: LeviGuilherme
+  note: Milestone 'M3 Refactor builder' completed
+- at: '2026-10-30T21:52:28'
+  by: LeviGuilherme
+  note: Milestone 'M4 Split publish' completed
+- at: '2026-10-30T21:52:29'
+  by: LeviGuilherme
+  note: Milestone 'M5 Safe fallback' completed
+- at: '2026-10-30T21:52:31'
+  by: LeviGuilherme
+  note: Milestone 'M6 Hardening and docs' completed
+- at: '2026-10-30T21:52:31'
+  by: LeviGuilherme
+  status: completed
+  note: All milestones completed
 ---
 
 # Semantic lanes and split publish
@@ -73,3 +107,15 @@ Fourth feature of release v0.3.0 Event log and convergence: mixed work is publis
 ## Milestones
 
 Taken from the phases of [`tasks.md`](../../specs/007-semantic-lanes/tasks.md): M1 Setup, M2 Lanes, M3 Refactor builder, M4 Split publish, M5 Safe fallback, M6 Hardening and docs.
+
+## Results
+
+Benchmarks on the Linux development container (release build, 2026-10-30):
+
+| Requirement | p50 | p95 | p99 | Budget |
+|---|---:|---:|---:|---|
+| Split-publish a rename whose callers span 100 files, a feature edit in each, 1,000 events, Git store adapter (`cargo bench -p gedo-app --bench split`, 25 runs, SC-003) | 215 ms | 246 ms | 282 ms | p95 under 1 s on the reference machine |
+
+Tests: 12 tests in `crates/core/gedo-app/tests/split.rs` (the lanes of scripted work, a rename with its callers, a move across files with the paths that name it, a module split, one lane, nothing to publish, determinism, events per lane on each tape, the fallback for a refactor version that does not parse, feature work that leaves a syntax error, 32 generated mixes that always end at the final tree and split whenever both lanes are present, a pinned outcome), unit tests of the follow-ups and of the refactor message in `gedo-crdt`, and the `split published` event in `tests/event_tracing.rs`. The example `cargo run -p gedo-app --example split` was run on a scratch Git repository.
+
+Deviations from the plan: the lane and builder scenarios run on scripted repositories in `gedo-app/tests/split.rs` instead of `gedo-crdt/tests/lanes.rs`, since they need identity results, and the generated property runs there (32 cases); equal units keep the base's layout with the final tokens, and the text after a follow-up or a moved block continues the final layout; a feature change that also carries follow-ups is feature and changes in both commits; a container's body is left out of the verification, since it changes with its members; whole `use` declarations added or removed for a move are kept as in the base (a known limit in ADR-0018); `publish` and the split share one storing step.
