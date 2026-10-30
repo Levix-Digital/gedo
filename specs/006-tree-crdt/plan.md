@@ -82,7 +82,6 @@ crates/core/
     ├── src/events/converge.rs      # Side, ConvergeReport, EventLog::converge
     ├── src/index/mod.rs            # changed_files(commit) for the base state of R9
     ├── tests/converge.rs           # scripted branches, graft, live events, snapshot
-    ├── tests/support/              # branch builders reused from feature 005
     ├── tests/event_tracing.rs      # asserts "sides converged"
     ├── benches/converge.rs
     └── examples/converge.rs
@@ -104,7 +103,7 @@ FEAT-066 (`docs/BACKLOG.md`), release **v0.3.0 Event log and convergence** (`doc
 ### Tests (quality-assurance)
 
 - **Rules (US1 to US4)**: property-based tests in `gedo-crdt/tests/tree.rs` (R11): arrival order, duplicates, events shared between sides, permuted sides, convergence with itself and with an empty side, one side at a time against all at once without conflicts, no lost change; at least 256 cases each (SC-002, SC-003).
-- **Scenarios (US1 to US4)**: one test per acceptance scenario with the expected state and conflicts: additions and removals in the same container, removal on both sides, the same entity added on both sides, move against edit, rename against move, a change on one side in both orders, the same change on both sides, two bodies, removal against change, removed container against new member, different entities added on both sides, unrelated changes beside a conflict, three sides, identity merges, neutral entities, unknown entity, inconsistent rename (SC-001).
+- **Scenarios (US1 to US4)**: one test per acceptance scenario with the expected state and conflicts: additions and removals in the same container, removal on both sides, the same entity added on both sides, move against edit, rename against move, a change on one side in both orders, the same change on both sides, two bodies, removal against change, removed container against new member, different entities added on both sides, unrelated changes beside a conflict, three sides, identity merges, neutral entities, unknown entity (SC-001).
 - **Use case (US5)**: scripted repositories: two branches with and without published events, a graft (the same change on both), live events on top of one side, a side or base not indexed; `insta` snapshot of the convergence, identical on both platforms.
 - **Benchmarks**: `tree` (SC-004) and `converge` (SC-005), reported by the non-blocking bench job; the reference machine run is asked of the user at the release candidate, as for features 004 and 005.
 - **Manual tests**: none added; there is no end-user command yet. The quickstart steps are developer checks.

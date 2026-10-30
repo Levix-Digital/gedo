@@ -4,10 +4,10 @@ project: gedo
 title: Tree CRDT with deterministic convergence
 kind: feature
 version: v0.3.0
-status: active
+status: completed
 author: LeviGuilherme
 created_at: '2026-10-30T15:23:02'
-updated_at: '2026-10-30T15:36:04'
+updated_at: '2026-10-30T15:57:10'
 session_id: null
 tags:
 - crdt
@@ -23,21 +23,37 @@ backlog_items:
 spec_dir: specs/006-tree-crdt
 milestones:
 - name: M1 Setup
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M2 State and fold
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M3 Members as a set
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M4 Commuting changes
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M5 Conflicts
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M6 Determinism
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M7 Converge commits
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 - name: M8 Hardening and docs
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: LeviGuilherme
 status_log:
 - at: '2026-10-30T15:23:02'
   by: LeviGuilherme
@@ -51,6 +67,34 @@ status_log:
   by: LeviGuilherme
   status: active
   note: Approved by Levi on 2026-10-30
+- at: '2026-10-30T15:56:56'
+  by: LeviGuilherme
+  note: Milestone 'M1 Setup' completed
+- at: '2026-10-30T15:57:00'
+  by: LeviGuilherme
+  note: Milestone 'M2 State and fold' completed
+- at: '2026-10-30T15:57:01'
+  by: LeviGuilherme
+  note: Milestone 'M3 Members as a set' completed
+- at: '2026-10-30T15:57:03'
+  by: LeviGuilherme
+  note: Milestone 'M4 Commuting changes' completed
+- at: '2026-10-30T15:57:05'
+  by: LeviGuilherme
+  note: Milestone 'M5 Conflicts' completed
+- at: '2026-10-30T15:57:06'
+  by: LeviGuilherme
+  note: Milestone 'M6 Determinism' completed
+- at: '2026-10-30T15:57:09'
+  by: LeviGuilherme
+  note: Milestone 'M7 Converge commits' completed
+- at: '2026-10-30T15:57:10'
+  by: LeviGuilherme
+  note: Milestone 'M8 Hardening and docs' completed
+- at: '2026-10-30T15:57:10'
+  by: LeviGuilherme
+  status: completed
+  note: All milestones completed
 ---
 
 # Tree CRDT with deterministic convergence
@@ -82,3 +126,18 @@ Third feature of release v0.3.0 Event log and convergence: concurrent work conve
 ## Milestones
 
 Taken from the phases of [`tasks.md`](../../specs/006-tree-crdt/tasks.md): M1 Setup, M2 State and fold, M3 Members as a set, M4 Commuting changes, M5 Conflicts, M6 Determinism, M7 Converge commits, M8 Hardening and docs.
+
+## Results
+
+Benchmarks (release build, Linux development container, 2026-10-30); the Windows reference machine run is pending the user's go:
+
+| Requirement | p50 | p95 | p99 | Budget |
+|---|---:|---:|---:|---|
+| Converge two sides of 10,000 events over 10,000 entities (`cargo bench -p gedo-crdt --bench tree`, 25 runs, SC-004) | 44 ms | 64 ms | 66 ms | p95 under 50 ms on the reference machine |
+| Converge two branches of 100 commits from their tips, Git store adapter (`cargo bench -p gedo-app --bench converge`, 25 runs, SC-005) | 51 ms | 81 ms | 84 ms | p95 under 500 ms |
+
+The container's p95 for SC-004 is above the 50 ms budget, which is set for the reference machine; its p50 is under it, and the run on the reference machine decides. Event ids are now derived with a context hasher prepared once and a buffer kept per thread, with the same ids (pinned by the encoding snapshot).
+
+Tests: 27 tests in `crates/core/gedo-crdt/tests/tree.rs` (one per acceptance scenario of User Stories 1 to 4, six properties of 256 cases each, a pinned convergence), 8 scripted branch tests in `crates/core/gedo-app/tests/converge.rs` (additions to one type, two bodies, removal against edit, a graft, published against reconstructed events, live events on top, a base not indexed, a pinned convergence) and the `sides converged` event in `tests/event_tracing.rs`.
+
+Deviations from the plan: a rename takes its name from the qualified path it records, so `TreeError::InconsistentRename` was dropped; the container path is the parent of the qualified path, so a method's container is its type, and implementation blocks are left out of the added-on-both-sides rule (both in ADR-0017); the use case does not time itself (the core has no clock); `docs/architecture/core.md` needed no change, since `gedo-core` did not change.

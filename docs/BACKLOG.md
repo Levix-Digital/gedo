@@ -384,14 +384,6 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Structural tracking of XML files with a conformance suite.
 
-### FEAT-066: Tree CRDT with deterministic convergence
-- **Priority**: high
-- **Epic**: EPIC-005
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_tree_crdt
-- **Description**: Set semantics for members of a structure, commutative move and edit, idempotent events; same result in any arrival order.
-
 ### FEAT-067: Semantic lanes and split publish
 - **Priority**: high
 - **Epic**: EPIC-005
@@ -1375,3 +1367,12 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: gedo_reattachment
 - **Closed**: 2026-10-30, PR #18
 - **Description**: With an empty event cache (a fresh clone, a deleted or rebuilt cache), the first EventLog::filter reads every event object once: 1.5 to 1.7 s at p95 on the Windows reference machine for 10,000 loose events published in tapes of 20, 0.4 s on Linux; later filters take 35 to 69 ms. Filling the events namespace when a fetch or merge brings new events (or in the background in gedod) would remove the one slow first filter.
+
+### FEAT-066: Tree CRDT with deterministic convergence
+- **Priority**: high
+- **Epic**: EPIC-005
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_tree_crdt
+- **Closed**: 2026-10-30, plan gedo_tree_crdt
+- **Description**: Set semantics for members of a structure, commutative move and edit, idempotent events; same result in any arrival order.

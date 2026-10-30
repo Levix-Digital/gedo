@@ -145,7 +145,7 @@ A later layer asks Gedo to converge two or more commits over their common base (
 - **FR-013**: The converged state MUST be readable per entity and per container (the members of a container), so the merge driver (FEAT-070) can render the nodes of one file and hand conflicting nodes to Git's textual merge.
 - **FR-014**: Errors (a commit whose identities are not indexed, a missing tape or event, an event about an entity neither in the base nor created on its side) MUST carry context and MUST NOT be swallowed.
 - **FR-015**: The convergence rules MUST be pure core logic without I/O in `gedo-crdt` (ADR-0001), covered by property-based tests of determinism, symmetry, idempotence and commutativity; nothing new is stored and no shared format changes.
-- **FR-016**: The use case MUST log, at info level, the base, the number of sides, events and conflicts and the time taken, and at debug level the commits read per side; the pure rules do not log.
+- **FR-016**: The use case MUST log, at info level, the base and the number of sides, events and conflicts, and at debug level the commits read per side; the pure rules do not log.
 
 ### Key Entities
 
