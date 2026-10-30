@@ -966,17 +966,17 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Priority**: low
 - **Epic**: EPIC-005
 - **Status**: open
-- **Found**: 2026-10-30, 2026-10-30, PR #22, protocol review
+- **Found**: 2026-10-30, PR #22, protocol review
 - **Plan**: -
-- **Description**: The refactor builder of a split publish (FEAT-067) treats a use declaration that is added or removed as a whole, because a move needs it, as feature text, so the refactor commit keeps the base imports and may not build (ADR-0018, known limits). Recognize a whole use declaration whose path names the new (or old) path of an entity moved in the same publish as a follow-up, and cover it with a scripted move whose callers need a new import.
+- **Description**: The refactor builder of a split publish (FEAT-067) treats a use declaration that is added or removed as a whole, because a move needs it, as feature text, so the refactor commit keeps the base imports and may not build (ADR-0018, known limits). Recognize a whole use declaration whose path names the new (or old) path of an entity moved in the same publish as a follow-up, and cover it with a scripted move whose callers need a new import. Scheduled in v0.4.0, to land before `gedo publish --split-lanes` (FEAT-083) puts the split in users' hands.
 
 ### IMP-008: Forget the identity records of commits a split publish rejects
 - **Priority**: low
 - **Epic**: EPIC-005
 - **Status**: open
-- **Found**: 2026-10-30, 2026-10-30, PR #22, protocol review
+- **Found**: 2026-10-30, PR #22, protocol review
 - **Plan**: -
-- **Description**: A split publish (FEAT-067) indexes the single commit and, when it splits, the refactor and feature commits; the commits it does not keep stay unreferenced and are removed by git gc, but their identity records stay in the local symbol cache. The cache is derived data, so this is only growth: drop the records of the commits a publish did not keep, or let gedo gc (FEAT-087) prune records of unreachable commits.
+- **Description**: A split publish (FEAT-067) indexes the single commit and, when it splits, the refactor and feature commits; the commits it does not keep stay unreferenced and are removed by git gc, but their identity records stay in the local symbol cache. The cache is derived data, so this is only growth: drop the records of the commits a publish did not keep, or let gedo gc (FEAT-087) prune records of unreachable commits. Scheduled in v0.4.0 with FEAT-087: gedo gc prunes the identity records of unreachable commits, so this needs no separate change.
 
 ## Adjustments
 
