@@ -15,6 +15,7 @@ pub mod clock;
 pub mod filter;
 pub mod id;
 pub mod labels;
+pub mod reattach;
 pub mod reconstruct;
 
 pub use author::fingerprint;
@@ -22,4 +23,7 @@ pub use clock::{generation, live_clock, sort_events};
 pub use filter::{AuthorKindFilter, EventFilter};
 pub use id::{event_id, tape_id};
 pub use labels::{RecordingContext, format_labels, parse_labels};
+pub use reattach::{
+    CandidateTape, Reattachment, SemanticSignature, link_merges, match_commit, semantic_signature,
+};
 pub use reconstruct::{ReconstructError, reconstructed_events};
