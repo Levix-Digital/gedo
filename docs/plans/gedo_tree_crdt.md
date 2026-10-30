@@ -129,14 +129,21 @@ Taken from the phases of [`tasks.md`](../../specs/006-tree-crdt/tasks.md): M1 Se
 
 ## Results
 
-Benchmarks (release build, Linux development container, 2026-10-30); the Windows reference machine run is pending the user's go:
+Benchmarks on the reference machine (Windows 11, Intel Core i7-12700KF, release build, 2026-10-30):
+
+| Requirement | p50 | p95 | p99 | Budget |
+|---|---:|---:|---:|---|
+| Converge two sides of 10,000 events over 10,000 entities (`cargo bench -p gedo-crdt --bench tree`, 25 runs, SC-004) | 27.5 ms | 29.0 ms | 30.7 ms | p95 under 50 ms: met |
+| Converge two branches of 100 commits from their tips, Git store adapter (`cargo bench -p gedo-app --bench converge`, 25 runs, SC-005) | 136.5 ms | 143.7 ms | 146.7 ms | p95 under 500 ms: met |
+
+Benchmarks on the Linux development container (release build, 2026-10-30), for comparison:
 
 | Requirement | p50 | p95 | p99 | Budget |
 |---|---:|---:|---:|---|
 | Converge two sides of 10,000 events over 10,000 entities (`cargo bench -p gedo-crdt --bench tree`, 25 runs, SC-004) | 44 ms | 64 ms | 66 ms | p95 under 50 ms on the reference machine |
 | Converge two branches of 100 commits from their tips, Git store adapter (`cargo bench -p gedo-app --bench converge`, 25 runs, SC-005) | 51 ms | 81 ms | 84 ms | p95 under 500 ms |
 
-The container's p95 for SC-004 is above the 50 ms budget, which is set for the reference machine; its p50 is under it, and the run on the reference machine decides. Event ids are now derived with a context hasher prepared once and a buffer kept per thread, with the same ids (pinned by the encoding snapshot).
+The container's p95 for SC-004 is above the 50 ms budget, which is set for the reference machine, where it is met. Event ids are now derived with a context hasher prepared once and a buffer kept per thread, with the same ids (pinned by the encoding snapshot).
 
 Tests: 27 tests in `crates/core/gedo-crdt/tests/tree.rs` (one per acceptance scenario of User Stories 1 to 4, six properties of 256 cases each, a pinned convergence), 8 scripted branch tests in `crates/core/gedo-app/tests/converge.rs` (additions to one type, two bodies, removal against edit, a graft, published against reconstructed events, live events on top, a base not indexed, a pinned convergence) and the `sides converged` event in `tests/event_tracing.rs`.
 
