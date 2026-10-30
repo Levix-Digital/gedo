@@ -387,9 +387,9 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### FEAT-066: Tree CRDT with deterministic convergence
 - **Priority**: high
 - **Epic**: EPIC-005
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_tree_crdt
 - **Description**: Set semantics for members of a structure, commutative move and edit, idempotent events; same result in any arrival order.
 
 ### FEAT-067: Semantic lanes and split publish
