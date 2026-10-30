@@ -17,7 +17,7 @@ Each release: `## vX.Y.Z: <name>` with the fields `Status` (planned, in_progress
 ## v0.3.0: Event log and convergence
 - **Status**: planned
 - **Goal**: Semantic events are recorded, survive rebases and squashes, and converge deterministically; work can be split into lanes and isolated in virtual streams.
-- **Items**: FEAT-063, FEAT-064, FEAT-065, FEAT-066, FEAT-067, FEAT-068, FEAT-069, BUG-009, BUG-010
+- **Items**: FEAT-063, FEAT-064, FEAT-065, FEAT-066, FEAT-067, FEAT-068, FEAT-069, BUG-009, BUG-010, IMP-005
 
 ## v0.4.0: MVP
 - **Status**: planned

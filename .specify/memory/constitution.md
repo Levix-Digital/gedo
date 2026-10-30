@@ -1,7 +1,7 @@
 <!-- dev-cycle-constitution
 generated-by: dev-cycle-protocol/constitution.py (do not edit; change a source and regenerate)
-sources-sha256: 8046c1ef237605d71e6f2399f95d3784efa1498997ad75cb692b647d8dee0f69
-content-sha256: fa48d29545d9720d77220df006af53a939e224a67b149c9013ce52981d088961
+sources-sha256: f30d80ac2d367873f54a0f25673440698ba6aeccbfb2208dac14fcdf363148ab
+content-sha256: 340f395888e56c35c41f748ad389d60d852e889a23530e81b894ad4630f0dabd
 -->
 # gedo Constitution
 
@@ -202,6 +202,7 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - ADR-0013: Versioned JSON output as the contract for tools built on Gedo (`docs/adr/0013-versioned-json-output-as-the-contract-for-tools-built-on-ged.md`)
 - ADR-0014: Event format: content-derived ids, history clocks and three collections (`docs/adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md`)
 - ADR-0015: Packed batch writes and an event cache (`docs/adr/0015-packed-batch-writes-and-an-event-cache.md`)
+- ADR-0016: Re-attachment by entity state with a semantic-signature fast path (`docs/adr/0016-re-attachment-by-entity-state-with-a-semantic-signature-fast.md`)
 
 ## Governance
 
@@ -209,4 +210,4 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - Amendments change the source, not this file: an ADR for decisions, the technical specification for requirements and constraints, `.dev-cycle.json` for the architecture style, the skills for principles. Then run `constitution.py generate` and commit the result with the change.
 - Gate 3 of the development cycle blocks a plan while this file is stale or edited by hand.
 
-**Version**: 1.8.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-30
+**Version**: 1.9.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-30

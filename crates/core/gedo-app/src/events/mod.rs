@@ -1,6 +1,7 @@
 //! The event log: live events recorded into the write-ahead log, published as tapes indexed by
 //! commit, and the events of commits made without Gedo reconstructed on demand (FEAT-063, FEAT-064,
-//! `specs/004-event-model/research.md` R9 to R12).
+//! `specs/004-event-model/research.md` R9 to R12). Tapes are re-attached to rewritten commits
+//! by [`reattach`] (FEAT-065).
 //!
 //! Events, tapes and index entries are content-addressed entries of three collections, so a
 //! publish is idempotent and data written on several machines joins without conflict.
@@ -11,6 +12,7 @@
 //! cache is local derived data: a missing, unreadable or refused entry is read from the
 //! collection again, and a cache failure never fails an operation.
 
+pub mod reattach;
 pub mod records;
 
 use std::collections::{BTreeSet, HashMap};
@@ -22,8 +24,8 @@ use gedo_core::syntax::StructuralHash;
 use gedo_core::{Collection, LabelError, StoreError};
 use gedo_crdt::clock::order_key;
 use gedo_crdt::{
-    EventFilter, ReconstructError, RecordingContext, event_id, generation, live_clock, reconstructed_events,
-    sort_events, tape_id,
+    CandidateTape, EventFilter, ReconstructError, RecordingContext, event_id, generation, link_merges,
+    live_clock, match_commit, reconstructed_events, sort_events, tape_id,
 };
 
 use crate::index::{IdentityIndex, IndexError};
@@ -97,17 +99,28 @@ impl<T> Context<T> for Result<T, StoreError> {
 /// The events of one commit.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum CommitEvents {
-    /// Tapes published live for the commit, each with its events in recording order.
-    Published(Vec<(TapeId, Vec<Event>)>),
+    /// The commit has tapes (published live or re-attached).
+    Published {
+        /// Each tape with its events in recording order.
+        tapes: Vec<(TapeId, Vec<Event>)>,
+        /// The reconstructed events of the commit's changes that no tape event accounts for, then
+        /// the identity links of entities created on a rewritten branch (empty for a commit its
+        /// tapes cover).
+        remainder: Vec<Event>,
+    },
     /// No tape: the events reconstructed from the commit's changes.
     Reconstructed(Vec<Event>),
 }
 
 impl CommitEvents {
-    /// Every event, tape after tape.
+    /// Every event, tape after tape, then the remainder.
     pub fn events(&self) -> Vec<&Event> {
         match self {
-            CommitEvents::Published(tapes) => tapes.iter().flat_map(|(_, events)| events).collect(),
+            CommitEvents::Published { tapes, remainder } => tapes
+                .iter()
+                .flat_map(|(_, events)| events)
+                .chain(remainder)
+                .collect(),
             CommitEvents::Reconstructed(events) => events.iter().collect(),
         }
     }
@@ -340,8 +353,9 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
         Ok(found)
     }
 
-    /// The events of `commit`: its published tapes, or, when it has none, the events
-    /// reconstructed from its changes in `identities`.
+    /// The events of `commit`: its tapes with the remainder of its changes they do not account
+    /// for, or, when it has none, the events reconstructed from its changes in `identities`. The
+    /// commit must be indexed in `identities` either way.
     pub fn events_of_commit<P, C>(
         &mut self,
         commit: &GitOid,
@@ -352,31 +366,64 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
         C: gedo_core::ports::SymbolCache,
     {
         let tapes = self.tapes_of(commit)?;
-        if !tapes.is_empty() {
-            let mut published = Vec::with_capacity(tapes.len());
-            for id in tapes {
-                let tape = self.tape(&id)?;
-                published.push((id, self.events(&tape.events)?));
-            }
-            return Ok(CommitEvents::Published(published));
-        }
         let changes = identities.changes_of(commit)?;
         let hashes = identities.result_hashes(commit)?;
+        if tapes.is_empty() {
+            let events = self.reconstruct(commit, &changes.deltas, &changes.merges, &hashes)?;
+            tracing::debug!(%commit, events = events.len(), "events reconstructed");
+            return Ok(CommitEvents::Reconstructed(events));
+        }
+        let mut published = Vec::with_capacity(tapes.len());
+        for id in tapes {
+            let tape = self.tape(&id)?;
+            published.push((id, self.events(&tape.events)?));
+        }
+        let candidates: Vec<CandidateTape> = published
+            .iter()
+            .map(|(tape, events)| CandidateTape {
+                tape: *tape,
+                events: events.clone(),
+                paired: true,
+            })
+            .collect();
+        let ops = reattach::operations(&changes.deltas, &changes.merges);
+        let outcome = match_commit(&ops, reattach::lookup(&hashes), &candidates, |id| {
+            identities.resolve(id)
+        });
+        let remainder = if outcome.unmatched.is_empty() && outcome.links.is_empty() {
+            Vec::new()
+        } else {
+            let mut merges = changes.merges.clone();
+            merges.extend(link_merges(&outcome.links, *commit));
+            let reconstructed = self.reconstruct(commit, &changes.deltas, &merges, &hashes)?;
+            reattach::remainder(reconstructed, ops.len(), &outcome)
+        };
+        Ok(CommitEvents::Published {
+            tapes: published,
+            remainder,
+        })
+    }
+
+    /// The events reconstructed for `commit` from its changes.
+    fn reconstruct(
+        &mut self,
+        commit: &GitOid,
+        deltas: &[gedo_core::identity::SemanticDelta],
+        merges: &[gedo_core::identity::IdentityMerged],
+        hashes: &std::collections::BTreeMap<gedo_core::identity::AstNodeId, StructuralHash>,
+    ) -> Result<Vec<Event>, EventError> {
         let author = self
             .objects
             .read_commit(commit)
             .context(|| format!("read commit {commit}"))?
             .author_email;
         let generation = self.generation(commit)?;
-        let events = reconstructed_events(generation, &author, &changes.deltas, &changes.merges, |id| {
-            hashes.get(&id).copied()
-        })
-        .map_err(|source| EventError::Reconstruct {
-            commit: *commit,
-            source,
-        })?;
-        tracing::debug!(%commit, events = events.len(), "events reconstructed");
-        Ok(CommitEvents::Reconstructed(events))
+        reconstructed_events(generation, &author, deltas, merges, |id| hashes.get(&id).copied()).map_err(
+            |source| EventError::Reconstruct {
+                commit: *commit,
+                source,
+            },
+        )
     }
 
     /// Every stored event that matches `filter`, in the total order of events.

@@ -42,6 +42,13 @@ and a commit index entry are written to three collections under `refs/gedo/`
 (ADR-0014). Commits without a tape get their events reconstructed on demand from the
 identity results.
 
+After a rewrite, re-attachment links the tapes to the new commits: the `post-rewrite`
+hook gives Git's old and new pairs, and a fetch gives new commits (a server-side squash
+or rebase merge) whose candidates are the tapes no reachable commit has. Matching
+compares entity states from `gedo-crdt`, and only commit index entries are added
+(ADR-0016). Detached tapes are reported for the 90-day retention, and the event cache
+is filled when new events arrive.
+
 History made without Gedo is indexed by `gedo-app`'s `IdentityIndex`: it walks every
 ancestor of the given commits to every root, parses only the Rust files that differ
 from the first parent, matches them against the parent's results with `gedo-ast`, and
@@ -73,6 +80,7 @@ pushed). Source files and `refs/heads/*` stay untouched.
 <!-- architecture-docs:adrs:start -->
 | ADR | Title | Status | Version | Date |
 |---|---|---|---|---|
+| [ADR-0016](docs/adr/0016-re-attachment-by-entity-state-with-a-semantic-signature-fast.md) | Re-attachment by entity state with a semantic-signature fast path | accepted | v0.3.0 | 2026-10-30 |
 | [ADR-0015](docs/adr/0015-packed-batch-writes-and-an-event-cache.md) | Packed batch writes and an event cache | accepted | v0.3.0 | 2026-10-30 |
 | [ADR-0014](docs/adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md) | Event format: content-derived ids, history clocks and three collections | accepted | v0.3.0 | 2026-10-29 |
 | [ADR-0013](docs/adr/0013-versioned-json-output-as-the-contract-for-tools-built-on-ged.md) | Versioned JSON output as the contract for tools built on Gedo | accepted | v0.4.0 | 2026-10-25 |
