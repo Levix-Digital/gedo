@@ -1,7 +1,7 @@
 <!-- dev-cycle-constitution
 generated-by: dev-cycle-protocol/constitution.py (do not edit; change a source and regenerate)
-sources-sha256: 69074e5ac7ce7b460da2d1f62f38034b7ee8b949aa31c5d2883d023e2c9c4afd
-content-sha256: b7ff178d2d0dd7af8f0306e709c38a0326da19363c9b0e1afd4e1690d69be1a3
+sources-sha256: 021e83305ec1c72220bcafafd9f2fb6be5e834b804302c6fdde59614f327b849
+content-sha256: e9218637d2d5902c4292a0436cec3d68af2ac2818049cbd3a663171e964dcc53
 -->
 # gedo Constitution
 
@@ -203,6 +203,7 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - ADR-0014: Event format: content-derived ids, history clocks and three collections (`docs/adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md`)
 - ADR-0015: Packed batch writes and an event cache (`docs/adr/0015-packed-batch-writes-and-an-event-cache.md`)
 - ADR-0016: Re-attachment by entity state with a semantic-signature fast path (`docs/adr/0016-re-attachment-by-entity-state-with-a-semantic-signature-fast.md`)
+- ADR-0017: Tree CRDT as a three-way convergence of entity parts (`docs/adr/0017-tree-crdt-as-a-three-way-convergence-of-entity-parts.md`)
 
 ## Governance
 
@@ -210,4 +211,4 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - Amendments change the source, not this file: an ADR for decisions, the technical specification for requirements and constraints, `.dev-cycle.json` for the architecture style, the skills for principles. Then run `constitution.py generate` and commit the result with the change.
 - Gate 3 of the development cycle blocks a plan while this file is stale or edited by hand.
 
-**Version**: 1.10.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-30
+**Version**: 1.11.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-30
