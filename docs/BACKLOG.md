@@ -6,22 +6,6 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 
 ## Bugs
 
-### BUG-009: Publishing a tape of 1,000 events takes over 1 s on Windows
-- **Severity**: medium
-- **Epic**: EPIC-005
-- **Status**: in_progress
-- **Found**: 2026-10-29, PR #15, Windows reference benchmark
-- **Plan**: gedo_windows_event_publish_and_filter_performance_fixes
-- **Description**: On the Windows reference machine (i7-12700KF), cargo bench -p gedo-app --bench events gives p50 1.19 s and p95 1.31 s for publishing 1,000 events (1.49 s p95 into a chain of 100,000), above the 1 s budget of gedo publish (TECH_SPEC, SC-004 of 004-event-model); Linux p95 is 107 ms. Each event is a separate loose blob in refs/gedo/events, so a publish writes about 1,000 loose object files.
-
-### BUG-010: Filtering 10,000 events by a label takes over 1 s on Windows
-- **Severity**: medium
-- **Epic**: EPIC-005
-- **Status**: in_progress
-- **Found**: 2026-10-29, PR #15, Windows reference benchmark
-- **Plan**: gedo_windows_event_publish_and_filter_performance_fixes
-- **Description**: On the Windows reference machine, EventLog::filter over 10,000 stored events gives p50 1.19 s and p95 1.34 s, above the 500 ms of SC-006 of 004-event-model; Linux p95 is 408 ms. The filter reads every event blob of refs/gedo/events; a label index in the symbol cache or fewer, larger objects would avoid it.
-
 ## Features
 
 ### FEAT-008: SHA-256 repository support
@@ -994,6 +978,14 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: In repositories whose full history does not index within the gedo init target (under 30 s), index a configurable recent horizon synchronously and let gedod index the rest of the history to the roots in the background, reconciling identities deterministically. Needs a measurement on a large repository before it is scheduled.
 
+### IMP-005: Fill the event cache when Gedo data is fetched
+- **Priority**: low
+- **Epic**: EPIC-005
+- **Status**: open
+- **Found**: 2026-10-30, fix/windows-event-performance, Windows reference benchmark
+- **Plan**: -
+- **Description**: With an empty event cache (a fresh clone, a deleted or rebuilt cache), the first EventLog::filter reads every event object once: 1.5 to 1.7 s at p95 on the Windows reference machine for 10,000 loose events published in tapes of 20, 0.4 s on Linux; later filters take 35 to 69 ms. Filling the events namespace when a fetch or merge brings new events (or in the background in gedod) would remove the one slow first filter.
+
 ## Adjustments
 
 ## Epics
@@ -1355,3 +1347,21 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: gedo_event_model
 - **Closed**: 2026-10-29, PR #15
 - **Description**: Content-addressed events grouped in tapes, with a commit-to-tape index (ADR-0008).
+
+### BUG-009: Publishing a tape of 1,000 events takes over 1 s on Windows
+- **Severity**: medium
+- **Epic**: EPIC-005
+- **Status**: done
+- **Found**: 2026-10-29, PR #15, Windows reference benchmark
+- **Plan**: gedo_windows_event_publish_and_filter_performance_fixes
+- **Closed**: 2026-10-30, plan gedo_windows_event_publish_and_filter_performance_fixes
+- **Description**: On the Windows reference machine (i7-12700KF), cargo bench -p gedo-app --bench events gives p50 1.19 s and p95 1.31 s for publishing 1,000 events (1.49 s p95 into a chain of 100,000), above the 1 s budget of gedo publish (TECH_SPEC, SC-004 of 004-event-model); Linux p95 is 107 ms. Each event is a separate loose blob in refs/gedo/events, so a publish writes about 1,000 loose object files.
+
+### BUG-010: Filtering 10,000 events by a label takes over 1 s on Windows
+- **Severity**: medium
+- **Epic**: EPIC-005
+- **Status**: done
+- **Found**: 2026-10-29, PR #15, Windows reference benchmark
+- **Plan**: gedo_windows_event_publish_and_filter_performance_fixes
+- **Closed**: 2026-10-30, plan gedo_windows_event_publish_and_filter_performance_fixes
+- **Description**: On the Windows reference machine, EventLog::filter over 10,000 stored events gives p50 1.19 s and p95 1.34 s, above the 500 ms of SC-006 of 004-event-model; Linux p95 is 408 ms. The filter reads every event blob of refs/gedo/events; a label index in the symbol cache or fewer, larger objects would avoid it.

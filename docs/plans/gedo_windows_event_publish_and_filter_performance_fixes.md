@@ -4,10 +4,10 @@ project: gedo
 title: Windows event publish and filter performance fixes
 kind: bug
 version: v0.3.0
-status: in_progress
+status: completed
 author: Levi Silveira
 created_at: '2026-10-29T23:42:03'
-updated_at: '2026-10-30T01:30:01'
+updated_at: '2026-10-30T12:56:21'
 session_id: null
 tags: []
 supersedes: null
@@ -26,7 +26,9 @@ milestones:
   done_at: '2026-10-30'
   by: Levi Silveira
 - name: M3 Reference machine and documentation
-  done: false
+  done: true
+  done_at: '2026-10-30'
+  by: Levi Silveira
 status_log:
 - at: '2026-10-29T23:42:03'
   by: Levi Silveira
@@ -54,39 +56,18 @@ status_log:
 - at: '2026-10-30T01:30:01'
   by: Levi Silveira
   note: 'Milestone ''M2 Event cache'' completed: events cache namespace; Linux cached filter p95 52 ms'
----
-
----
-plan_id: gedo_windows_event_publish_and_filter_performance_fixes
-project: gedo
-title: Windows event publish and filter performance fixes
-kind: bug
-version: v0.3.0
-status: draft
-author: Levi Silveira
-created_at: '2026-10-29T23:42:03'
-updated_at: '2026-10-29T23:42:03'
-session_id: null
-tags: []
-supersedes: null
-superseded_by: null
-parent_plan_id: null
-backlog_items:
-- BUG-009
-- BUG-010
-milestones: []
-status_log:
-- at: '2026-10-29T23:42:03'
+- at: '2026-10-30T12:56:21'
   by: Levi Silveira
-  status: draft
-  note: Plan created
+  note: 'Milestone ''M3 Reference machine and documentation'' completed: Reference machine publish p95 188 to 217 ms (one stall 954 ms), cached filter 35 to 69 ms; ADR-0015'
+- at: '2026-10-30T12:56:21'
+  by: Levi Silveira
+  status: completed
+  note: All milestones completed
 ---
 
 # Windows event publish and filter performance fixes
 
 Bug plan for the two Windows misses of the event model benchmarks, fixed before feature 005 (bugs first: both items are `medium`). Levi asked on 2026-10-29 to follow the protocol, which puts this plan before the next feature.
-
-Bug plan: discovery and planning of the backlog items below (`dev-cycle-protocol` Phases 1 and 2). Replace every instruction paragraph with the findings.
 
 ## Backlog items
 
@@ -174,7 +155,7 @@ Changes against section 4, found while implementing:
 - **Cached records keep every check**, the id derivation included: it costs about 1 µs per event, so the exception planned in section 4 is not needed.
 - **No `get_many`**: one read transaction per event is fast enough (a cached filter of 10,000 events takes 50 ms on Linux).
 - **One lookup per read rejected**: reading an object without the header lookup made a filter with an empty cache over loose events 30% faster on Linux (366 to 250 ms), but the 64 MiB limit would only be checked after the whole object is in memory.
-- **Trees stay loose**: packing the blobs was enough on Linux; `write_trees` waits for the Windows numbers.
+- **Trees packed too**: the first Windows run (0b42869) still had publish p95 at 0.89 to 3.19 s, so `write_trees` was added as section 4 foresaw: a large collection write is two packs (blobs, then fan-out trees) and two loose objects (the root tree and the commit).
 
 `cargo bench -p gedo-app --bench events` on Linux (the cloud container, p95; the container's timings vary by about 2 times between runs):
 
@@ -185,3 +166,16 @@ Changes against section 4, found while implementing:
 | Filter 10,000 events (tapes of 20, loose) | 348 ms | 348 ms | 53 ms; 390 ms with an empty cache |
 
 The new benchmark case, 10,000 events in 500 tapes of 20, is the common shape (one publish per commit) and stays loose under the pack threshold; only the cache fixes it. A filter with an empty cache (a fresh clone, a deleted cache) still reads every event once.
+
+Reference machine (Levi's Windows desktop: Intel Core i7-12700KF, on AC power, Defender real-time protection on), `cargo bench -p gedo-app --bench events -- --quick`:
+
+| Benchmark (p95) | `main` 3f820f2 | 0b42869 (blob packs, cache) | 9c64e69 (tree packs), runs 2 and 3 | dc5b204, three runs |
+|---|---|---|---|---|
+| Record one event | 5.9 µs | 5.8 to 6.1 µs | 6.0 to 6.2 µs | |
+| Publish a tape of 1,000 events | 1.31 s | 0.89, 3.19, 0.98 s | 1.55, 0.82 s (p50 157 to 192 ms) | 217, 188, 954 ms (p50 114 to 154 ms) |
+| Publish into a chain of 100,000 | 1.49 s | 1.06 s | 365 ms | |
+| Filter 10,000 events (tapes of 1,000) | 1.34 s | 63 to 73 ms | 35 ms | |
+| Filter 10,000 events (tapes of 20) | | 65 to 67 ms | 66 to 69 ms | |
+| Same, empty cache | | 1.56 to 1.73 s | 1.63 to 1.69 s | |
+
+With every sample printed (`GEDO_BENCH_SAMPLES=1`, dc5b204), 29 of 30 publishes took 96 to 217 ms and one took 954 ms in the middle of a run, not the first (cold) one: random stalls of the machine, which also showed in a first run of 9c64e69 where even recording one event was 3 times slower (that run is left out). SC-004 and SC-006 hold on the reference machine: BUG-009 and BUG-010 are fixed. A filter with an empty cache over loose events still takes about 1.6 s once on Windows; it is captured as IMP-005 for later triage.
