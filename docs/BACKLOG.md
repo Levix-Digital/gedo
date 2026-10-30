@@ -387,9 +387,9 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### FEAT-065: Re-attachment after rebase, amend and squash
 - **Priority**: high
 - **Epic**: EPIC-005
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_reattachment
 - **Description**: Rebuild the commit index after local and server-side rewrites by semantic diff and event matching; 90-day retention of unreachable events.
 
 ### FEAT-066: Tree CRDT with deterministic convergence
@@ -981,9 +981,9 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### IMP-005: Fill the event cache when Gedo data is fetched
 - **Priority**: low
 - **Epic**: EPIC-005
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-30, fix/windows-event-performance, Windows reference benchmark
-- **Plan**: -
+- **Plan**: gedo_reattachment
 - **Description**: With an empty event cache (a fresh clone, a deleted or rebuilt cache), the first EventLog::filter reads every event object once: 1.5 to 1.7 s at p95 on the Windows reference machine for 10,000 loose events published in tapes of 20, 0.4 s on Linux; later filters take 35 to 69 ms. Filling the events namespace when a fetch or merge brings new events (or in the background in gedod) would remove the one slow first filter.
 
 ## Adjustments
