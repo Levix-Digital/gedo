@@ -12,6 +12,7 @@ publish.workspace = true
 gedo-core.workspace = true
 # SHA-256 is compiled in only to detect and refuse such repositories (FR-018).
 gix = { workspace = true, features = ["sha1", "sha256"] }
+gix-pack = { workspace = true, features = ["streaming-input"] }
 redb.workspace = true
 postcard.workspace = true
 crc32fast.workspace = true

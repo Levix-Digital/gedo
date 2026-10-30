@@ -696,6 +696,7 @@ dependencies = [
  "criterion",
  "gedo-core",
  "gix",
+ "gix-pack",
  "postcard",
  "proptest",
  "redb",
@@ -1072,10 +1073,12 @@ dependencies = [
  "gix-object",
  "gix-parallel",
  "gix-path",
+ "gix-tempfile",
  "gix-trace",
  "gix-utils",
  "gix-zlib",
  "memmap2",
+ "parking_lot",
  "smallvec",
 ]
 

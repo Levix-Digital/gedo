@@ -68,6 +68,11 @@ pub trait ObjectStore {
     fn object_hash(&self) -> ObjectHash;
     /// Stores a blob.
     fn write_blob(&self, data: &[u8]) -> Result<GitOid, StoreError>;
+    /// Stores several blobs at once and returns their ids in the same order; a store may write a
+    /// large batch as one unit (a pack) instead of one object at a time.
+    fn write_blobs(&self, blobs: &[&[u8]]) -> Result<Vec<GitOid>, StoreError> {
+        blobs.iter().map(|data| self.write_blob(data)).collect()
+    }
     /// Reads a blob; `ObjectNotFound` if absent, `TooLarge` above [`MAX_BLOB_BYTES`].
     fn read_blob(&self, oid: &GitOid) -> Result<Vec<u8>, StoreError>;
     /// Stores a tree; entries may come in any order and are written in Git's order.

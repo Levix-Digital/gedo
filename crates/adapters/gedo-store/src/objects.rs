@@ -9,6 +9,7 @@ use gix::bstr::ByteSlice;
 use gix::objs::tree::EntryKind;
 
 use crate::convert::{from_gix_oid, to_gix_oid};
+use crate::pack::{PACK_THRESHOLD, write_blob_pack};
 use crate::repository::GitRepository;
 
 /// Objects in a Git repository.
@@ -76,6 +77,31 @@ impl ObjectStore for GitObjectStore {
     fn write_blob(&self, data: &[u8]) -> Result<GitOid, StoreError> {
         let id = self.repository.local().write_blob(data).map(|id| id.detach());
         from_gix_oid(id.map_err(|error| StoreError::backend("write blob", error))?)
+    }
+
+    /// A batch with at least [`PACK_THRESHOLD`] blobs not stored yet is written as one pack.
+    fn write_blobs(&self, blobs: &[&[u8]]) -> Result<Vec<GitOid>, StoreError> {
+        let repo = self.repository.local();
+        let mut ids = Vec::with_capacity(blobs.len());
+        let mut seen = std::collections::HashSet::new();
+        let mut new = Vec::new();
+        for data in blobs {
+            let id = gix::objs::compute_hash(gix::hash::Kind::Sha1, gix::object::Kind::Blob, data)
+                .map_err(|error| StoreError::backend("hash blob", error))?;
+            if seen.insert(id) && !repo.objects.exists_without_refresh(&id) {
+                new.push(*data);
+            }
+            ids.push(from_gix_oid(id)?);
+        }
+        if new.len() >= PACK_THRESHOLD {
+            write_blob_pack(&repo, &new)?;
+        } else {
+            for data in new {
+                repo.write_blob(data)
+                    .map_err(|error| StoreError::backend("write blob", error))?;
+            }
+        }
+        Ok(ids)
     }
 
     fn read_blob(&self, oid: &GitOid) -> Result<Vec<u8>, StoreError> {

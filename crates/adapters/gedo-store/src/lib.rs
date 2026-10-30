@@ -6,6 +6,7 @@ pub mod cache;
 mod convert;
 pub mod fs;
 pub mod objects;
+mod pack;
 pub mod refs;
 pub mod remote;
 pub mod repository;

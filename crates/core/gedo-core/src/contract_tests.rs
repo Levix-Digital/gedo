@@ -70,6 +70,30 @@ pub fn blobs_round_trip<O: ObjectStore>(make: impl Fn() -> O) {
     assert_eq!(objects.read_blob(&empty).expect("read"), b"");
 }
 
+/// A batch of blobs gets the ids single writes give, in order, with repeated content allowed;
+/// sizes around a store's packing threshold are covered by `sizes`.
+pub fn blob_batches_round_trip<O: ObjectStore>(make: impl Fn() -> O) {
+    let objects = make();
+    assert_eq!(objects.write_blobs(&[]).expect("written"), Vec::<GitOid>::new());
+    for size in [1, 99, 100, 101, 250] {
+        let contents: Vec<Vec<u8>> = (0..size)
+            .map(|n| format!("batch of {size}, blob {}", n % 97).into_bytes())
+            .collect();
+        let batch: Vec<&[u8]> = contents.iter().map(Vec::as_slice).collect();
+        let ids = objects.write_blobs(&batch).expect("written");
+        assert_eq!(ids.len(), size);
+        for (id, content) in ids.iter().zip(&contents) {
+            assert_eq!(objects.read_blob(id).expect("read"), *content);
+            assert_eq!(
+                objects.write_blob(content).expect("written"),
+                *id,
+                "same id as a single write"
+            );
+        }
+        assert_eq!(objects.write_blobs(&batch).expect("written again"), ids);
+    }
+}
+
 /// Reading an absent object, or an object of another kind, is `ObjectNotFound`.
 pub fn missing_objects_are_not_found<O: ObjectStore>(make: impl Fn() -> O) {
     let objects = make();
@@ -249,6 +273,10 @@ macro_rules! object_store_contract {
         #[test]
         fn blobs_round_trip() {
             $crate::contract_tests::blobs_round_trip($make);
+        }
+        #[test]
+        fn blob_batches_round_trip() {
+            $crate::contract_tests::blob_batches_round_trip($make);
         }
         #[test]
         fn missing_objects_are_not_found() {

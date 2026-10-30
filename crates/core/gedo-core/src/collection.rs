@@ -161,9 +161,10 @@ impl<'a, O: ObjectStore, R: RefStore> Collection<'a, O, R> {
                 "no entries given",
             ));
         }
+        let contents: Vec<&[u8]> = entries.iter().map(|(_, content)| content.as_slice()).collect();
+        let written = self.objects.write_blobs(&contents)?;
         let mut blobs = EntryMap::new();
-        for (id, content) in entries {
-            let blob = self.objects.write_blob(content)?;
+        for ((id, _), blob) in entries.iter().zip(written) {
             if blobs
                 .insert(id.clone(), blob)
                 .is_some_and(|previous| previous != blob)
