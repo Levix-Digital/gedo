@@ -2,7 +2,7 @@
 //! 1 ms), publishing a tape of 1,000 events (under 1 s), filtering 10,000 events by a label (under
 //! 500 ms) and, when `GEDO_BENCH_REPO` names a Git repository, reconstructing the events of its last
 //! commits (p95 under 100 ms once indexed). `GEDO_BENCH_LARGE=1` also publishes into a chain of
-//! 100,000 events.
+//! 100,000 events, and `GEDO_BENCH_SAMPLES=1` prints every run in order.
 //!
 //! Criterion measures the mean of one record; the percentiles are measured separately and printed.
 //! The scratch repository is created with `git init`, which only this developer tool runs.
@@ -38,6 +38,9 @@ fn percentile(sorted: &[Duration], fraction: f64) -> Duration {
 }
 
 fn report(name: &str, mut samples: Vec<Duration>) {
+    if std::env::var_os("GEDO_BENCH_SAMPLES").is_some() {
+        println!("{name}, every run in order: {samples:?}");
+    }
     samples.sort();
     println!(
         "{name} over {} runs: p50 {:?}, p95 {:?}, p99 {:?}",
