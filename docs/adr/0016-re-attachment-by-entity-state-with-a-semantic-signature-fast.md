@@ -8,7 +8,7 @@ subsystems: [events]
 supersedes: []
 superseded_by: []
 amends: [8]
-amended_by: []
+amended_by: [19]
 ---
 
 # ADR-0016: Re-attachment by entity state with a semantic-signature fast path

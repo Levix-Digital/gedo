@@ -8,7 +8,7 @@ subsystems: [events, store]
 supersedes: []
 superseded_by: []
 amends: [3, 8]
-amended_by: [15]
+amended_by: [15, 19]
 ---
 
 # ADR-0014: Event format: content-derived ids, history clocks and three collections
