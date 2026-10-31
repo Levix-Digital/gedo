@@ -27,12 +27,12 @@ Re-attachment without pairs and the retention report (ADR-0016) find the detache
 
 - **Git's commit-graph file**: free when present, but it needs a new `ObjectStore` operation, Git does not write it on every clone or fetch, and its corrected commit dates (generation v2) are not ADR-0014's generations. It can become a faster source of generations later.
 - **Generations in `refs/gedo/*`**: pushed data for something every machine computes from its own history.
-- **Trusting cached values without a check**: generations become part of event clocks and therefore of event ids; a corrupted record would write wrong pushed data. The check costs one commit read per value, which the walks read anyway.
+- **Trusting cached values without a check**: generations become part of event clocks and therefore of event ids; a corrupted record would write wrong pushed data. The check costs one commit read per value; the search keeps the parents it read, so it does not read those commits again.
 - **Writing generations in transactions of 1,000**: each transaction is a durable commit of the cache; the first call on a history of 100,000 commits took 2.1 s instead of 0.86 s.
 
 ## Consequences
 
-- With generations cached, listing the detached tapes over 100,000 commits without Gedo data takes p50 16 to 24 ms on the development container, as for 1,000 commits. The first call with an empty cache walks the history once and writes every generation: 0.86 to 1.19 s there, against 0.61 to 0.73 s for one call before.
+- With generations cached, listing the detached tapes over 100,000 commits without Gedo data takes p50 13 ms on the development container, as for 1,000 commits. The first call with an empty cache walks the history once and writes every generation: 0.86 to 1.19 s there, against 0.61 to 0.73 s for one call before.
 - The cache grows by about 50 bytes per commit of the history (about 50 MB for 1,000,000 commits); deleting it only costs one more full walk.
 - Results do not change: the same tapes are detached, with the same commits, and generations, clocks and event ids are the same.
 - Verified by `crates/core/gedo-app/tests/generations.rs` (reuse across event logs with commits read counted, refused and rewritten records, a failing cache, the bound on a deep history, a missing indexed commit, a property against the full walk over generated histories, cached against computed generations) and the `detached` benchmark.

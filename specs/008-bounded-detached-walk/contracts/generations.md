@@ -9,4 +9,4 @@ Behavior added:
 
 Errors: unchanged. A tip or a commit on the walk that cannot be read is `EventError::Store` with context; cache failures are warnings only.
 
-Logs: `detached-tape search done` (debug: commits read, stopped on the bound or not); `generation record refused` and `could not write generations` (warn).
+Logs: `detached-tape search done` (debug: commits visited, stopped on the bound or not); `generation record refused` and `could not write generations` (warn).

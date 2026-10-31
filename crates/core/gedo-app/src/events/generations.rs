@@ -71,6 +71,7 @@ impl<O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'_, O, R, W> {
                 .parents;
             if let Some(value) = self.checked_cached_generation(&oid, &parents) {
                 self.generations.insert(oid, value);
+                self.checked_parents.insert(oid, parents);
                 continue;
             }
             stack.push((oid, true));
@@ -79,6 +80,19 @@ impl<O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'_, O, R, W> {
         }
         self.store_generations(&computed);
         Ok(self.generations.get(commit).copied().unwrap_or(1))
+    }
+
+    /// The parents of `commit`, from the commits read to check a cached generation or from the
+    /// object store.
+    pub(super) fn parents(&mut self, commit: &GitOid) -> Result<Vec<GitOid>, EventError> {
+        if let Some(parents) = self.checked_parents.remove(commit) {
+            return Ok(parents);
+        }
+        Ok(self
+            .objects
+            .read_commit(commit)
+            .context(|| format!("read commit {commit}"))?
+            .parents)
     }
 
     /// The cached generation of `commit` when it equals one more than the generations of its

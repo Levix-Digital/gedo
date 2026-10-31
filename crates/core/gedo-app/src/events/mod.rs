@@ -152,6 +152,9 @@ pub struct EventLog<'a, O, R, W> {
     /// The clock of the last event in the log, to continue its sequence.
     last: Option<gedo_core::event::Clock>,
     generations: HashMap<GitOid, u64>,
+    /// Parents of the commits whose cached generation was checked, so a walk that visits them
+    /// next does not read them again.
+    checked_parents: HashMap<GitOid, Vec<GitOid>>,
 }
 
 impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
@@ -164,6 +167,7 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
             cache: None,
             last: None,
             generations: HashMap::new(),
+            checked_parents: HashMap::new(),
         };
         log.last = log.pending()?.last().map(|(_, event)| event.clock);
         Ok(log)

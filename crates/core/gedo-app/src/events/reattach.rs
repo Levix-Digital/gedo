@@ -379,7 +379,7 @@ impl<O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'_, O, R, W> {
         }
         let mut seen: HashSet<GitOid> = HashSet::new();
         let mut reachable: HashSet<GitOid> = HashSet::new();
-        let mut read = 0usize;
+        let mut visited = 0usize;
         let mut bounded = false;
         while let Some((generation, commit)) = frontier.pop() {
             let Some(&(lowest, _)) = pending.first() else {
@@ -395,19 +395,15 @@ impl<O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'_, O, R, W> {
             if pending.remove(&(generation, commit)) {
                 reachable.insert(commit);
             }
-            let parents = self
-                .objects
-                .read_commit(&commit)
-                .context(|| format!("read commit {commit}"))?
-                .parents;
-            read += 1;
+            let parents = self.parents(&commit)?;
+            visited += 1;
             for parent in parents {
                 if !seen.contains(&parent) {
                     frontier.push((self.generation(&parent)?, parent));
                 }
             }
         }
-        tracing::debug!(commits_read = read, bounded, "detached-tape search done");
+        tracing::debug!(commits_visited = visited, bounded, "detached-tape search done");
         Ok(index
             .iter()
             .filter(|(_, commits)| !commits.iter().any(|commit| reachable.contains(commit)))
