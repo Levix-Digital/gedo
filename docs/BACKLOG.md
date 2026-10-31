@@ -1392,5 +1392,5 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: done
 - **Found**: 2026-10-30, PR #18, protocol review
 - **Plan**: gedo_bounded_detached_tape_walk
-- **Closed**: 2026-10-31, plan gedo_bounded_detached_tape_walk
+- **Closed**: 2026-10-31, PR #25
 - **Description**: EventLog::detached and reattach_new walk the history from the tips until every indexed commit is found; when some tape is really detached they walk the whole history on every call. Fast on the benchmark (a few hundred commits) but linear in the history on large repositories. Keep commit generations as local derived data (or use the commit-graph) and stop the walk below the lowest generation of the indexed commits still unseen; measure on a large repository first.

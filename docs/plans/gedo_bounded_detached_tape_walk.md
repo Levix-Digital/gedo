@@ -7,7 +7,7 @@ version: v0.3.0
 status: completed
 author: LeviGuilherme
 created_at: '2026-10-31T13:39:26'
-updated_at: '2026-10-31T14:28:07'
+updated_at: '2026-10-31T15:00:18'
 session_id: null
 tags: []
 supersedes: null
@@ -62,6 +62,10 @@ status_log:
   by: LeviGuilherme
   status: completed
   note: All milestones completed
+- at: '2026-10-31T15:00:18'
+  by: LeviGuilherme
+  status: completed
+  note: 'Delivered in PR #25 (merged 2026-10-31)'
 ---
 
 ---
@@ -127,4 +131,4 @@ Tests: 12 tests in `crates/core/gedo-app/tests/generations.rs` (generations over
 
 Deviations from the plan: the scenario tests of the bound and the property run in `tests/generations.rs` with the cache tests, on histories of empty-tree commits, instead of `tests/reattach.rs`; generations are written in transactions of 100,000 records instead of 1,000, since each transaction is a durable commit of the cache (the first call took 2.1 s with 1,000); the search reads an indexed commit's generation directly and treats a not-found error for that commit as unreachable; the CI bench runs at its default depth of 100,000 commits; the search keeps the parents read to check a cached generation, so the commits it visits next are not read twice (the cached p50 at 100,000 commits went from 16 to 24 ms to 13 ms).
 
-CI on PR #25 passed on Windows and Linux. On the Windows CI runner, before keeping the parents, the bench gave 1.17 s for the first call and p50 65 ms, p95 66 ms with generations cached.
+CI on PR #25 passed on Windows and Linux. On the Windows CI runner, the bench gave 1.17 s for the first call and p50 65 ms, p95 66 ms with generations cached before keeping the parents, and 2.77 s and p50 42 ms, p95 43 ms after (the same job ran the split bench three times slower than the run before). SC-001 and SC-002 are met on the development container, and SC-001 on the Windows CI runner; the reference machine run follows the merge.
