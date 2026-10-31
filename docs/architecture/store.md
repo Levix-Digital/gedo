@@ -65,6 +65,8 @@ The `events` namespace keeps the records of `refs/gedo/events` by event id (16 b
 
 The `retention` namespace holds one record (key `detached`, format 1): the time this machine first saw each detached tape detached, for the 90-day grace period before `gedo gc` ([ADR-0016](../adr/0016-re-attachment-by-entity-state-with-a-semantic-signature-fast.md)). It is local state, never pushed; a lost or refused record only restarts the period.
 
+The `generations` namespace keeps commit generations by commit id (format byte `1`, then the generation as 8 little-endian bytes), written by the event log for every generation it computes, in transactions of up to 100,000 records ([ADR-0019](../adr/0019-commit-generations-in-the-symbol-cache-and-a-generation-boun.md)). A record is used only when it equals one more than the highest generation of its commit's parents; it is not rebuilt on open, and a missing or refused one is computed from the history again.
+
 Tree entries carry their mode: regular and executable files, directories, symbolic links and submodules, written back exactly as read.
 
 ### Platform behavior
@@ -92,5 +94,6 @@ On Windows, an operation on a file another program holds open (an antivirus, an 
 - [ADR-0009](../adr/0009-semantic-merge-driver-and-shadow-merge.md): merge driver registration and fallback.
 - [ADR-0015](../adr/0015-packed-batch-writes-and-an-event-cache.md): large batches as packs, the pack index slots, the `events` cache namespace.
 - [ADR-0016](../adr/0016-re-attachment-by-entity-state-with-a-semantic-signature-fast.md): the `retention` cache record.
+- [ADR-0019](../adr/0019-commit-generations-in-the-symbol-cache-and-a-generation-boun.md): the `generations` cache namespace.
 
-Commit generations are kept in memory by `EventLog`, and reconstructed events are recomputed on demand from the `identity` namespace, never cached ([ADR-0014](../adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md)).
+Reconstructed events are recomputed on demand from the `identity` namespace, never cached ([ADR-0014](../adr/0014-event-format-content-derived-ids-history-clocks-and-three-co.md)).

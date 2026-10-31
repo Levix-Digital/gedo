@@ -96,6 +96,7 @@ pushed). Source files and `refs/heads/*` stay untouched.
 <!-- architecture-docs:adrs:start -->
 | ADR | Title | Status | Version | Date |
 |---|---|---|---|---|
+| [ADR-0019](docs/adr/0019-commit-generations-in-the-symbol-cache-and-a-generation-boun.md) | Commit generations in the symbol cache and a generation-bounded detached-tape search | accepted | v0.3.0 | 2026-10-31 |
 | [ADR-0018](docs/adr/0018-semantic-lanes-per-part-with-a-refactor-commit-verified-by-r.md) | Semantic lanes per part with a refactor commit verified by re-indexing | accepted | v0.3.0 | 2026-10-30 |
 | [ADR-0017](docs/adr/0017-tree-crdt-as-a-three-way-convergence-of-entity-parts.md) | Tree CRDT as a three-way convergence of entity parts | accepted | v0.3.0 | 2026-10-30 |
 | [ADR-0016](docs/adr/0016-re-attachment-by-entity-state-with-a-semantic-signature-fast.md) | Re-attachment by entity state with a semantic-signature fast path | accepted | v0.3.0 | 2026-10-30 |

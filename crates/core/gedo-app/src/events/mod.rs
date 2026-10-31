@@ -10,9 +10,11 @@
 //! With a symbol cache ([`EventLog::with_cache`]), stored event records are also kept in its
 //! `events` namespace, so reads and filters do not open one object per event (BUG-010). The
 //! cache is local derived data: a missing, unreadable or refused entry is read from the
-//! collection again, and a cache failure never fails an operation.
+//! collection again, and a cache failure never fails an operation. Commit generations are kept
+//! in its `generations` namespace the same way ([`generations`], IMP-006).
 
 pub mod converge;
+pub mod generations;
 pub mod reattach;
 pub mod records;
 pub mod split;
@@ -26,8 +28,8 @@ use gedo_core::syntax::StructuralHash;
 use gedo_core::{Collection, LabelError, StoreError};
 use gedo_crdt::clock::order_key;
 use gedo_crdt::{
-    CandidateTape, EventFilter, ReconstructError, RecordingContext, event_id, generation, link_merges,
-    live_clock, match_commit, reconstructed_events, sort_events, tape_id,
+    CandidateTape, EventFilter, ReconstructError, RecordingContext, event_id, link_merges, live_clock,
+    match_commit, reconstructed_events, sort_events, tape_id,
 };
 
 use crate::index::{IdentityIndex, IndexError};
@@ -150,6 +152,9 @@ pub struct EventLog<'a, O, R, W> {
     /// The clock of the last event in the log, to continue its sequence.
     last: Option<gedo_core::event::Clock>,
     generations: HashMap<GitOid, u64>,
+    /// Parents of the commits whose cached generation was checked, so a walk that visits them
+    /// next does not read them again.
+    checked_parents: HashMap<GitOid, Vec<GitOid>>,
 }
 
 impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
@@ -162,6 +167,7 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
             cache: None,
             last: None,
             generations: HashMap::new(),
+            checked_parents: HashMap::new(),
         };
         log.last = log.pending()?.last().map(|(_, event)| event.clock);
         Ok(log)
@@ -532,35 +538,6 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
                 Ok((sequence, event))
             })
             .collect()
-    }
-
-    /// The generation of `commit` (research R3), walking only ancestors not known yet.
-    pub fn generation(&mut self, commit: &GitOid) -> Result<u64, EventError> {
-        let mut stack = vec![(*commit, false)];
-        let mut parents_of: HashMap<GitOid, Vec<GitOid>> = HashMap::new();
-        while let Some((oid, parents_done)) = stack.pop() {
-            if self.generations.contains_key(&oid) {
-                continue;
-            }
-            if parents_done {
-                let parents = parents_of.remove(&oid).unwrap_or_default();
-                let known: Vec<u64> = parents
-                    .iter()
-                    .filter_map(|parent| self.generations.get(parent).copied())
-                    .collect();
-                self.generations.insert(oid, generation(&known));
-                continue;
-            }
-            let parents = self
-                .objects
-                .read_commit(&oid)
-                .context(|| format!("read commit {oid}"))?
-                .parents;
-            stack.push((oid, true));
-            stack.extend(parents.iter().map(|parent| (*parent, false)));
-            parents_of.insert(oid, parents);
-        }
-        Ok(self.generations.get(commit).copied().unwrap_or(1))
     }
 
     /// The event `id` from the cache, when it holds a valid record of it.
