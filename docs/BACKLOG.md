@@ -6,6 +6,14 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 
 ## Bugs
 
+### BUG-011: Detached-tape search slightly over budget on the reference machine
+- **Severity**: low
+- **Epic**: EPIC-005
+- **Status**: open
+- **Found**: 2026-10-31, v0.3.0, PR #26, reference bench
+- **Plan**: -
+- **Description**: On the reference machine (i7-12700KF, Windows 11) with 100,000 commits without Gedo data, the detached-tape search with generations cached gave p95 45, 48 and 51 ms over three runs (SC-001 of specs/008-bounded-detached-walk: under 50 ms), and the first call with an empty cache 0.90, 0.74 and 1.16 s against 0.45 to 0.47 s before (SC-002: at most twice). The container gives 13 ms cached. Likely causes: one cache read per commit and per parent on the cached path, and the full walk plus the cache write on the first call. Measure where the time goes on Windows before changing anything.
+
 ## Features
 
 ### FEAT-008: SHA-256 repository support
