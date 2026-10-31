@@ -131,4 +131,14 @@ Tests: 12 tests in `crates/core/gedo-app/tests/generations.rs` (generations over
 
 Deviations from the plan: the scenario tests of the bound and the property run in `tests/generations.rs` with the cache tests, on histories of empty-tree commits, instead of `tests/reattach.rs`; generations are written in transactions of 100,000 records instead of 1,000, since each transaction is a durable commit of the cache (the first call took 2.1 s with 1,000); the search reads an indexed commit's generation directly and treats a not-found error for that commit as unreachable; the CI bench runs at its default depth of 100,000 commits; the search keeps the parents read to check a cached generation, so the commits it visits next are not read twice (the cached p50 at 100,000 commits went from 16 to 24 ms to 13 ms).
 
-CI on PR #25 passed on Windows and Linux. On the Windows CI runner, the bench gave 1.17 s for the first call and p50 65 ms, p95 66 ms with generations cached before keeping the parents, and 2.77 s and p50 42 ms, p95 43 ms after (the same job ran the split bench three times slower than the run before). SC-001 and SC-002 are met on the development container, and SC-001 on the Windows CI runner; the reference machine run follows the merge.
+CI on PR #25 passed on Windows and Linux. On the Windows CI runner, the bench gave 1.17 s for the first call and p50 65 ms, p95 66 ms with generations cached before keeping the parents, and 2.77 s and p50 42 ms, p95 43 ms after (the same job ran the split bench three times slower than the run before).
+
+Reference machine (Windows 11 Pro build 26200, Intel Core i7-12700KF, SATA SSD, rustc 1.98.1, release build, 2026-10-31, `cargo bench -p gedo-app --bench detached -- --quick`, three runs each, 100,000 commits without Gedo data). Before: commit `10c2a8c` with the bench copied in. After: `main` at `0f69fd4` (PR #25).
+
+| Run | Before: per call (empty cache / later calls p50, p95) | After: first call, empty cache | After: generations cached, p50 / p95 |
+|---|---|---:|---:|
+| 1 | 462 ms / 459 ms, 465 ms | 901 ms | 43 ms / 45 ms |
+| 2 | 450 ms / 455 ms, 469 ms | 740 ms | 45 ms / 48 ms |
+| 3 | 467 ms / 455 ms, 496 ms | 1.16 s | 46 ms / 51 ms |
+
+With generations cached, a call is about ten times faster. SC-001 (p95 under 50 ms) is met in runs 1 and 2 and missed by 1 ms in run 3. SC-002 (first call at most twice one call before, 0.92 s) is met in runs 1 and 2 and missed in run 3 (1.16 s, 2.5 times).
