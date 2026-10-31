@@ -957,9 +957,9 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### IMP-006: Bound the history walk that finds detached tapes
 - **Priority**: low
 - **Epic**: EPIC-005
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-30, PR #18, protocol review
-- **Plan**: -
+- **Plan**: gedo_bounded_detached_tape_walk
 - **Description**: EventLog::detached and reattach_new walk the history from the tips until every indexed commit is found; when some tape is really detached they walk the whole history on every call. Fast on the benchmark (a few hundred commits) but linear in the history on large repositories. Keep commit generations as local derived data (or use the commit-graph) and stop the walk below the lowest generation of the indexed commits still unseen; measure on a large repository first.
 
 ### IMP-007: Follow moves in whole use declarations of a split publish
