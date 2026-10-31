@@ -1,5 +1,5 @@
 //! Publishing, refusing a publish, re-attaching, reporting detached tapes, filling the event cache
-//! converging sides and split publishes are visible as `tracing` events.
+//! converging sides, split publishes, the detached-tape search and refused generation records are visible as `tracing` events.
 //!
 //! One test in its own binary: tracing caches whether a call site is enabled process-wide, so
 //! concurrent tests without a subscriber would disable the events for this one.
@@ -8,11 +8,13 @@ mod support;
 
 use std::sync::{Arc, Mutex};
 
+use gedo_app::events::generations::encode_generation;
+use gedo_app::events::records::GENERATIONS_CACHE_NAMESPACE;
 use gedo_app::{DEFAULT_GRACE_DAYS, EventLog, IdentityIndex, Side, SplitRequest};
 use gedo_core::event::{Labels, MAX_TAPE_EVENTS, SemanticOp};
 use gedo_core::identity::{AstNodeId, SemanticDelta};
 use gedo_core::memory::{MemoryRefStore, MemoryWal};
-use gedo_core::ports::ObjectStore;
+use gedo_core::ports::{ObjectStore, SymbolCache};
 use gedo_core::syntax::StructuralHash;
 use gedo_crdt::RecordingContext;
 use support::{History, files};
@@ -94,6 +96,17 @@ fn publishing_and_refusals_are_traced() {
         log.fill_cache().expect("filled");
         log.converge(&base, &[Side::commit(base)], &index)
             .expect("converged");
+        events
+            .put(
+                GENERATIONS_CACHE_NAMESPACE,
+                &[(amended.as_bytes().to_vec(), encode_generation(99))],
+            )
+            .expect("stored");
+        let mut wal = MemoryWal::new();
+        let mut log = EventLog::open(&history.objects, &refs, &mut wal)
+            .expect("opens")
+            .with_cache(&events);
+        assert_ne!(log.generation(&amended).expect("generation"), 99);
     });
     // A rename with a feature beside it, split-published.
     let renamed = history.commit(
@@ -140,6 +153,8 @@ pub fn h() {}
         "detached tapes",
         "event cache filled",
         "sides converged",
+        "detached-tape search done",
+        "generation record refused",
     ] {
         assert!(
             messages.iter().any(|message| message == expected),

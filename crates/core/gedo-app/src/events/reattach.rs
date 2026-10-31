@@ -6,8 +6,9 @@
 //! the same data, and machines join their entries by union (ADR-0014). The matching itself is
 //! `gedo_crdt::reattach`; this module reads the candidates and writes the result.
 
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashSet};
 
+use gedo_core::StoreError;
 use gedo_core::event::{Event, EventId, SemanticOp, TapeId};
 use gedo_core::identity::AstNodeId;
 use gedo_core::ids::GitOid;
@@ -353,19 +354,45 @@ impl<O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'_, O, R, W> {
     }
 
     /// The tapes of `index` whose commits are all unreachable from `tips`, with those commits.
-    fn detached_set(&self, index: &IndexMap, tips: &[GitOid]) -> Result<IndexMap, EventError> {
-        let mut unseen: HashSet<GitOid> = index.values().flatten().copied().collect();
+    ///
+    /// Commits are visited from the highest generation down, and the walk stops once every commit
+    /// still to visit is below the lowest generation of the indexed commits not seen yet: none of
+    /// those can be reached any more (IMP-006, research R3 of feature 008). An indexed commit
+    /// missing from the object database is unreachable.
+    fn detached_set(&mut self, index: &IndexMap, tips: &[GitOid]) -> Result<IndexMap, EventError> {
+        let mut pending: BTreeSet<(u64, GitOid)> = BTreeSet::new();
+        for commit in index.values().flatten().copied().collect::<BTreeSet<_>>() {
+            match self.generation(&commit) {
+                Ok(generation) => {
+                    pending.insert((generation, commit));
+                }
+                Err(EventError::Store {
+                    source: StoreError::ObjectNotFound { oid, .. },
+                    ..
+                }) if oid == commit => {}
+                Err(error) => return Err(error),
+            }
+        }
+        let mut frontier: BinaryHeap<(u64, GitOid)> = BinaryHeap::new();
+        for tip in tips {
+            frontier.push((self.generation(tip)?, *tip));
+        }
         let mut seen: HashSet<GitOid> = HashSet::new();
         let mut reachable: HashSet<GitOid> = HashSet::new();
-        let mut stack: Vec<GitOid> = tips.to_vec();
-        while let Some(commit) = stack.pop() {
-            if unseen.is_empty() {
+        let mut read = 0usize;
+        let mut bounded = false;
+        while let Some((generation, commit)) = frontier.pop() {
+            let Some(&(lowest, _)) = pending.first() else {
+                break;
+            };
+            if generation < lowest {
+                bounded = true;
                 break;
             }
             if !seen.insert(commit) {
                 continue;
             }
-            if unseen.remove(&commit) {
+            if pending.remove(&(generation, commit)) {
                 reachable.insert(commit);
             }
             let parents = self
@@ -373,8 +400,14 @@ impl<O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'_, O, R, W> {
                 .read_commit(&commit)
                 .context(|| format!("read commit {commit}"))?
                 .parents;
-            stack.extend(parents);
+            read += 1;
+            for parent in parents {
+                if !seen.contains(&parent) {
+                    frontier.push((self.generation(&parent)?, parent));
+                }
+            }
         }
+        tracing::debug!(commits_read = read, bounded, "detached-tape search done");
         Ok(index
             .iter()
             .filter(|(_, commits)| !commits.iter().any(|commit| reachable.contains(commit)))

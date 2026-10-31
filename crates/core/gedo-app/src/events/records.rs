@@ -24,6 +24,11 @@ pub const COMMIT_TAPES_COLLECTION: &str = "commit-tapes";
 /// Symbol cache namespace keeping stored event records by event id (local derived data).
 pub const EVENTS_CACHE_NAMESPACE: &str = "events";
 
+/// Symbol cache namespace keeping commit generations by commit id (local derived data, IMP-006).
+pub const GENERATIONS_CACHE_NAMESPACE: &str = "generations";
+/// Format of a generation record: this byte, then the generation as 8 little-endian bytes.
+pub const GENERATION_FORMAT: u8 = 1;
+
 /// Symbol cache namespace of the retention record (local state, research R9 of feature 005).
 pub const RETENTION_CACHE_NAMESPACE: &str = "retention";
 /// Key of the retention record in its namespace.
