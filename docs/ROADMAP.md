@@ -26,8 +26,8 @@ Each release: `## vX.Y.Z: <name>` with the fields `Status` (planned, in_progress
 
 ## v0.5.0: Team workflow on GitHub
 - **Status**: planned
-- **Goal**: Gedo value is visible on every pull request, data survives server-side merges, the merge queue is checked semantically, no work is ever lost, Cargo.toml is merged structurally and Cargo.lock regenerated, and parallel coding agents work in hidden streams that see each other's intents, with scopes checked for overlap before they start.
-- **Items**: FEAT-096, FEAT-097, FEAT-098, FEAT-093, FEAT-094, FEAT-095, FEAT-100, FEAT-057, FEAT-129, FEAT-130, FEAT-133, FEAT-136
+- **Goal**: Gedo value is visible on every pull request, data survives server-side merges, the merge queue is checked semantically, no work is ever lost, Cargo.toml is merged structurally and Cargo.lock regenerated, and parallel coding agents work in hidden streams that see each other's intents, with scopes checked for overlap before they start; tools resolve the code entities they reference at any revision.
+- **Items**: FEAT-096, FEAT-097, FEAT-098, FEAT-093, FEAT-094, FEAT-095, FEAT-100, FEAT-057, FEAT-129, FEAT-130, FEAT-133, FEAT-136, FEAT-137
 
 ## v0.6.0: Levix stacks
 - **Status**: planned
