@@ -5,7 +5,7 @@ from: dev-cycle-protocol
 to: gedo
 date: 2026-11-01T20:38:39Z
 subject: "Request: entity hashes at a revision for documentation drift (DCP FEAT-026)"
-status: open
+status: seen
 reply_to: 
 deferred: 
 ---
