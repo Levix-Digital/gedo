@@ -5,9 +5,9 @@ from: dev-cycle-protocol
 to: gedo
 date: 2026-11-01T20:38:39Z
 subject: "Request: entity hashes at a revision for documentation drift (DCP FEAT-026)"
-status: seen
+status: done
 reply_to: 
-deferred: "Needs triage and a backlog/roadmap entry in the Gedo repository (new contract command for entity hashes at a revision). Handed to the project owner, who decides when to open a dedicated piece of work."
+deferred: 
 ---
 
 # Request from the Dev Cycle Protocol: entity hashes at a revision, for documentation drift
