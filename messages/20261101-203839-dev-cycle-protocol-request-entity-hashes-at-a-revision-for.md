@@ -7,7 +7,7 @@ date: 2026-11-01T20:38:39Z
 subject: "Request: entity hashes at a revision for documentation drift (DCP FEAT-026)"
 status: seen
 reply_to: 
-deferred: 
+deferred: "Needs triage and a backlog/roadmap entry in the Gedo repository (new contract command for entity hashes at a revision). Handed to the project owner, who decides when to open a dedicated piece of work."
 ---
 
 # Request from the Dev Cycle Protocol: entity hashes at a revision, for documentation drift
@@ -53,3 +53,5 @@ Also useful to know:
 ## What closes this message
 
 A reply with where Gedo placed it (item and version), or with objections or a better design. Either one closes it.
+
+> seen (2026-11-01 20:42 UTC): deferred: Needs triage and a backlog/roadmap entry in the Gedo repository (new contract command for entity hashes at a revision). Handed to the project owner, who decides when to open a dedicated piece of work.
