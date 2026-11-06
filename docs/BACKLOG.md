@@ -6,14 +6,6 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 
 ## Bugs
 
-### BUG-011: Detached-tape search slightly over budget on the reference machine
-- **Severity**: low
-- **Epic**: EPIC-005
-- **Status**: open
-- **Found**: 2026-10-31, v0.3.0, PR #26, reference bench
-- **Plan**: -
-- **Description**: On the reference machine (i7-12700KF, Windows 11) with 100,000 commits without Gedo data, the detached-tape search with generations cached gave p95 45, 48 and 51 ms over three runs (SC-001 of specs/008-bounded-detached-walk: under 50 ms), and the first call with an empty cache 0.90, 0.74 and 1.16 s against 0.45 to 0.47 s before (SC-002: at most twice). The container gives 13 ms cached. Likely causes: one cache read per commit and per parent on the cached path, and the full walk plus the cache write on the first call. Measure where the time goes on Windows before changing anything.
-
 ## Features
 
 ### FEAT-008: SHA-256 repository support
@@ -1410,3 +1402,12 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: gedo_bounded_detached_tape_walk
 - **Closed**: 2026-10-31, PR #25
 - **Description**: EventLog::detached and reattach_new walk the history from the tips until every indexed commit is found; when some tape is really detached they walk the whole history on every call. Fast on the benchmark (a few hundred commits) but linear in the history on large repositories. Keep commit generations as local derived data (or use the commit-graph) and stop the walk below the lowest generation of the indexed commits still unseen; measure on a large repository first.
+
+### BUG-011: Detached-tape search slightly over budget on the reference machine
+- **Severity**: low
+- **Epic**: EPIC-005
+- **Status**: done
+- **Found**: 2026-10-31, v0.3.0, PR #26, reference bench
+- **Plan**: -
+- **Closed**: 2026-11-06, PR #29
+- **Description**: On the reference machine (i7-12700KF, Windows 11) with 100,000 commits without Gedo data, the detached-tape search with generations cached gave p95 45, 48 and 51 ms over three runs (SC-001 of specs/008-bounded-detached-walk: under 50 ms), and the first call with an empty cache 0.90, 0.74 and 1.16 s against 0.45 to 0.47 s before (SC-002: at most twice). The container gives 13 ms cached. Likely causes: one cache read per commit and per parent on the cached path, and the full walk plus the cache write on the first call. Measure where the time goes on Windows before changing anything. Fixed in PR #29: tree and commit reads look the object up once (no header lookup), and generations are written to the cache sorted by commit id. Reference machine, three runs each, 45dbcab before and 9e8b86c after: cached p50 38.8-41.3 ms to 20.2-21.1 ms, p95 39.6-43.2 ms to 20.6-23.2 ms (SC-001 met); first call 683-725 ms to 634-635 ms (SC-002 met, at most 0.94 s).
