@@ -216,13 +216,15 @@ impl StreamStore for FileStreamStore {
     }
 
     fn remove(&self, name: &StreamName) -> Result<(), StoreError> {
-        self.pin(name, None)?;
+        // The directory goes first: if it cannot be removed (a file held open on Windows), the
+        // stream stays whole, pin included, so its work is never left unpinned.
         let directory = self.directory(name);
         match retry_sharing_violation(&directory, || fs::remove_dir_all(&directory)) {
-            Ok(()) => Ok(()),
-            Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(()),
-            Err(error) => Err(StoreError::io("remove stream", &directory, error)),
+            Ok(()) => {}
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+            Err(error) => return Err(StoreError::io("remove stream", &directory, error)),
         }
+        self.pin(name, None)
     }
 
     fn open_log(&self, name: &StreamName) -> Result<FileWal, StoreError> {
