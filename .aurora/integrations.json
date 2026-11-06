@@ -1,0 +1,34 @@
+{
+  "schema": "aurora.integrations",
+  "schema_version": "1.0",
+  "project": "gedo",
+  "name": "Gedo",
+  "repository": "https://github.com/Levix-Digital/gedo",
+  "counterparts": [
+    {
+      "slug": "aurora-dev-suite",
+      "name": "Aurora Dev Suite",
+      "url": "https://github.com/Levix-Digital/aurora-dev-suite.git"
+    },
+    {
+      "slug": "dev-cycle-protocol",
+      "name": "Dev Cycle Protocol",
+      "url": "https://github.com/Levix-Digital/ai-code-agent-skills.git"
+    },
+    {
+      "slug": "any-context",
+      "name": "AnyContext",
+      "url": "https://github.com/Levix-Digital/any-context.git"
+    },
+    {
+      "slug": "levix-platform",
+      "name": "Levix Platform",
+      "url": "https://github.com/Levix-Digital/levix-platform.git"
+    },
+    {
+      "slug": "levix-admin-hub",
+      "name": "Levix Admin Hub",
+      "url": "https://github.com/Levix-Digital/levix-admin-hub.git"
+    }
+  ]
+}
