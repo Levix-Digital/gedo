@@ -12,7 +12,7 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use gedo_core::ports::StreamStore;
+use gedo_core::ports::{StreamStore, WriteAheadLog};
 use gedo_core::stream::StreamName;
 use gedo_core::{GitOid, StoreError};
 use gix::refs::Target;
@@ -150,6 +150,29 @@ fn replace_file(path: &Path, bytes: &[u8]) -> Result<(), StoreError> {
     Ok(())
 }
 
+/// Clears what an earlier stream left in `directory` (no record): its log's records and
+/// temporary files. The caller holds `log`, the directory's lock.
+fn clear_leftovers(directory: &Path, log: &mut FileWal) -> Result<(), StoreError> {
+    let records = log.read_all()?;
+    if let Some((last, _)) = records.last() {
+        log.truncate_through(*last)?;
+        tracing::warn!(path = %directory.display(), records = records.len(), "stale stream log cleared");
+    }
+    let entries =
+        fs::read_dir(directory).map_err(|error| StoreError::io("list stream files", directory, error))?;
+    for entry in entries {
+        let entry = entry.map_err(|error| StoreError::io("list stream files", directory, error))?;
+        let file_name = entry.file_name();
+        if file_name.to_string_lossy().contains(".tmp-") {
+            let path = entry.path();
+            retry_sharing_violation(&path, || fs::remove_file(&path))
+                .map_err(|error| StoreError::io("remove temporary file", &path, error))?;
+            tracing::warn!(path = %path.display(), "stale stream temporary file removed");
+        }
+    }
+    Ok(())
+}
+
 fn read_optional(path: &Path) -> Result<Option<Vec<u8>>, StoreError> {
     match retry_sharing_violation(path, || fs::read(path)) {
         Ok(bytes) => Ok(Some(bytes)),
@@ -188,7 +211,15 @@ impl StreamStore for FileStreamStore {
         let directory = self.directory(name);
         fs::create_dir_all(&directory)
             .map_err(|error| StoreError::io("create directory", &directory, error))?;
+        // The log's lock is held while creating: every other writer of this directory holds it
+        // too, so what is found here without a record was left by a removal or a creation that
+        // did not finish, and is cleared.
+        let mut log = FileWal::open(&directory)?;
         let path = self.record(name);
+        if path.is_file() {
+            return Ok(false);
+        }
+        clear_leftovers(&directory, &mut log)?;
         let temporary = write_temporary(&path, record)?;
         // A hard link fails when the record exists, so of two creations exactly one wins.
         let linked = fs::hard_link(&temporary, &path);
@@ -215,16 +246,29 @@ impl StreamStore for FileStreamStore {
         replace_file(&path, record)
     }
 
-    fn remove(&self, name: &StreamName) -> Result<(), StoreError> {
-        // The directory goes first: if it cannot be removed (a file held open on Windows), the
-        // stream stays whole, pin included, so its work is never left unpinned.
+    fn remove(&self, name: &StreamName, log: FileWal) -> Result<(), StoreError> {
+        // The record goes first, while the log is held: an operation waiting for the log finds no
+        // stream once it gets it, and a stream that exists always has its pin.
+        let path = self.record(name);
+        match retry_sharing_violation(&path, || fs::remove_file(&path)) {
+            Ok(()) => {}
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+            Err(error) => return Err(StoreError::io("remove stream record", &path, error)),
+        }
         let directory = self.directory(name);
+        sync_directory(&directory).map_err(|error| StoreError::io("sync directory", &directory, error))?;
+        // The log is closed before its directory is removed (Windows keeps open files).
+        drop(log);
+        self.pin(name, None)?;
         match retry_sharing_violation(&directory, || fs::remove_dir_all(&directory)) {
             Ok(()) => {}
             Err(error) if error.kind() == io::ErrorKind::NotFound => {}
-            Err(error) => return Err(StoreError::io("remove stream", &directory, error)),
+            // The stream is gone; what is left is cleared when a stream of this name is created.
+            Err(error) => {
+                tracing::warn!(path = %directory.display(), %error, "stream files left after removal")
+            }
         }
-        self.pin(name, None)
+        Ok(())
     }
 
     fn open_log(&self, name: &StreamName) -> Result<FileWal, StoreError> {
@@ -242,8 +286,11 @@ impl StreamStore for FileStreamStore {
         read_optional(&self.state)
     }
 
-    fn write_state(&self, state: &[u8], outside: Option<GitOid>) -> Result<(), StoreError> {
-        self.set_reference(&format!("{WORKTREE_PIN_PREFIX}{}", self.worktree), outside)?;
+    fn write_state(&self, state: &[u8]) -> Result<(), StoreError> {
         replace_file(&self.state, state)
+    }
+
+    fn pin_outside(&self, commit: Option<GitOid>) -> Result<(), StoreError> {
+        self.set_reference(&format!("{WORKTREE_PIN_PREFIX}{}", self.worktree), commit)
     }
 }

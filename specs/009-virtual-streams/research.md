@@ -24,11 +24,12 @@ Decisions taken while planning `specs/009-virtual-streams`. Each was checked aga
       fn read(&self, name: &StreamName) -> Result<Option<Vec<u8>>, StoreError>;
       fn create(&self, name: &StreamName, record: &[u8]) -> Result<bool, StoreError>; // false: exists
       fn replace(&self, name: &StreamName, record: &[u8]) -> Result<(), StoreError>;
-      fn remove(&self, name: &StreamName) -> Result<(), StoreError>;            // record, log, pin
+      fn remove(&self, name: &StreamName, log: Self::Log) -> Result<(), StoreError>; // record (log held), log, pin
       fn open_log(&self, name: &StreamName) -> Result<Self::Log, StoreError>;   // one writer, waits
       fn pin(&self, name: &StreamName, commit: Option<GitOid>) -> Result<(), StoreError>;
       fn read_state(&self) -> Result<Option<Vec<u8>>, StoreError>;              // this working tree
-      fn write_state(&self, state: &[u8], outside: Option<GitOid>) -> Result<(), StoreError>;
+      fn write_state(&self, state: &[u8]) -> Result<(), StoreError>;
+      fn pin_outside(&self, commit: Option<GitOid>) -> Result<(), StoreError>;
   }
   ```
 

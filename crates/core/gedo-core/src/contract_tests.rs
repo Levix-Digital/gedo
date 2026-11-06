@@ -1010,9 +1010,11 @@ pub fn streams_are_created_once<O: ObjectStore, S: crate::ports::StreamStore>(ma
         streams.names().expect("names"),
         vec![stream("a"), stream("dc"), stream("dc/m2")]
     );
-    streams.remove(&name).expect("remove");
+    let log = streams.open_log(&name).expect("open");
+    streams.remove(&name, log).expect("remove");
     assert_eq!(streams.read(&name).expect("read"), None);
-    streams.remove(&name).expect("remove an absent stream");
+    let log = streams.open_log(&name).expect("open");
+    streams.remove(&name, log).expect("remove an absent stream");
     assert_eq!(streams.names().expect("names"), vec![stream("a"), stream("dc")]);
     assert!(streams.replace(&name, b"x").is_err());
 }
@@ -1036,8 +1038,7 @@ pub fn stream_logs_have_one_writer<O: ObjectStore, S: crate::ports::StreamStore>
     }
     let log = streams.open_log(&name).expect("open again");
     assert_eq!(log.read_all().expect("read").len(), 1);
-    drop(log);
-    streams.remove(&name).expect("remove");
+    streams.remove(&name, log).expect("remove");
     assert!(streams.create(&name, b"a").expect("create again"));
     let log = streams.open_log(&name).expect("open");
     assert!(
@@ -1059,12 +1060,16 @@ pub fn stream_pins_and_state_are_kept<O: ObjectStore, S: crate::ports::StreamSto
     streams.pin(&name, Some(second)).expect("pin again");
     streams.pin(&name, None).expect("unpin");
     streams.pin(&name, Some(first)).expect("pin");
-    streams.remove(&name).expect("remove with its pin");
+    let log = streams.open_log(&name).expect("open");
+    streams.remove(&name, log).expect("remove with its pin");
 
     assert_eq!(streams.read_state().expect("read"), None);
-    streams.write_state(b"one", Some(first)).expect("write");
+    streams.write_state(b"one").expect("write");
+    streams.pin_outside(Some(first)).expect("pin the outside work");
     assert_eq!(streams.read_state().expect("read").as_deref(), Some(&b"one"[..]));
-    streams.write_state(b"two", None).expect("write");
+    streams.pin_outside(Some(second)).expect("pin it again");
+    streams.write_state(b"two").expect("write");
+    streams.pin_outside(None).expect("unpin");
     assert_eq!(streams.read_state().expect("read").as_deref(), Some(&b"two"[..]));
 }
 

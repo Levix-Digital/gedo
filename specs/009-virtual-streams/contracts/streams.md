@@ -17,11 +17,12 @@ pub trait StreamStore {
     fn read(&self, name: &StreamName) -> Result<Option<Vec<u8>>, StoreError>;
     fn create(&self, name: &StreamName, record: &[u8]) -> Result<bool, StoreError>;
     fn replace(&self, name: &StreamName, record: &[u8]) -> Result<(), StoreError>;
-    fn remove(&self, name: &StreamName) -> Result<(), StoreError>;
+    fn remove(&self, name: &StreamName, log: Self::Log) -> Result<(), StoreError>;
     fn open_log(&self, name: &StreamName) -> Result<Self::Log, StoreError>;
     fn pin(&self, name: &StreamName, commit: Option<GitOid>) -> Result<(), StoreError>;
     fn read_state(&self) -> Result<Option<Vec<u8>>, StoreError>;
-    fn write_state(&self, state: &[u8], outside: Option<GitOid>) -> Result<(), StoreError>;
+    fn write_state(&self, state: &[u8]) -> Result<(), StoreError>;
+    fn pin_outside(&self, commit: Option<GitOid>) -> Result<(), StoreError>;
 }
 ```
 

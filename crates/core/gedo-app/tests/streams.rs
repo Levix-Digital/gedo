@@ -646,8 +646,8 @@ impl StreamStore for Failing {
         self.write()?;
         self.inner.replace(name, record)
     }
-    fn remove(&self, name: &StreamName) -> Result<(), StoreError> {
-        self.inner.remove(name)
+    fn remove(&self, name: &StreamName, log: MemoryStreamLog) -> Result<(), StoreError> {
+        self.inner.remove(name, log)
     }
     fn open_log(&self, name: &StreamName) -> Result<MemoryStreamLog, StoreError> {
         self.inner.open_log(name)
@@ -659,8 +659,12 @@ impl StreamStore for Failing {
     fn read_state(&self) -> Result<Option<Vec<u8>>, StoreError> {
         self.inner.read_state()
     }
-    fn write_state(&self, state: &[u8], outside: Option<GitOid>) -> Result<(), StoreError> {
-        self.inner.write_state(state, outside)
+    fn write_state(&self, state: &[u8]) -> Result<(), StoreError> {
+        self.inner.write_state(state)
+    }
+    fn pin_outside(&self, commit: Option<GitOid>) -> Result<(), StoreError> {
+        self.write()?;
+        self.inner.pin_outside(commit)
     }
 }
 
@@ -851,6 +855,75 @@ fn discard_refuses_to_drop_work_unless_forced() {
         .create(&name("empty"), None, Labels::new(), Some(base))
         .expect("created");
     streams.discard(&name("empty"), false).expect("nothing to lose");
+}
+
+#[test]
+fn events_recorded_while_a_stream_is_discarded_never_reach_a_new_stream_of_its_name() {
+    for _ in 0..64 {
+        let repo = Repo::new();
+        let base = repo.commit(&[], "pub fn f() {}\n");
+        repo.streams()
+            .create(&name("a"), None, Labels::new(), Some(base))
+            .expect("created");
+        std::thread::scope(|scope| {
+            scope.spawn(|| {
+                // Before the discard it records into the stream it drops; after, it finds none.
+                let _ = repo.streams().record(&name("a"), EMAIL, &[created(1)]);
+            });
+            scope.spawn(|| {
+                while let Err(StreamError::Store {
+                    source: StoreError::WalBusy { .. },
+                    ..
+                }) = repo.streams().discard(&name("a"), true)
+                {
+                    std::thread::yield_now();
+                }
+            });
+        });
+        let streams = repo.streams();
+        assert!(matches!(streams.get(&name("a")), Err(StreamError::NotFound(_))));
+        streams
+            .create(&name("a"), None, Labels::new(), Some(base))
+            .expect("created again");
+        assert!(streams.pending(&name("a")).expect("pending").is_empty());
+    }
+}
+
+#[test]
+fn switching_back_and_forth_without_changes_writes_nothing_more() {
+    let repo = Repo::new();
+    let base = repo.commit(&[], "pub fn f() {}\n");
+    let failing = Failing {
+        inner: repo.store.clone(),
+        writes: Cell::new(0),
+        fail_at: usize::MAX,
+    };
+    let streams = Streams::new(&repo.history.objects, &repo.refs, &failing);
+    for stream in ["a", "b"] {
+        streams
+            .create(&name(stream), None, Labels::new(), Some(base))
+            .expect("created");
+    }
+    let outside = repo.tree("pub fn outside() {}\n");
+    let work = repo.tree("pub fn work() {}\n");
+    streams.switch(Some(&name("a")), outside).expect("entered");
+    streams.switch(Some(&name("b")), work).expect("switched");
+    streams.switch(None, repo.tree_of(base)).expect("left");
+    let writes = failing.writes.get();
+    for _ in 0..3 {
+        streams.switch(Some(&name("a")), outside).expect("entered");
+        streams.switch(Some(&name("b")), work).expect("switched");
+        streams.switch(None, repo.tree_of(base)).expect("left");
+    }
+    assert_eq!(
+        failing.writes.get(),
+        writes,
+        "no record, pin or outside pin is written again for unchanged work"
+    );
+    assert!(
+        repo.store.outside_pin().is_some(),
+        "the outside work stays pinned"
+    );
 }
 
 #[test]

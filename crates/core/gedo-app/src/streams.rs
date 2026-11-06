@@ -302,7 +302,15 @@ impl<'a, O: ObjectStore, R: RefStore, S: StreamStore> Streams<'a, O, R, S> {
         };
         match &active {
             Some(name) => self.save_work(name, current)?,
-            None => state.outside = Some(current),
+            // The outside work is pinned only when it changed, not on every switch.
+            None if state.outside != Some(current) => {
+                let pin = self.work_commit(current, None)?;
+                self.store
+                    .pin_outside(Some(pin))
+                    .context(|| "pin the outside work".into())?;
+                state.outside = Some(current);
+            }
+            None => {}
         }
         let work = match target {
             Some(target) => {
@@ -390,10 +398,10 @@ impl<'a, O: ObjectStore, R: RefStore, S: StreamStore> Streams<'a, O, R, S> {
                 work,
             });
         }
-        // The log is closed before its directory is removed (Windows keeps open files).
-        drop(wal);
+        // The stream is removed while its log is held, so no other operation can record into it
+        // in between.
         self.store
-            .remove(name)
+            .remove(name, wal)
             .context(|| format!("remove stream {name}"))?;
         let mut state = self.state()?;
         if state.active.as_ref() == Some(name) {
@@ -444,7 +452,12 @@ impl<'a, O: ObjectStore, R: RefStore, S: StreamStore> Streams<'a, O, R, S> {
     fn save_work(&self, name: &StreamName, work: GitOid) -> Result<(), StreamError> {
         let (_wal, mut stream) = self.open(name)?;
         let base_tree = self.base_tree(&stream)?;
-        stream.work = (work != base_tree).then_some(work);
+        let work = (work != base_tree).then_some(work);
+        if work == stream.work {
+            // Already saved and pinned.
+            return Ok(());
+        }
+        stream.work = work;
         let pin = match stream.work {
             Some(work) => Some(self.work_commit(work, stream.base)?),
             None => stream.base,
@@ -500,13 +513,9 @@ impl<'a, O: ObjectStore, R: RefStore, S: StreamStore> Streams<'a, O, R, S> {
     }
 
     fn write_state(&self, state: &WorktreeState) -> Result<(), StreamError> {
-        let pin = state
-            .outside
-            .map(|outside| self.work_commit(outside, None))
-            .transpose()?;
         let bytes = encode_state(state).context(|| "encode the stream state".into())?;
         self.store
-            .write_state(&bytes, pin)
+            .write_state(&bytes)
             .context(|| "write the stream state".into())
     }
 }

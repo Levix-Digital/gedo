@@ -80,6 +80,12 @@ impl StreamStore for MemoryStreamStore {
         if shared.records.contains_key(name) {
             return Ok(false);
         }
+        // A log left by an earlier stream of this name goes, unless someone holds it.
+        if let Some((_, busy)) = shared.logs.get(name)
+            && !busy.load(Ordering::SeqCst)
+        {
+            shared.logs.remove(name);
+        }
         shared.records.insert(name.clone(), record.to_vec());
         Ok(true)
     }
@@ -98,11 +104,13 @@ impl StreamStore for MemoryStreamStore {
         }
     }
 
-    fn remove(&self, name: &StreamName) -> Result<(), StoreError> {
+    fn remove(&self, name: &StreamName, log: MemoryStreamLog) -> Result<(), StoreError> {
         let mut shared = lock(&self.shared);
         shared.records.remove(name);
         shared.logs.remove(name);
         shared.pins.remove(name);
+        drop(shared);
+        drop(log);
         Ok(())
     }
 
@@ -134,8 +142,12 @@ impl StreamStore for MemoryStreamStore {
         Ok(lock(&self.state).clone())
     }
 
-    fn write_state(&self, state: &[u8], outside: Option<GitOid>) -> Result<(), StoreError> {
+    fn write_state(&self, state: &[u8]) -> Result<(), StoreError> {
         *lock(&self.state) = Some(state.to_vec());
+        Ok(())
+    }
+
+    fn pin_outside(&self, outside: Option<GitOid>) -> Result<(), StoreError> {
         let mut shared = lock(&self.shared);
         match outside {
             Some(commit) => shared.outside_pins.insert(self.worktree.clone(), commit),

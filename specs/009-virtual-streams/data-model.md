@@ -14,7 +14,7 @@ Stored forms: `encode_stream(&Stream) -> Vec<u8>` and `decode_stream(name, &[u8]
 
 ## gedo-core::ports::stream
 
-`StreamStore` (research R2): `names`, `read`, `create` (false when the name exists), `replace`, `remove` (record, log and pin), `open_log` (`type Log: WriteAheadLog`, one writer, waits then `WalBusy`), `pin(name, Option<GitOid>)`, `read_state`, `write_state(state, outside_pin)`.
+`StreamStore` (research R2): `names`, `read`, `create` (false when the name exists), `replace`, `remove(name, log)` (the record while the caller holds the log, then the log and the pin), `open_log` (`type Log: WriteAheadLog`, one writer, waits then `WalBusy`), `pin(name, Option<GitOid>)`, `read_state`, `write_state(state)`, `pin_outside(Option<GitOid>)`.
 
 ## gedo-crdt::streams
 
