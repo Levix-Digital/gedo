@@ -12,17 +12,17 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use gedo_core::ports::{StreamStore, WriteAheadLog};
+use gedo_core::ports::StreamStore;
 use gedo_core::stream::StreamName;
 use gedo_core::{GitOid, StoreError};
 use gix::refs::Target;
 use gix::refs::transaction::{Change, LogChange, PreviousValue, RefEdit, RefLog};
 
 use crate::convert::to_gix_oid;
-use crate::fs::{retry_sharing_violation, sync_directory};
+use crate::fs::retry_sharing_violation;
 use crate::refs::REF_LOCK_WAIT_MS;
 use crate::repository::GitRepository;
-use crate::wal::FileWal;
+use crate::wal::{FileWal, WAL_FILE_NAME, WriterLock};
 
 /// Directory of the streams, inside `.git/gedo/`.
 pub const STREAMS_DIR_NAME: &str = "streams";
@@ -113,7 +113,12 @@ impl FileStreamStore {
     }
 }
 
-/// Writes `bytes` to a temporary file next to `path`, synced, and returns it.
+/// Writes `bytes` to a temporary file next to `path` and returns it.
+///
+/// Records and states are not synced: a complete temporary file is renamed or linked into place,
+/// so a crash of the process leaves the old or the new content, never a part; like Git's own
+/// references (which hold the tapes these records point to), the last update may be lost to a
+/// power failure. Syncing each write costs 6 to 8 ms on Windows (ADR-0020).
 fn write_temporary(path: &Path, bytes: &[u8]) -> Result<PathBuf, StoreError> {
     let file_name = path
         .file_name()
@@ -126,7 +131,6 @@ fn write_temporary(path: &Path, bytes: &[u8]) -> Result<PathBuf, StoreError> {
         .open(&temporary)
         .map_err(|error| StoreError::io("create temporary file", &temporary, error))?;
     file.write_all(bytes)
-        .and_then(|()| file.sync_all())
         .map_err(|error| StoreError::io("write temporary file", &temporary, error))?;
     Ok(temporary)
 }
@@ -143,20 +147,17 @@ fn replace_file(path: &Path, bytes: &[u8]) -> Result<(), StoreError> {
     retry_sharing_violation(path, || fs::rename(&temporary, path)).map_err(|error| {
         let _ = fs::remove_file(&temporary);
         StoreError::io("replace file", path, error)
-    })?;
-    if let Some(parent) = path.parent() {
-        sync_directory(parent).map_err(|error| StoreError::io("sync directory", parent, error))?;
-    }
-    Ok(())
+    })
 }
 
-/// Clears what an earlier stream left in `directory` (no record): its log's records and
-/// temporary files. The caller holds `log`, the directory's lock.
-fn clear_leftovers(directory: &Path, log: &mut FileWal) -> Result<(), StoreError> {
-    let records = log.read_all()?;
-    if let Some((last, _)) = records.last() {
-        log.truncate_through(*last)?;
-        tracing::warn!(path = %directory.display(), records = records.len(), "stale stream log cleared");
+/// Clears what an earlier stream left in `directory` (no record): its log and temporary files.
+/// The caller holds the directory's writer lock, so no one has them open.
+fn clear_leftovers(directory: &Path) -> Result<(), StoreError> {
+    let log = directory.join(WAL_FILE_NAME);
+    match retry_sharing_violation(&log, || fs::remove_file(&log)) {
+        Ok(()) => tracing::warn!(path = %log.display(), "stale stream log cleared"),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+        Err(error) => return Err(StoreError::io("remove stale stream log", &log, error)),
     }
     let entries =
         fs::read_dir(directory).map_err(|error| StoreError::io("list stream files", directory, error))?;
@@ -214,22 +215,18 @@ impl StreamStore for FileStreamStore {
         // The log's lock is held while creating: every other writer of this directory holds it
         // too, so what is found here without a record was left by a removal or a creation that
         // did not finish, and is cleared.
-        let mut log = FileWal::open(&directory)?;
+        let _lock = WriterLock::acquire(&directory)?;
         let path = self.record(name);
         if path.is_file() {
             return Ok(false);
         }
-        clear_leftovers(&directory, &mut log)?;
+        clear_leftovers(&directory)?;
         let temporary = write_temporary(&path, record)?;
         // A hard link fails when the record exists, so of two creations exactly one wins.
         let linked = fs::hard_link(&temporary, &path);
         let _ = fs::remove_file(&temporary);
         match linked {
-            Ok(()) => {
-                sync_directory(&directory)
-                    .map_err(|error| StoreError::io("sync directory", &directory, error))?;
-                Ok(true)
-            }
+            Ok(()) => Ok(true),
             Err(error) if error.kind() == io::ErrorKind::AlreadyExists => Ok(false),
             Err(error) => Err(StoreError::io("create stream record", &path, error)),
         }
@@ -256,7 +253,6 @@ impl StreamStore for FileStreamStore {
             Err(error) => return Err(StoreError::io("remove stream record", &path, error)),
         }
         let directory = self.directory(name);
-        sync_directory(&directory).map_err(|error| StoreError::io("sync directory", &directory, error))?;
         // The log is closed before its directory is removed (Windows keeps open files).
         drop(log);
         self.pin(name, None)?;

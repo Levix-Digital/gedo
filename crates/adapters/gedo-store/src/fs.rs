@@ -9,7 +9,7 @@ pub const SHARING_RETRY_MS: u64 = 2_000;
 const SHARING_RETRY_PAUSE_MS: u64 = 20;
 
 /// Runs `operation`, retrying for up to [`SHARING_RETRY_MS`] while Windows reports a sharing
-/// violation. On other platforms, and for other errors, the first result is returned.
+/// violation, or access denied (what replacing a file another program holds open gives). On other platforms, and for other errors, the first result is returned.
 pub fn retry_sharing_violation<T>(
     path: &Path,
     mut operation: impl FnMut() -> io::Result<T>,
@@ -28,11 +28,12 @@ pub fn retry_sharing_violation<T>(
 
 #[cfg(windows)]
 fn is_sharing_violation(error: &io::Error) -> bool {
+    const ERROR_ACCESS_DENIED: i32 = 5;
     const ERROR_SHARING_VIOLATION: i32 = 32;
     const ERROR_LOCK_VIOLATION: i32 = 33;
     matches!(
         error.raw_os_error(),
-        Some(ERROR_SHARING_VIOLATION | ERROR_LOCK_VIOLATION)
+        Some(ERROR_ACCESS_DENIED | ERROR_SHARING_VIOLATION | ERROR_LOCK_VIOLATION)
     )
 }
 

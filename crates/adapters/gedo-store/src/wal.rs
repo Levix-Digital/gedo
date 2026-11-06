@@ -199,6 +199,22 @@ fn frame(payload: &[u8]) -> Vec<u8> {
     frame
 }
 
+/// The writer lock of the log in a directory, held without opening the log: whoever holds it is
+/// the only writer of the log until it is dropped.
+#[derive(Debug)]
+pub struct WriterLock {
+    _file: File,
+}
+
+impl WriterLock {
+    /// Takes the writer lock of the log in `gedo_dir`, waiting like [`FileWal::open`].
+    pub fn acquire(gedo_dir: &Path) -> Result<Self, StoreError> {
+        Ok(WriterLock {
+            _file: acquire_lock(&gedo_dir.join(WAL_LOCK_FILE_NAME))?,
+        })
+    }
+}
+
 fn acquire_lock(path: &Path) -> Result<File, StoreError> {
     let file = retry_sharing_violation(path, || {
         OpenOptions::new()

@@ -25,6 +25,7 @@ FEAT-068 asks for virtual streams: named units of work that switch or isolate wo
 - **Work as trees, pinned.** Switching saves the caller's current work tree into the stream left (or as the outside work) and returns the target's. Saved work is kept alive by a work commit (the tree on the stream's base), written only when the work changed, pointed to by a local reference, `refs/gedo-local/streams/<key>` or `refs/gedo-local/worktrees/<id>`, outside `refs/gedo/` and therefore never pushed or fetched. Gedo writes no working file, index, `HEAD` or branch.
 - **Publish recorded before its tape.** Publishing writes the commit, records it in the stream (`publishing`) and pins it, publishes the stream's log as its tape with `EventLog::publish`, then moves the stream onto it. Every later operation on the stream completes a publish in progress with the same commit. No branch moves; the stream stays open until discarded.
 - **One lock.** Every change of a stream's record is made while holding the stream's log, which has one writer at a time.
+- **Atomic, not synced.** Records and states are written as a complete temporary file renamed or linked into place, so a crash of the process leaves the old or the new content. They are not synced: like Git's references, which hold the tapes and pins these records point to, the last update may be lost to a power failure. A sync costs 6 to 8 ms on Windows, more than the whole budget of a switch.
 - A stream is a side of the convergence of ADR-0017 (its base and pending events). Discarding refuses to drop pending events or saved work unless forced.
 
 ## Alternatives Considered
@@ -34,6 +35,7 @@ FEAT-068 asks for virtual streams: named units of work that switch or isolate wo
 - **One file and one log for all streams**: two agents in two streams would wait on each other's writes.
 - **Readable directory names**: `CON` and `nul` are refused on Windows, `A` and `a` are one directory on Windows and macOS, and `/` would nest directories.
 - **Pinning trees directly**: a second reference would be needed to keep the base; a commit keeps both, as `git stash` does.
+- **Syncing every record and state write**: durable against power failures, but create, switch and publish missed their 10 ms budget on the Windows reference machine (create p95 21 to 39 ms), while the references they depend on are not synced either.
 - **Closing the stream on publish**: the clarification keeps it open on the new commit.
 - **Merging the environment's labels into a stream's**: a stream's events would differ by process, and tools filter by the stream's labels.
 
