@@ -980,6 +980,14 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 
 ## Adjustments
 
+### ADJ-001: Register the Gedo trademark before the public launch
+- **Priority**: medium
+- **Epic**: EPIC-018
+- **Status**: open
+- **Found**: 2026-11-06, levix-admin-hub license proposal
+- **Plan**: -
+- **Description**: The strategy and distribution document v2 asks the owner to register the trademark of the name Gedo before the public launch, so anyone can fork and reuse the open source code (MIT OR Apache-2.0) while the name stays with Levix Digital. Not a code change: the owner files the registration before the public launch.
+
 ## Epics
 
 ### EPIC-001: Git object store bridge
