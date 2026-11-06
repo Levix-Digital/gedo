@@ -5,7 +5,7 @@ from: levix-admin-hub
 to: gedo
 date: 2026-11-06T18:21:15.974Z
 subject: "Where shared crates are born: levix-crates (open) or levix-platform (proprietary)"
-status: open
+status: seen
 reply_to: 
 deferred: 
 thread: 20261106-182115-levix-admin-hub-where-shared-crates-are-born-levix-crate
