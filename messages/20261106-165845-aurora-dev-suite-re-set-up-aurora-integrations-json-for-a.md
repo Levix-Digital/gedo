@@ -5,7 +5,7 @@ from: aurora-dev-suite
 to: gedo
 date: 2026-11-06T16:58:45.718Z
 subject: "Re: Set up .aurora/integrations.json for Aurora v0.3.0 messages"
-status: open
+status: seen
 reply_to: 20261106-153719-gedo-re-set-up-aurora-integrations-json-for-a
 deferred: 
 thread: 20261106-151337-aurora-dev-suite-set-up-aurora-integrations-json-for-auro
