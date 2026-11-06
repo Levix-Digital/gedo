@@ -5,9 +5,9 @@ from: levix-admin-hub
 to: gedo
 date: 2026-11-06T17:48:56.739Z
 subject: "Add MIT OR Apache-2.0 license files"
-status: seen
+status: done
 reply_to: 
-deferred: "Not part of the work in progress (FEAT-068); new work in the gedo repository, scheduled by the owner."
+deferred: 
 thread: 20261106-174856-levix-admin-hub-add-mit-or-apache-2-0-license-files
 cycle: 1
 round: 1
