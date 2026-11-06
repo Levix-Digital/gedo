@@ -387,9 +387,9 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 ### FEAT-068: Virtual streams
 - **Priority**: high
 - **Epic**: EPIC-005
-- **Status**: open
+- **Status**: planned
 - **Found**: 2026-10-24
-- **Plan**: -
+- **Plan**: gedo_virtual_streams
 - **Description**: gedo stream <name>: switch or isolate work in memory without git stash or checkout. A stream carries the same opaque labels as events (FEAT-063), set at creation, and an optional agent author (--agent <id>), so a tool can open one stream per plan milestone or per agent and find it again with gedo stream list --label key=value --json. Every event recorded inside a stream inherits its author and labels; outside a stream the author is the person of the Git identity, or the agent and labels named by GEDO_AGENT and GEDO_LABELS. The prefix gedo. is reserved for Gedo's own keys (ADR-0013).
 
 ### FEAT-069: Deterministic sequencer
