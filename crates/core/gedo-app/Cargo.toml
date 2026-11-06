@@ -51,5 +51,9 @@ harness = false
 name = "detached"
 harness = false
 
+[[bench]]
+name = "streams"
+harness = false
+
 [lints]
 workspace = true

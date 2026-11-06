@@ -1,7 +1,7 @@
 <!-- dev-cycle-constitution
 generated-by: dev-cycle-protocol/constitution.py (do not edit; change a source and regenerate)
-sources-sha256: f38848c8bded2e14bc99b24d5489afc6a10547d17d4fcdb3094bd7c8e5796c7c
-content-sha256: 30882d86d648b02e6fff05f9a68e7df838269081f29cdf905d07e38dd1d138cd
+sources-sha256: c2914b3b1263707686915ae5b99fbaa33f88a68c5cce8e24388f0ac07a121235
+content-sha256: cf96e9f0b62d6bddd4cc09264e6b2e39d091739f5e9cba88bde9ed141da4c95e
 -->
 # gedo Constitution
 
@@ -206,6 +206,7 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - ADR-0017: Tree CRDT as a three-way convergence of entity parts (`docs/adr/0017-tree-crdt-as-a-three-way-convergence-of-entity-parts.md`)
 - ADR-0018: Semantic lanes per part with a refactor commit verified by re-indexing (`docs/adr/0018-semantic-lanes-per-part-with-a-refactor-commit-verified-by-r.md`)
 - ADR-0019: Commit generations in the symbol cache and a generation-bounded detached-tape search (`docs/adr/0019-commit-generations-in-the-symbol-cache-and-a-generation-boun.md`)
+- ADR-0020: Virtual streams as local records with their own log and pinned work commits (`docs/adr/0020-virtual-streams-as-local-records-with-their-own-log-and-pinn.md`)
 
 ## Governance
 
@@ -213,4 +214,4 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - Amendments change the source, not this file: an ADR for decisions, the technical specification for requirements and constraints, `.dev-cycle.json` for the architecture style, the skills for principles. Then run `constitution.py generate` and commit the result with the change.
 - Gate 3 of the development cycle blocks a plan while this file is stale or edited by hand.
 
-**Version**: 1.13.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-10-31
+**Version**: 1.14.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-11-06

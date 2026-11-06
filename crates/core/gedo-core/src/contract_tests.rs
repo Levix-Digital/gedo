@@ -3,7 +3,8 @@
 //!
 //! Each check is a public function taking a factory of fresh, empty stores; the macros
 //! [`object_store_contract!`](crate::object_store_contract), [`ref_store_contract!`](crate::ref_store_contract),
-//! [`wal_contract!`](crate::wal_contract), [`cache_contract!`](crate::cache_contract) and
+//! [`wal_contract!`](crate::wal_contract), [`cache_contract!`](crate::cache_contract),
+//! [`stream_store_contract!`](crate::stream_store_contract) and
 //! [`collection_contract!`](crate::collection_contract) turn every
 //! check into its own `#[test]`.
 
@@ -983,6 +984,110 @@ macro_rules! collection_contract {
         #[test]
         fn merging_a_missing_remote_chain_changes_nothing() {
             $crate::contract_tests::merging_a_missing_remote_chain_changes_nothing($make);
+        }
+    };
+}
+
+// --- StreamStore -------------------------------------------------------------------------------
+
+fn stream(text: &str) -> crate::stream::StreamName {
+    crate::stream::StreamName::new(text).expect("valid stream name")
+}
+
+/// A stream is created once, read back, replaced and removed.
+pub fn streams_are_created_once<O: ObjectStore, S: crate::ports::StreamStore>(make: impl Fn() -> (O, S)) {
+    let (_objects, streams) = make();
+    let name = stream("dc/m2");
+    assert_eq!(streams.read(&name).expect("read"), None);
+    assert!(streams.create(&name, b"first").expect("create"));
+    assert!(!streams.create(&name, b"second").expect("create again"));
+    assert_eq!(streams.read(&name).expect("read").as_deref(), Some(&b"first"[..]));
+    streams.replace(&name, b"third").expect("replace");
+    assert_eq!(streams.read(&name).expect("read").as_deref(), Some(&b"third"[..]));
+    assert!(streams.create(&stream("a"), b"a").expect("create"));
+    assert!(streams.create(&stream("dc"), b"dc").expect("create"));
+    assert_eq!(
+        streams.names().expect("names"),
+        vec![stream("a"), stream("dc"), stream("dc/m2")]
+    );
+    let log = streams.open_log(&name).expect("open");
+    streams.remove(&name, log).expect("remove");
+    assert_eq!(streams.read(&name).expect("read"), None);
+    let log = streams.open_log(&name).expect("open");
+    streams.remove(&name, log).expect("remove an absent stream");
+    assert_eq!(streams.names().expect("names"), vec![stream("a"), stream("dc")]);
+    assert!(streams.replace(&name, b"x").is_err());
+}
+
+/// A stream's log keeps its records, has one writer at a time and is removed with the stream.
+pub fn stream_logs_have_one_writer<O: ObjectStore, S: crate::ports::StreamStore>(make: impl Fn() -> (O, S)) {
+    let (_objects, streams) = make();
+    let name = stream("a");
+    let other = stream("b");
+    assert!(streams.create(&name, b"a").expect("create"));
+    assert!(streams.create(&other, b"b").expect("create"));
+    {
+        let mut log = streams.open_log(&name).expect("open");
+        log.append(b"one").expect("append");
+        log.sync().expect("sync");
+        assert!(matches!(streams.open_log(&name), Err(StoreError::WalBusy { .. })));
+        let other_log = streams
+            .open_log(&other)
+            .expect("another stream's log is independent");
+        assert!(other_log.read_all().expect("read").is_empty());
+    }
+    let log = streams.open_log(&name).expect("open again");
+    assert_eq!(log.read_all().expect("read").len(), 1);
+    streams.remove(&name, log).expect("remove");
+    assert!(streams.create(&name, b"a").expect("create again"));
+    let log = streams.open_log(&name).expect("open");
+    assert!(
+        log.read_all().expect("read").is_empty(),
+        "the log went with the stream"
+    );
+}
+
+/// Pins and the working tree state are kept and replaced.
+pub fn stream_pins_and_state_are_kept<O: ObjectStore, S: crate::ports::StreamStore>(
+    make: impl Fn() -> (O, S),
+) {
+    let (objects, streams) = make();
+    let name = stream("a");
+    assert!(streams.create(&name, b"a").expect("create"));
+    let first = commit(&objects, "first");
+    let second = commit(&objects, "second");
+    streams.pin(&name, Some(first)).expect("pin");
+    streams.pin(&name, Some(second)).expect("pin again");
+    streams.pin(&name, None).expect("unpin");
+    streams.pin(&name, Some(first)).expect("pin");
+    let log = streams.open_log(&name).expect("open");
+    streams.remove(&name, log).expect("remove with its pin");
+
+    assert_eq!(streams.read_state().expect("read"), None);
+    streams.write_state(b"one").expect("write");
+    streams.pin_outside(Some(first)).expect("pin the outside work");
+    assert_eq!(streams.read_state().expect("read").as_deref(), Some(&b"one"[..]));
+    streams.pin_outside(Some(second)).expect("pin it again");
+    streams.write_state(b"two").expect("write");
+    streams.pin_outside(None).expect("unpin");
+    assert_eq!(streams.read_state().expect("read").as_deref(), Some(&b"two"[..]));
+}
+
+/// Runs every stream store check as its own test.
+#[macro_export]
+macro_rules! stream_store_contract {
+    ($make:expr) => {
+        #[test]
+        fn streams_are_created_once() {
+            $crate::contract_tests::streams_are_created_once($make);
+        }
+        #[test]
+        fn stream_logs_have_one_writer() {
+            $crate::contract_tests::stream_logs_have_one_writer($make);
+        }
+        #[test]
+        fn stream_pins_and_state_are_kept() {
+            $crate::contract_tests::stream_pins_and_state_are_kept($make);
         }
     };
 }

@@ -6,8 +6,8 @@
 //! context ([`labels`]), the events of a commit made without Gedo ([`reconstruct`]) and event
 //! filters ([`filter`]), re-attachment after rewrites ([`reattach`]) and the tree CRDT that
 //! converges concurrent changes ([`tree`]), and the semantic lanes of a publish ([`lanes`]) with
-//! the refactor version they split off ([`split`]). Streams and the sequencer join this crate in
-//! later features.
+//! the refactor version they split off ([`split`]), and the rules of virtual streams
+//! ([`streams`]). The sequencer joins this crate in a later feature.
 //!
 //! Everything here is pure: no I/O, deterministic on every platform and input order (ADR-0001).
 #![forbid(unsafe_code)]
@@ -21,6 +21,7 @@ pub mod lanes;
 pub mod reattach;
 pub mod reconstruct;
 pub mod split;
+pub mod streams;
 pub mod tree;
 
 pub use author::fingerprint;
@@ -36,6 +37,7 @@ pub use reattach::{
 };
 pub use reconstruct::{ReconstructError, reconstructed_events};
 pub use split::{BuildError, RefactorFile, build, refactor_message};
+pub use streams::{StreamFilter, recording_context, stream_context};
 pub use tree::{
     Conflict, ConflictKind, ConflictValue, Convergence, EntityState, Part, PartValue, Place, SideError,
     SideState, TreeError, TreeState, converge, converge_with, fold,

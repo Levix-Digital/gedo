@@ -1,0 +1,13 @@
+---
+source: crates/core/gedo-app/tests/streams.rs
+expression: "lines.join(\"\\n\")"
+---
+after switching:
+  dc/m1 agent=planner labels=[dc.milestone=1,dc.plan=p] base=base work=false pending=0
+  dc/m2 agent=implementer labels=[dc.milestone=2,dc.plan=p] base=base work=true pending=2
+  mine agent=- labels=[] base=base work=false pending=0
+publish dc/m2: published 2 events, tape true
+discard dc/m1: Ok((0, false))
+filter dc.plan=p:
+  dc/m2 agent=implementer labels=[dc.milestone=2,dc.plan=p] base=published work=false pending=0
+active: mine

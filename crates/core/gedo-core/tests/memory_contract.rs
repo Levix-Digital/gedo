@@ -1,6 +1,6 @@
 //! The port contract suite run against the in-memory adapters.
 
-use gedo_core::memory::{MemoryCache, MemoryObjectStore, MemoryRefStore, MemoryWal};
+use gedo_core::memory::{MemoryCache, MemoryObjectStore, MemoryRefStore, MemoryStreamStore, MemoryWal};
 
 mod objects {
     use super::*;
@@ -15,6 +15,11 @@ mod refs {
 mod wal {
     use super::*;
     gedo_core::wal_contract!(MemoryWal::new);
+}
+
+mod streams {
+    use super::*;
+    gedo_core::stream_store_contract!(|| (MemoryObjectStore::new(), MemoryStreamStore::new()));
 }
 
 mod cache {

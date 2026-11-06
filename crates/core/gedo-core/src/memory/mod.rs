@@ -6,12 +6,14 @@ mod cache;
 mod objects;
 mod parser;
 mod refs;
+mod stream;
 mod wal;
 
 pub use cache::MemoryCache;
 pub use objects::{MEMORY_AUTHOR_EMAIL, MemoryObjectStore};
 pub use parser::FixedParser;
 pub use refs::MemoryRefStore;
+pub use stream::{MemoryStreamLog, MemoryStreamStore};
 pub use wal::MemoryWal;
 
 use std::sync::{Mutex, MutexGuard, PoisonError};

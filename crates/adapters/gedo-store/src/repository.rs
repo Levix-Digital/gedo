@@ -85,6 +85,33 @@ impl GitRepository {
         Ok(directory)
     }
 
+    /// `gedo/` in this working tree's own Git directory (`.git` for the main working tree,
+    /// `.git/worktrees/<id>` for a linked one), created if missing: the place of state that
+    /// belongs to one working tree.
+    pub fn worktree_gedo_dir(&self) -> Result<PathBuf, StoreError> {
+        let directory = self.git_dir().join(GEDO_DIR_NAME);
+        std::fs::create_dir_all(&directory)
+            .map_err(|error| StoreError::io("create directory", &directory, error))?;
+        Ok(directory)
+    }
+
+    /// The id of this working tree: `main` for the main one, the name of its directory under
+    /// `.git/worktrees/` for a linked one.
+    pub fn worktree_id(&self) -> String {
+        let common = self.common_dir();
+        let own = self.git_dir();
+        let same = match (std::fs::canonicalize(&common), std::fs::canonicalize(own)) {
+            (Ok(common), Ok(own)) => common == own,
+            _ => common == own,
+        };
+        if same {
+            return "main".into();
+        }
+        own.file_name()
+            .map(|name| name.to_string_lossy().into_owned())
+            .unwrap_or_else(|| "main".into())
+    }
+
     /// The committer identity, or `MissingIdentity` when none is configured.
     pub fn identity(&self) -> Result<Identity, StoreError> {
         let repo = self.local();

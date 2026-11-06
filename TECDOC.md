@@ -65,6 +65,13 @@ are written and indexed, and kept only when the parts each changes are exactly i
 otherwise the single commit is published with the reason. Each commit gets the tape of its
 lane's events (ADR-0018).
 
+Work can be isolated in virtual streams (`gedo-app`'s `Streams`): each stream is kept on the
+machine in `.git/gedo/streams` with its base, author kind, labels, saved work tree and its own
+log. Events recorded inside it go to that log with the stream's author and labels; switching
+saves the caller's current work tree into the stream left and returns the target's; publishing
+writes the stream's commit on its base with its events as the tape. Saved work is pinned by
+local references under `refs/gedo-local/`, never pushed (ADR-0020).
+
 History made without Gedo is indexed by `gedo-app`'s `IdentityIndex`: it walks every
 ancestor of the given commits to every root, parses only the Rust files that differ
 from the first parent, matches them against the parent's results with `gedo-ast`, and
@@ -73,7 +80,7 @@ are local derived data in the symbol cache (ADR-0012), so the same history gives
 same ids on every machine and in every indexing order.
 
 State lives in the Git object store under `refs/gedo/*` (shared through standard
-`git push` and `git fetch`) and in `.git/gedo/` (local WAL and redb cache, never
+`git push` and `git fetch`) and in `.git/gedo/` (local WAL, redb cache and streams, never
 pushed). Source files and `refs/heads/*` stay untouched.
 
 ## Subsystems
@@ -96,6 +103,7 @@ pushed). Source files and `refs/heads/*` stay untouched.
 <!-- architecture-docs:adrs:start -->
 | ADR | Title | Status | Version | Date |
 |---|---|---|---|---|
+| [ADR-0020](docs/adr/0020-virtual-streams-as-local-records-with-their-own-log-and-pinn.md) | Virtual streams as local records with their own log and pinned work commits | accepted | v0.3.0 | 2026-11-06 |
 | [ADR-0019](docs/adr/0019-commit-generations-in-the-symbol-cache-and-a-generation-boun.md) | Commit generations in the symbol cache and a generation-bounded detached-tape search | accepted | v0.3.0 | 2026-10-31 |
 | [ADR-0018](docs/adr/0018-semantic-lanes-per-part-with-a-refactor-commit-verified-by-r.md) | Semantic lanes per part with a refactor commit verified by re-indexing | accepted | v0.3.0 | 2026-10-30 |
 | [ADR-0017](docs/adr/0017-tree-crdt-as-a-three-way-convergence-of-entity-parts.md) | Tree CRDT as a three-way convergence of entity parts | accepted | v0.3.0 | 2026-10-30 |
