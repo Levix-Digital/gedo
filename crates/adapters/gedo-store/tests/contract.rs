@@ -56,3 +56,15 @@ mod cache {
         RedbCache::open(directory.path(), source).expect("opens")
     });
 }
+
+mod streams {
+    use super::*;
+    use gedo_store::FileStreamStore;
+    gedo_core::stream_store_contract!(|| {
+        let repository = fresh_repository();
+        (
+            GitObjectStore::new(repository.clone()),
+            FileStreamStore::open(&repository).expect("opens"),
+        )
+    });
+}

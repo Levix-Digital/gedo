@@ -67,7 +67,7 @@ impl History {
             .expect("commit is written")
     }
 
-    fn tree(&self, files: Vec<(&str, &str)>) -> GitOid {
+    pub fn tree(&self, files: Vec<(&str, &str)>) -> GitOid {
         let mut directories: BTreeMap<&str, Vec<(&str, &str)>> = BTreeMap::new();
         let mut entries = Vec::new();
         for (path, text) in files {

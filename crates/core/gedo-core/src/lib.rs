@@ -16,6 +16,7 @@ pub mod ids;
 pub mod memory;
 pub mod ports;
 pub mod record;
+pub mod stream;
 pub mod syntax;
 
 pub use collection::{Collection, MergeOutcome};
@@ -28,3 +29,4 @@ pub use identity::{
     AnchoredNode, AstNodeId, BlobAstMap, IdentityMerged, Location, MatchFormat, SemanticDelta,
 };
 pub use ids::{EntryId, GedoRefName, GitOid, ObjectHash};
+pub use stream::{Stream, StreamName, WorktreeState};
