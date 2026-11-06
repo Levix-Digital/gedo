@@ -43,7 +43,7 @@ Two chains that diverged are joined by a merge commit whose tree is the union of
 
 Entries are written in one batch per write (`ObjectStore::write_blobs`): a batch of at least 100 blobs not stored yet becomes one pack with its index in `.git/objects/pack/`, smaller batches loose objects, like Git's `fetch.unpackLimit` ([ADR-0015](../adr/0015-packed-batch-writes-and-an-event-cache.md)). The pack goes to a temporary file and is renamed with its index last, so it is complete or not seen; no `.keep` file is left, so `git gc` repacks it. Trees and commits are loose. Repositories are opened with at least 1,024 pack index slots, so a long-running process can keep writing packs (gitoxide cannot read a pack beyond its slots).
 
-All records are Postcard-encoded inside an envelope that starts with a `u16` format version; a reader that does not know the version returns `UnsupportedFormat` with the versions it supports. A blob or record over 64 MiB is refused with `TooLarge`.
+All records are Postcard-encoded inside an envelope that starts with a `u16` format version; a reader that does not know the version returns `UnsupportedFormat` with the versions it supports. A blob or record over 64 MiB is refused with `TooLarge`. A blob read looks the object's header up first, so the limit is checked before the content is loaded; a tree or commit read, which has no limit, looks the object up once, since each lookup of a loose object opens and inflates its file again (BUG-011).
 
 ### Push and fetch
 
@@ -65,7 +65,7 @@ The `events` namespace keeps the records of `refs/gedo/events` by event id (16 b
 
 The `retention` namespace holds one record (key `detached`, format 1): the time this machine first saw each detached tape detached, for the 90-day grace period before `gedo gc` ([ADR-0016](../adr/0016-re-attachment-by-entity-state-with-a-semantic-signature-fast.md)). It is local state, never pushed; a lost or refused record only restarts the period.
 
-The `generations` namespace keeps commit generations by commit id (format byte `1`, then the generation as 8 little-endian bytes), written by the event log for every generation it computes, in transactions of up to 100,000 records ([ADR-0019](../adr/0019-commit-generations-in-the-symbol-cache-and-a-generation-boun.md)). A record is used only when it equals one more than the highest generation of its commit's parents; it is not rebuilt on open, and a missing or refused one is computed from the history again.
+The `generations` namespace keeps commit generations by commit id (format byte `1`, then the generation as 8 little-endian bytes), written by the event log for every generation it computes, in transactions of up to 100,000 records sorted by commit id (the table's key order, so a first walk of a long history inserts sequentially) ([ADR-0019](../adr/0019-commit-generations-in-the-symbol-cache-and-a-generation-boun.md)). A record is used only when it equals one more than the highest generation of its commit's parents; it is not rebuilt on open, and a missing or refused one is computed from the history again.
 
 Tree entries carry their mode: regular and executable files, directories, symbolic links and submodules, written back exactly as read.
 

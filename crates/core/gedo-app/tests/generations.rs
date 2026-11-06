@@ -89,6 +89,30 @@ impl SymbolCache for Failing {
     }
 }
 
+/// A cache that keeps the keys of every batch written to it.
+struct Recording {
+    inner: MemoryCache,
+    batches: std::cell::RefCell<Vec<Vec<Vec<u8>>>>,
+}
+
+impl SymbolCache for Recording {
+    fn open_status(&self) -> &CacheStatus {
+        self.inner.open_status()
+    }
+    fn get(&self, namespace: &str, key: &[u8]) -> Result<Option<Vec<u8>>, StoreError> {
+        self.inner.get(namespace, key)
+    }
+    fn put(&self, namespace: &str, entries: &[(Vec<u8>, Vec<u8>)]) -> Result<(), StoreError> {
+        self.batches
+            .borrow_mut()
+            .push(entries.iter().map(|(key, _)| key.clone()).collect());
+        self.inner.put(namespace, entries)
+    }
+    fn clear(&self) -> Result<(), StoreError> {
+        self.inner.clear()
+    }
+}
+
 /// A repository of empty-tree commits with Gedo references and a write-ahead log.
 struct Repo {
     objects: Counting,
@@ -262,6 +286,26 @@ fn a_new_log_reads_generations_from_the_cache() {
     // Without the cache, everything is read again, with the same result.
     assert_eq!(repo.generation(&more[2], None), 203);
     assert_eq!(repo.objects.take(), 203);
+}
+
+#[test]
+fn generations_are_written_in_key_order() {
+    // A first walk writes its records sorted by commit id, the cache's key order, so a long
+    // history is inserted sequentially (BUG-011).
+    let mut repo = Repo::new();
+    let recording = Recording {
+        inner: cache(),
+        batches: std::cell::RefCell::new(Vec::new()),
+    };
+    let root = repo.commit(&[]);
+    let left = repo.chain(Some(root), 40);
+    let right = repo.chain(Some(root), 40);
+    let merge = repo.commit(&[left[39], right[39]]);
+    assert_eq!(repo.generation(&merge, Some(&recording)), 42);
+    let batches = recording.batches.borrow();
+    assert_eq!(batches.len(), 1);
+    assert_eq!(batches[0].len(), 82);
+    assert!(batches[0].windows(2).all(|pair| pair[0] < pair[1]));
 }
 
 #[test]
