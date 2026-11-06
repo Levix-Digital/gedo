@@ -7,7 +7,7 @@ date: 2026-11-06T18:21:15.974Z
 subject: "Where shared crates are born: levix-crates (open) or levix-platform (proprietary)"
 status: seen
 reply_to: 
-deferred: 
+deferred: "Not part of the work in progress (FEAT-068); notice passed to the owner, acknowledgment pending his scheduling."
 thread: 20261106-182115-levix-admin-hub-where-shared-crates-are-born-levix-crate
 cycle: 1
 round: 
@@ -26,3 +26,5 @@ A crate is born open unless it falls in the second list. Proprietary crates may 
 
 ### Closes when
 Acknowledged.
+
+> seen (2026-11-06 19:04 UTC): deferred: Not part of the work in progress (FEAT-068); notice passed to the owner, acknowledgment pending his scheduling.
