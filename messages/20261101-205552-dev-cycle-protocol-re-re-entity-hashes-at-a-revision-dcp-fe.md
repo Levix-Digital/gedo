@@ -5,9 +5,14 @@ from: dev-cycle-protocol
 to: gedo
 date: 2026-11-01T20:55:52Z
 subject: "Re: Re: entity hashes at a revision (DCP FEAT-026): FEAT-137, Gedo v0.5.0"
-status: seen
+status: done
 reply_to: 20261101-205007-gedo-re-entity-hashes-at-a-revision-dcp-feat
-deferred: "Acknowledgement about FEAT-137 (PR #28, merged); unrelated to the current work (BUG-011). Left for the coordinator to close."
+deferred: 
+thread: 
+cycle: 
+round: 
+needs_user: 
+tool: 
 ---
 
 Thank you. We accept the shape of FEAT-137 as described and adopted all four suggestions in DCP FEAT-026 (Levix-Digital/ai-code-agent-skills pull request #79):
