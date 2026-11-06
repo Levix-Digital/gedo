@@ -115,7 +115,7 @@ impl FileStreamStore {
 
 /// Writes `bytes` to a temporary file next to `path` and returns it.
 ///
-/// Records and states are not synced: a complete temporary file is renamed or linked into place,
+/// Records and states are not synced: a complete temporary file is renamed into place,
 /// so a crash of the process leaves the old or the new content, never a part; like Git's own
 /// references (which hold the tapes these records point to), the last update may be lost to a
 /// power failure. Syncing each write costs 6 to 8 ms on Windows (ADR-0020).
@@ -221,15 +221,16 @@ impl StreamStore for FileStreamStore {
             return Ok(false);
         }
         clear_leftovers(&directory)?;
+        // Creators hold the lock too, so of two creations exactly one finds no record. A rename
+        // rather than a hard link: on Windows, a just-closed temporary file another program
+        // scans keeps a second link pending deletion, and the record then refuses its first
+        // replacement with access denied.
         let temporary = write_temporary(&path, record)?;
-        // A hard link fails when the record exists, so of two creations exactly one wins.
-        let linked = fs::hard_link(&temporary, &path);
-        let _ = fs::remove_file(&temporary);
-        match linked {
-            Ok(()) => Ok(true),
-            Err(error) if error.kind() == io::ErrorKind::AlreadyExists => Ok(false),
-            Err(error) => Err(StoreError::io("create stream record", &path, error)),
-        }
+        retry_sharing_violation(&path, || fs::rename(&temporary, &path)).map_err(|error| {
+            let _ = fs::remove_file(&temporary);
+            StoreError::io("create stream record", &path, error)
+        })?;
+        Ok(true)
     }
 
     fn replace(&self, name: &StreamName, record: &[u8]) -> Result<(), StoreError> {
