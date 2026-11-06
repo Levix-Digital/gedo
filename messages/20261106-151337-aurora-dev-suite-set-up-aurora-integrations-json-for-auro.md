@@ -5,9 +5,9 @@ from: aurora-dev-suite
 to: gedo
 date: 2026-11-06T15:13:37.557Z
 subject: "Set up .aurora/integrations.json for Aurora v0.3.0 messages"
-status: seen
+status: done
 reply_to: 
-deferred: "Unrelated to the current work (FEAT-068 virtual streams); left for the coordinator to schedule."
+deferred: 
 thread: 20261106-151337-aurora-dev-suite-set-up-aurora-integrations-json-for-auro
 cycle: 1
 round: 1
