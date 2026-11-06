@@ -78,7 +78,7 @@ impl<O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'_, O, R, W> {
             stack.extend(parents.iter().map(|parent| (*parent, false)));
             parents_of.insert(oid, parents);
         }
-        self.store_generations(&computed);
+        self.store_generations(&mut computed);
         Ok(self.generations.get(commit).copied().unwrap_or(1))
     }
 
@@ -137,9 +137,11 @@ impl<O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'_, O, R, W> {
         }
     }
 
-    /// Keeps `generations` in the cache, in batches; a failure is only a warning.
-    fn store_generations(&self, generations: &[(GitOid, u64)]) {
+    /// Keeps `generations` in the cache, in batches sorted by commit id (the cache's key order, so
+    /// a long first walk inserts sequentially, BUG-011); a failure is only a warning.
+    fn store_generations(&self, generations: &mut [(GitOid, u64)]) {
         let Some(cache) = self.cache else { return };
+        generations.sort_unstable();
         for batch in generations.chunks(WRITE_BATCH) {
             let entries: Vec<(Vec<u8>, Vec<u8>)> = batch
                 .iter()

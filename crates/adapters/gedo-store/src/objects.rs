@@ -50,6 +50,9 @@ impl GitObjectStore {
     }
 
     /// Reads an object of the `expected` kind, checking its size against `limit` before loading it.
+    ///
+    /// Without a `limit` the object is looked up once: a header lookup first would open and
+    /// inflate a loose object twice, which costs most where opening a file is slow (BUG-011).
     fn read(
         &self,
         oid: &GitOid,
@@ -62,26 +65,30 @@ impl GitObjectStore {
             oid: *oid,
             expected: kind_name(expected),
         };
-        let header = repo
-            .try_find_header(id)
-            .map_err(|error| StoreError::backend("read object header", error))?;
-        let header = header.ok_or_else(not_found)?;
-        if header.kind() != expected {
-            return Err(not_found());
-        }
-        if let Some(limit) = limit
-            && header.size() > limit as u64
-        {
-            return Err(StoreError::TooLarge {
-                what: format!("blob {oid}"),
-                size: header.size(),
-                limit: limit as u64,
-            });
+        if let Some(limit) = limit {
+            let header = repo
+                .try_find_header(id)
+                .map_err(|error| StoreError::backend("read object header", error))?;
+            let header = header.ok_or_else(not_found)?;
+            if header.kind() != expected {
+                return Err(not_found());
+            }
+            if header.size() > limit as u64 {
+                return Err(StoreError::TooLarge {
+                    what: format!("blob {oid}"),
+                    size: header.size(),
+                    limit: limit as u64,
+                });
+            }
         }
         let object = repo
             .try_find_object(id)
-            .map_err(|error| StoreError::backend("read object", error))?;
-        Ok(object.ok_or_else(not_found)?.detach().data)
+            .map_err(|error| StoreError::backend("read object", error))?
+            .ok_or_else(not_found)?;
+        if object.kind != expected {
+            return Err(not_found());
+        }
+        Ok(object.detach().data)
     }
 }
 

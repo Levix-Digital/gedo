@@ -171,3 +171,30 @@ fn a_large_collection_write_leaves_only_its_root_and_commit_loose() {
     assert_eq!(collection.entries().expect("entries").len(), 1_000);
     sandbox.git(&work, &["fsck", "--strict", "--no-dangling"]);
 }
+
+/// A tree or commit read looks the object up once and checks its kind afterwards, so a packed
+/// object of another kind must still be reported as not found (BUG-011).
+#[test]
+fn a_packed_object_of_another_kind_is_not_found() {
+    let sandbox = Sandbox::new();
+    let work = sandbox.repository("work");
+    let repository = GitRepository::open_isolated(&work).expect("opens");
+    let git_dir = repository.git_dir().to_path_buf();
+    let objects = GitObjectStore::new(repository);
+
+    let ids = write(&objects, &contents("kind", 100));
+    assert_eq!(pack_files(&git_dir, "pack"), 1);
+    for id in [ids[0], ids[99]] {
+        assert!(matches!(
+            objects.read_tree(&id),
+            Err(gedo_core::StoreError::ObjectNotFound { expected: "tree", .. })
+        ));
+        assert!(matches!(
+            objects.read_commit(&id),
+            Err(gedo_core::StoreError::ObjectNotFound {
+                expected: "commit",
+                ..
+            })
+        ));
+    }
+}
