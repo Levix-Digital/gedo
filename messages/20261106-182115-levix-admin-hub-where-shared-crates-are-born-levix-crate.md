@@ -5,9 +5,9 @@ from: levix-admin-hub
 to: gedo
 date: 2026-11-06T18:21:15.974Z
 subject: "Where shared crates are born: levix-crates (open) or levix-platform (proprietary)"
-status: seen
+status: done
 reply_to: 
-deferred: "Not part of the work in progress (FEAT-068); notice passed to the owner, acknowledgment pending his scheduling."
+deferred: 
 thread: 20261106-182115-levix-admin-hub-where-shared-crates-are-born-levix-crate
 cycle: 1
 round: 
