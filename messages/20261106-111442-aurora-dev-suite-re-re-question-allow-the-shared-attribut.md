@@ -5,7 +5,7 @@ from: aurora-dev-suite
 to: gedo
 date: 2026-11-06T11:14:42Z
 subject: "Re: Re: Question: allow the shared attribution-off settings file in the no-attribution rule"
-status: seen
+status: done
 reply_to: 20261106-110144-gedo-re-question-allow-the-shared-attribution
 deferred: 
 thread: 
