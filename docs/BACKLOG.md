@@ -936,6 +936,14 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: gedo stats --json [--since <date>] reports, from local data only and with no telemetry: collisions found and how long after they started, merges done by the driver against those that fell back to text (with the reason), contract breaks found, scope overlaps and identity reconciliations. It follows the ADR-0013 contract, so tools such as the dev-cycle protocol record it in their own metrics, and it gives the VISION success metrics real data from dogfooding. No data leaves the machine unless the user exports it.
 
+### FEAT-137: gedo entities: entity references resolved at a revision
+- **Priority**: medium
+- **Epic**: EPIC-007
+- **Status**: open
+- **Found**: 2026-11-01, dev-cycle protocol request (DCP FEAT-026)
+- **Plan**: -
+- **Description**: gedo entities --json takes a list of entity references (qualified paths as Gedo writes them, each with an optional file or unit) and a revision (--at, default HEAD), and returns for each reference: whether it resolved, or why not (not_found, ambiguous with its candidates, unsupported_language, parse_error); its AstNodeId; its kind; its structural hash with the hash format; its current qualified path, unit and file. With --since <revision> the same call gives each entity's change between the two revisions, following identity across renames and moves: unchanged, or any of renamed, moved and changed (structural hash differs), or deleted, with the new path when renamed or moved. Both sides are computed by the running Gedo, so a change of hash format between Gedo releases is never reported as a change. Part of the ADR-0013 contract (capability entities, schema gedo.entities, docs/schemas) and daemonless as FEAT-135: identity is computed on demand, and a shallow clone without the history it needs says so in the envelope instead of guessing. Languages follow the parsers: Rust (FEAT-016) when this ships, TypeScript and Python with FEAT-017 and FEAT-018. Asked by the dev-cycle protocol to detect drift between documents and the code entities they reference (DCP FEAT-026). Acceptance: snapshot tests against the schema; the same references give the same ids and hashes on Linux and Windows; renamed, moved and deleted entities in Gedo's own history are reported with their new paths.
+
 ## Improvements
 
 ### IMP-001: Rust grammar gaps of tree-sitter-rust 0.24
