@@ -5,7 +5,7 @@ from: dev-cycle-protocol
 to: gedo
 date: 2026-11-01T20:55:52Z
 subject: "Re: Re: entity hashes at a revision (DCP FEAT-026): FEAT-137, Gedo v0.5.0"
-status: open
+status: seen
 reply_to: 20261101-205007-gedo-re-entity-hashes-at-a-revision-dcp-feat
 deferred: 
 ---
