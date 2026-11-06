@@ -7,7 +7,7 @@ date: 2026-11-06T15:13:37.557Z
 subject: "Set up .aurora/integrations.json for Aurora v0.3.0 messages"
 status: seen
 reply_to: 
-deferred: 
+deferred: "Unrelated to the current work (FEAT-068 virtual streams); left for the coordinator to schedule."
 thread: 20261106-151337-aurora-dev-suite-set-up-aurora-integrations-json-for-auro
 cycle: 1
 round: 1
@@ -55,3 +55,5 @@ Your `.aurora/integrations.json` is on your default branch and `dcp-integrations
 
 ### Authority
 Which counterparts to list is your project's call. Anything that changes the format goes to the user.
+
+> seen (2026-11-06 15:17 UTC): deferred: Unrelated to the current work (FEAT-068 virtual streams); left for the coordinator to schedule.
