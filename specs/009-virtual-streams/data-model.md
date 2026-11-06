@@ -9,9 +9,8 @@ New stored formats are local to the machine and never pushed: the stream record,
 | `StreamName` | `String` | 1 to 64 bytes; `/`-separated segments of `[a-z0-9._-]`, each non-empty, starting with a letter or digit, not `.` or `..` (research R3); `key()` is the hexadecimal form of its bytes |
 | `Stream` | `name: StreamName`, `agent: Option<AgentId>`, `labels: Labels`, `base: Option<GitOid>`, `work: Option<GitOid>` (saved work tree; `None`: the base's tree), `publishing: Option<GitOid>` (commit of a publish in progress) | Name, agent and labels never change after creation; labels follow FEAT-063 and have no `gedo.` key |
 | `WorktreeState` | `active: Option<StreamName>`, `outside: Option<GitOid>` (saved outside work tree) | One per working tree |
-| `StreamRecordError` | `Format`, `Decode`, `WrongName { expected, found }`, `Label(LabelError)` | A refused record names its stream |
 
-Stored forms: `encode_stream(&Stream) -> Vec<u8>` and `decode_stream(name, &[u8]) -> Result<Stream, StreamRecordError>` (format byte `1`, then postcard); the same for `WorktreeState`.
+Stored forms: `encode_stream(&Stream) -> Vec<u8>` and `decode_stream(name, &[u8]) -> Result<Stream, StoreError>` (the record envelope with format `1`, then postcard; a wrong format, a record for another name, an invalid agent or a reserved or invalid label is `Corrupted` naming the stream); the same for `WorktreeState`.
 
 ## gedo-core::ports::stream
 
@@ -23,7 +22,7 @@ Stored forms: `encode_stream(&Stream) -> Vec<u8>` and `decode_stream(name, &[u8]
 |---|---|---|
 | `StreamFilter` | `labels: Labels`, `agent: Option<AgentId>` | Matches a stream with every label of the filter (same value) and, when given, that agent; `from_texts(labels, agent)` reads the FEAT-063 text forms |
 
-Functions: `stream_context(stream, email) -> RecordingContext`, `recording_context(active: Option<&Stream>, email, agent_text, labels_text) -> Result<RecordingContext, LabelError>`.
+Functions: `stream_context(stream, email) -> Result<RecordingContext, LabelError>`, `recording_context(active: Option<&Stream>, email, agent_text, labels_text) -> Result<RecordingContext, LabelError>`.
 
 ## gedo-app::streams
 
@@ -32,7 +31,7 @@ Functions: `stream_context(stream, email) -> RecordingContext`, `recording_conte
 | `Streams<'a, O, R, S>` | `objects`, `refs`, `store`, `cache: Option<&dyn SymbolCache>` | The use cases (contracts/streams.md) |
 | `StreamPublish` | `NothingToPublish` or `Published { commit, tape: Option<TapeId>, events: usize }` | `tape` is `None` for a commit without events |
 | `Discarded` | `events: usize`, `work: bool` | What was dropped |
-| `StreamError` | `Name`, `Label`, `Exists`, `NotFound`, `NoBase`, `HasWork { events, work }`, `Record { name, source }`, `Store { context, source }`, `Event(EventError)` | Every error has context |
+| `StreamError` | `Name`, `Label`, `Exists`, `NotFound`, `NoBase`, `HasWork { name, events, work }`, `Record { name, source }`, `Store { context, source }`, `Event(EventError)` | Every error has context |
 
 ## gedo-store::streams
 

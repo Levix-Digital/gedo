@@ -10,10 +10,10 @@ Persists Gedo data in the Git object store, the local WAL and the redb cache.
 
 ## Responsibilities
 
-- Implements the object store, reference store, write-ahead log and symbol cache ports of `gedo-core`.
+- Implements the object store, reference store, write-ahead log, symbol cache and stream store ports of `gedo-core`.
 - Reads and writes blobs, trees and commits in `.git/objects` and references under `refs/gedo/*` with gitoxide, without spawning `git`, without touching the working tree, the index, `HEAD` or any branch.
 - Moves references only by compare-and-swap, so `gedod`, the CLI and several machines can write the same collection.
-- Keeps the strictly local runtime in `.git/gedo/`: the write-ahead log and the symbol cache, neither ever pushed.
+- Keeps the strictly local runtime in `.git/gedo/`: the write-ahead log, the symbol cache and the virtual streams, never pushed, with the streams' pins under `refs/gedo-local/`.
 - Configures remotes so a plain `git fetch` brings Gedo data, and gives the pre-push hook the arguments that push it.
 
 ## Structure
@@ -24,11 +24,19 @@ Persists Gedo data in the Git object store, the local WAL and the redb cache.
 ├── refs/
 │   ├── heads/main                # code; never written by Gedo
 │   ├── gedo/<collection>         # head of one commit chain per collection (pushed)
-│   └── gedo-remote/<remote>/     # each remote's chains as last fetched (never pushed)
+│   ├── gedo-remote/<remote>/     # each remote's chains as last fetched (never pushed)
+│   └── gedo-local/               # pins of stream work (never pushed or fetched)
+│       ├── streams/<key>         # a stream's work commit, base or publish commit
+│       └── worktrees/<id>        # a working tree's outside work commit
+├── worktrees/<id>/gedo/stream-state  # a linked working tree's stream state
 └── gedo/                         # strictly local runtime
     ├── wal.log                   # live events not yet published
     ├── wal.lock                  # held by the single writer
-    └── symbol_cache.db           # redb index, derived data
+    ├── symbol_cache.db           # redb index, derived data
+    ├── stream-state              # the main working tree's active stream and outside work
+    └── streams/<key>/            # one virtual stream, <key> the hex of its name
+        ├── stream                # its record
+        └── wal.log, wal.lock     # its own write-ahead log
 ```
 
 The repository must use SHA-1 object ids; a SHA-256 repository is refused with `UnsupportedObjectFormat` before anything is written.
@@ -68,6 +76,10 @@ The `retention` namespace holds one record (key `detached`, format 1): the time 
 The `generations` namespace keeps commit generations by commit id (format byte `1`, then the generation as 8 little-endian bytes), written by the event log for every generation it computes, in transactions of up to 100,000 records sorted by commit id (the table's key order, so a first walk of a long history inserts sequentially) ([ADR-0019](../adr/0019-commit-generations-in-the-symbol-cache-and-a-generation-boun.md)). A record is used only when it equals one more than the highest generation of its commit's parents; it is not rebuilt on open, and a missing or refused one is computed from the history again.
 
 Tree entries carry their mode: regular and executable files, directories, symbolic links and submodules, written back exactly as read.
+
+### Virtual streams
+
+`FileStreamStore` implements the stream store port ([ADR-0020](../adr/0020-virtual-streams-as-local-records-with-their-own-log-and-pinn.md)). Each stream is the directory `.git/gedo/streams/<key>/`, `<key>` the lowercase hexadecimal form of the name's bytes, so no name depends on the file system (`/`, `con` and `nul` on Windows, case); it is shared by every working tree. The record `stream` is created by writing a temporary file and hard-linking it to its name, which fails when the record exists, so of two concurrent creations exactly one wins; it is replaced through a temporary file and a rename. The stream's log is a `FileWal` in the same directory, with its own lock. The state of a working tree is `gedo/stream-state` in that working tree's own Git directory, replaced by a rename. Pins are references to commits, `refs/gedo-local/streams/<key>` and `refs/gedo-local/worktrees/<id>` (`main` for the main working tree, the name under `.git/worktrees/` for a linked one), written by gitoxide reference transactions; they are outside `refs/gedo/`, so no refspec pushes or fetches them, and `git gc` keeps what they reach. Removing a stream deletes its pin and its directory.
 
 ### Platform behavior
 

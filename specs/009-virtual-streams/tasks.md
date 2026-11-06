@@ -116,8 +116,8 @@ description: "Tasks for virtual streams (v0.3.0, sixth feature)"
 
 - [x] T020 [P] `crates/core/gedo-app/benches/streams.rs` (SC-003) and the bench job in `.github/workflows/ci.yml`
 - [x] T021 [P] `crates/core/gedo-app/examples/streams.rs` (quickstart step 4); stream info events asserted in `tests/event_tracing.rs`
-- [ ] T022 [P] ADR-0020 (`architecture-docs` new_adr), `docs/architecture/events.md`, `store.md`, `surfaces.md`, `TECDOC.md` (build_index, check_docs)
-- [ ] T023 Regenerate the constitution (`constitution generate`), run `check_design`, `check_readme`, `manual_tests validate`, `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test --workspace`, `cargo deny check`; fill the Results of the plan envelope
+- [x] T022 [P] ADR-0020 (`architecture-docs` new_adr), `docs/architecture/events.md`, `store.md`, `surfaces.md`, `TECDOC.md` (build_index, check_docs)
+- [x] T023 Regenerate the constitution (`constitution generate`), run `check_design`, `check_readme`, `manual_tests validate`, `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test --workspace`, `cargo deny check`; fill the Results of the plan envelope
 
 **Checkpoint**: every check passes; ready for the pull request.
 

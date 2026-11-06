@@ -384,14 +384,6 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Structural tracking of XML files with a conformance suite.
 
-### FEAT-068: Virtual streams
-- **Priority**: high
-- **Epic**: EPIC-005
-- **Status**: planned
-- **Found**: 2026-10-24
-- **Plan**: gedo_virtual_streams
-- **Description**: gedo stream <name>: switch or isolate work in memory without git stash or checkout. A stream carries the same opaque labels as events (FEAT-063), set at creation, and an optional agent author (--agent <id>), so a tool can open one stream per plan milestone or per agent and find it again with gedo stream list --label key=value --json. Every event recorded inside a stream inherits its author and labels; outside a stream the author is the person of the Git identity, or the agent and labels named by GEDO_AGENT and GEDO_LABELS. The prefix gedo. is reserved for Gedo's own keys (ADR-0013).
-
 ### FEAT-069: Deterministic sequencer
 - **Priority**: medium
 - **Epic**: EPIC-005
@@ -1411,3 +1403,12 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Closed**: 2026-11-06, PR #29
 - **Description**: On the reference machine (i7-12700KF, Windows 11) with 100,000 commits without Gedo data, the detached-tape search with generations cached gave p95 45, 48 and 51 ms over three runs (SC-001 of specs/008-bounded-detached-walk: under 50 ms), and the first call with an empty cache 0.90, 0.74 and 1.16 s against 0.45 to 0.47 s before (SC-002: at most twice). The container gives 13 ms cached. Likely causes: one cache read per commit and per parent on the cached path, and the full walk plus the cache write on the first call. Measure where the time goes on Windows before changing anything. Fixed in PR #29: tree and commit reads look the object up once (no header lookup), and generations are written to the cache sorted by commit id. Reference machine, three runs each, 45dbcab before and 9e8b86c after: cached p50 38.8-41.3 ms to 20.2-21.1 ms, p95 39.6-43.2 ms to 20.6-23.2 ms (SC-001 met); first call 683-725 ms to 634-635 ms (SC-002 met, at most 0.94 s).
+
+### FEAT-068: Virtual streams
+- **Priority**: high
+- **Epic**: EPIC-005
+- **Status**: done
+- **Found**: 2026-10-24
+- **Plan**: gedo_virtual_streams
+- **Closed**: 2026-11-06, plan gedo_virtual_streams
+- **Description**: gedo stream <name>: switch or isolate work in memory without git stash or checkout. A stream carries the same opaque labels as events (FEAT-063), set at creation, and an optional agent author (--agent <id>), so a tool can open one stream per plan milestone or per agent and find it again with gedo stream list --label key=value --json. Every event recorded inside a stream inherits its author and labels; outside a stream the author is the person of the Git identity, or the agent and labels named by GEDO_AGENT and GEDO_LABELS. The prefix gedo. is reserved for Gedo's own keys (ADR-0013).

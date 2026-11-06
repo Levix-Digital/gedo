@@ -30,7 +30,7 @@ pub trait StreamStore {
 ```rust
 pub struct StreamFilter { pub labels: Labels, pub agent: Option<AgentId> }
 impl StreamFilter { pub fn matches(&self, stream: &Stream) -> bool; pub fn from_texts(labels: Option<&str>, agent: Option<&str>) -> Result<Self, LabelError>; }
-pub fn stream_context(stream: &Stream, email: &str) -> RecordingContext;
+pub fn stream_context(stream: &Stream, email: &str) -> Result<RecordingContext, LabelError>;
 pub fn recording_context(active: Option<&Stream>, email: &str, agent: Option<&str>, labels: Option<&str>) -> Result<RecordingContext, LabelError>;
 ```
 

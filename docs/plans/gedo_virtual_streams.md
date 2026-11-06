@@ -4,10 +4,10 @@ project: gedo
 title: Virtual streams
 kind: feature
 version: v0.3.0
-status: active
+status: completed
 author: LeviGuilherme
 created_at: '2026-11-06T15:09:57'
-updated_at: '2026-11-06T15:22:22'
+updated_at: '2026-11-06T15:40:05'
 session_id: null
 tags: []
 supersedes: null
@@ -18,21 +18,37 @@ backlog_items:
 spec_dir: specs/009-virtual-streams
 milestones:
 - name: M1 Setup
-  done: false
+  done: true
+  done_at: '2026-11-06'
+  by: LeviGuilherme
 - name: M2 Model and store
-  done: false
+  done: true
+  done_at: '2026-11-06'
+  by: LeviGuilherme
 - name: M3 Labeled streams
-  done: false
+  done: true
+  done_at: '2026-11-06'
+  by: LeviGuilherme
 - name: M4 Inherited context
-  done: false
+  done: true
+  done_at: '2026-11-06'
+  by: LeviGuilherme
 - name: M5 Switching
-  done: false
+  done: true
+  done_at: '2026-11-06'
+  by: LeviGuilherme
 - name: M6 Publish
-  done: false
+  done: true
+  done_at: '2026-11-06'
+  by: LeviGuilherme
 - name: M7 Converge and discard
-  done: false
+  done: true
+  done_at: '2026-11-06'
+  by: LeviGuilherme
 - name: M8 Hardening and docs
-  done: false
+  done: true
+  done_at: '2026-11-06'
+  by: LeviGuilherme
 status_log:
 - at: '2026-11-06T15:09:57'
   by: LeviGuilherme
@@ -46,6 +62,34 @@ status_log:
   by: LeviGuilherme
   status: active
   note: Approved by Levi on 2026-11-06
+- at: '2026-11-06T15:39:58'
+  by: LeviGuilherme
+  note: Milestone 'M1 Setup' completed
+- at: '2026-11-06T15:39:59'
+  by: LeviGuilherme
+  note: Milestone 'M2 Model and store' completed
+- at: '2026-11-06T15:40:00'
+  by: LeviGuilherme
+  note: Milestone 'M3 Labeled streams' completed
+- at: '2026-11-06T15:40:01'
+  by: LeviGuilherme
+  note: Milestone 'M4 Inherited context' completed
+- at: '2026-11-06T15:40:02'
+  by: LeviGuilherme
+  note: Milestone 'M5 Switching' completed
+- at: '2026-11-06T15:40:03'
+  by: LeviGuilherme
+  note: Milestone 'M6 Publish' completed
+- at: '2026-11-06T15:40:04'
+  by: LeviGuilherme
+  note: Milestone 'M7 Converge and discard' completed
+- at: '2026-11-06T15:40:05'
+  by: LeviGuilherme
+  note: Milestone 'M8 Hardening and docs' completed
+- at: '2026-11-06T15:40:05'
+  by: LeviGuilherme
+  status: completed
+  note: All milestones completed
 ---
 
 # Virtual streams
@@ -75,3 +119,22 @@ Sixth feature of release v0.3.0 Event log and convergence: work is isolated in n
 ## Milestones
 
 Taken from the phases of [`tasks.md`](../../specs/009-virtual-streams/tasks.md): M1 Setup, M2 Model and store, M3 Labeled streams, M4 Inherited context, M5 Switching, M6 Publish, M7 Converge and discard, M8 Hardening and docs.
+
+## Results
+
+Tests: `crates/core/gedo-app/tests/streams.rs` (23 tests: one or more per acceptance scenario of US1 to US5, with the stores reopened as a new process would, a linked working tree, eight concurrent creations of one name, a publish interrupted at each of its three writes, a property of 256 cases that every switch returns the tree last saved for its target, and an `insta` snapshot of a scripted session), the `StreamStore` contract (3 checks) on the memory and file adapters, `crates/adapters/gedo-store/tests/streams_gc.rs` (pinned work through `git gc --prune=now`, unpinned and discarded work pruned, linked working trees with their own state, names Windows reserves, pins not pushed), unit and property tests of names, records, filters and contexts in `gedo-core::stream` and `gedo-crdt::streams`, and the stream events in `tests/event_tracing.rs`.
+
+Benchmark on the Linux development container (release build, Git store adapter, `cargo bench -p gedo-app --bench streams -- --quick`, 20 runs each, 2026-11-06):
+
+| Operation | p50 | p95 | Budget (SC-003, reference machine) |
+|---|---:|---:|---|
+| Create a stream | 0.51 ms | 0.84 ms | under 10 ms |
+| Switch between two streams | 1.28 ms | 1.92 ms | under 10 ms |
+| Read a stream | 4 µs | 4 µs | under 10 ms |
+| List 1,000 streams (filter by label) | 3.6 ms | 6.5 ms | under 100 ms |
+| Publish a stream of 1,000 events | 7.6 ms | 18.3 ms | adds under 10 ms to `publish` |
+| `EventLog::publish` of the same 1,000 events | 4.8 ms | 6.7 ms | |
+
+Publishing a stream adds 2.9 ms at p50 and 11.5 ms at p95 on the container (two record writes and one pin besides the commit); the reference machine run decides SC-003.
+
+Deviations from the plan: a refused stream record is a `StoreError::Corrupted` naming the stream instead of a separate `StreamRecordError`; `stream_context` returns a `Result` (a reserved label, which creation and reading never let through); the example creates and lists streams instead of publishing `HEAD`'s tree (with no events, that is nothing to publish); examples need no `[[example]]` entry; the `git gc` checks run on the port in `gedo-store`, since `gedo-store` cannot use `gedo-app`.
