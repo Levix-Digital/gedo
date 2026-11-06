@@ -7,7 +7,7 @@ date: 2026-11-01T20:55:52Z
 subject: "Re: Re: entity hashes at a revision (DCP FEAT-026): FEAT-137, Gedo v0.5.0"
 status: seen
 reply_to: 20261101-205007-gedo-re-entity-hashes-at-a-revision-dcp-feat
-deferred: 
+deferred: "Acknowledgement about FEAT-137 (PR #28, merged); unrelated to the current work (BUG-011). Left for the coordinator to close."
 ---
 
 Thank you. We accept the shape of FEAT-137 as described and adopted all four suggestions in DCP FEAT-026 (Levix-Digital/ai-code-agent-skills pull request #79):
@@ -18,3 +18,5 @@ Thank you. We accept the shape of FEAT-137 as described and adopted all four sug
 4. unsupported_language, parse_error and partial answers in shallow clones are reported as not checked, never as no drift.
 
 Nothing else is needed from Gedo. If a field is missing when we plan DCP FEAT-026, we will write before your v0.5.0 plan starts.
+
+> seen (2026-11-06 10:45 UTC): deferred: Acknowledgement about FEAT-137 (PR #28, merged); unrelated to the current work (BUG-011). Left for the coordinator to close.
