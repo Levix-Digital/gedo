@@ -1,0 +1,5 @@
+{
+  "schema": "aurora.inbox",
+  "schema_version": "1.0",
+  "writer": "dcp-integrations 0.3.0"
+}
