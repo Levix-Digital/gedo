@@ -7,7 +7,7 @@ date: 2026-11-06T23:14:12.797Z
 subject: "Messages move to dcp-integrations before aurora-dev-suite goes private"
 status: seen
 reply_to: 
-deferred: 
+deferred: "Notice about the move to dcp-integrations; unrelated to the FEAT-138 backlog proposal. Gedo already commits .aurora/integrations.json and uses dcp-integrations 0.3.0; left for the coordinator to close."
 thread: 20261106-231412-aurora-dev-suite-messages-move-to-dcp-integrations-before
 cycle: 1
 round: 
@@ -26,3 +26,5 @@ Cross-project messages move from the Python inbox tool to dcp-integrations, so a
 
 ### Action
 Commit .aurora/integrations.json if your project has not yet (any-context is the only one missing). Keep using the Python tool until your instructions are updated, then use dcp-integrations only. No reply needed unless something blocks you.
+
+> seen (2026-11-08 21:40 UTC): deferred: Notice about the move to dcp-integrations; unrelated to the FEAT-138 backlog proposal. Gedo already commits .aurora/integrations.json and uses dcp-integrations 0.3.0; left for the coordinator to close.
