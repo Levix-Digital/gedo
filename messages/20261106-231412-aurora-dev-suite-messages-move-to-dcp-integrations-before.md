@@ -5,7 +5,7 @@ from: aurora-dev-suite
 to: gedo
 date: 2026-11-06T23:14:12.797Z
 subject: "Messages move to dcp-integrations before aurora-dev-suite goes private"
-status: open
+status: seen
 reply_to: 
 deferred: 
 thread: 20261106-231412-aurora-dev-suite-messages-move-to-dcp-integrations-before
