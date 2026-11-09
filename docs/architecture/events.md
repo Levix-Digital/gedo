@@ -46,7 +46,7 @@ Records semantic events and converges concurrent changes deterministically.
 
 **Remainder.** For a commit with tapes, `events_of_commit` matches its changes against its own tapes and returns, after them, the reconstructed events of the changes they do not account for (an amend that added code, a resolved conflict), then the links as reconstructed identity merges with the lower id kept (ADR-0007). It is empty for a commit its tapes cover, and, like reconstruction, needs the commit's identities.
 
-**Retention.** `detached(tips, now, grace_days)` lists the tapes indexed for no reachable commit, with the time this machine first saw each detached (one record in the cache's `retention` namespace, rewritten in one transaction; an attached tape leaves it) and whether the grace period (`DEFAULT_GRACE_DAYS`, 90) has passed. Without a cache, or with a refused record, every tape is dated `now`, so none is eligible. Nothing is removed: that is `gedo gc`.
+**Retention.** `detached(tips, now, grace_days)` lists the tapes indexed for no reachable commit, with the time this machine first saw each detached (one record in the cache's `retention` namespace, rewritten in one transaction; an attached tape leaves it) and whether the grace period (`DEFAULT_GRACE_DAYS`, 90) has passed. Without a cache, or with a refused record, every tape is dated `now`, so none is eligible. Nothing is removed: that is `gdo gc`.
 
 **Finding detached tapes.** Both `reattach_new` and `detached` visit the commits reachable from the tips from the highest generation down and stop once every commit still to visit is below the lowest generation of the indexed commits not seen yet, so the cost is the part of the history with Gedo data, not the whole history. An indexed commit missing from the object database (removed by `git gc`) is unreachable ([ADR-0019](../adr/0019-commit-generations-in-the-symbol-cache-and-a-generation-boun.md)).
 
@@ -67,9 +67,9 @@ Records semantic events and converges concurrent changes deterministically.
 ## Interfaces
 
 - Convergence is called by the merge driver (FEAT-070), the shadow merge (FEAT-074), the sequencer (FEAT-069) and, with a stream as a side, the radar and agent streams (FEAT-074, FEAT-130).
-- Streams are called by `gedo stream` and its `--json` output (v0.4.0), agent streams with hidden checkouts (FEAT-130) and `gedo graft --into <stream>`.
-- Split publish is called by `gedo publish --split-lanes` (FEAT-083), which moves the branch to the commit it returns; the lanes are reused by stack proposals (FEAT-113).
-- Re-attachment, the retention report and `fill_cache` are called by the `post-rewrite` and fetch hooks (FEAT-090, FEAT-091), the daemon's background fetch (FEAT-073), `gedo gc` (FEAT-087) and the hosting integration.
+- Streams are called by `gdo stream` and its `--json` output (v0.4.0), agent streams with hidden checkouts (FEAT-130) and `gdo graft --into <stream>`.
+- Split publish is called by `gdo publish --split-lanes` (FEAT-083), which moves the branch to the commit it returns; the lanes are reused by stack proposals (FEAT-113).
+- Re-attachment, the retention report and `fill_cache` are called by the `post-rewrite` and fetch hooks (FEAT-090, FEAT-091), the daemon's background fetch (FEAT-073), `gdo gc` (FEAT-087) and the hosting integration.
 - Called by `gedo-app` use cases (ingest, publish, graft, status) and, through the CLI's `--json` output (ADR-0013), by tools built on Gedo.
 - Persists through the write-ahead log, object store and reference store ports; reads identity results through `IdentityIndex`.
 

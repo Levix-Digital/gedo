@@ -8,7 +8,7 @@ subsystems: [core, identity, events, graph, store, parsing, net, surfaces]
 supersedes: []
 superseded_by: []
 amends: []
-amended_by: [6]
+amended_by: [6, 21]
 ---
 
 # ADR-0001: Hexagonal architecture over a bottom-up crate stack

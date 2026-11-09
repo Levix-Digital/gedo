@@ -1,7 +1,7 @@
 <!-- dev-cycle-constitution
 generated-by: dev-cycle-protocol/constitution.py (do not edit; change a source and regenerate)
-sources-sha256: c2914b3b1263707686915ae5b99fbaa33f88a68c5cce8e24388f0ac07a121235
-content-sha256: cf96e9f0b62d6bddd4cc09264e6b2e39d091739f5e9cba88bde9ed141da4c95e
+sources-sha256: 51ff10be33cda80a23df8bc67bae8b78f40fca6e711aae43183fc33ff978da90
+content-sha256: b90713841d9762c550e18e6f92c13545edc76f6b53866ddcf146dc39ce3d49de
 -->
 # gedo Constitution
 
@@ -134,10 +134,10 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 |---|---|
 | WAL append of one event | under 1 ms (p95) |
 | Ingest of one saved file of 2,000 lines (parse, identity matching, WAL) | under 20 ms (p95) |
-| `gedo publish` | under 1 s |
-| `gedo trace <symbol>` | under 500 ms |
-| `gedo init` on the reference repository | under 30 s |
-| Pass-through overhead of `gedo <git command>` over `git <git command>` | under 20 ms |
+| `gdo publish` | under 1 s |
+| `gdo trace <symbol>` | under 500 ms |
+| `gdo init` on the reference repository | under 30 s |
+| Pass-through overhead of `gdo <git command>` over `git <git command>` | under 20 ms |
 | Overhead of all Gedo hooks on one `git commit` | under 100 ms |
 | Merge driver on one file of 2,000 lines | under 200 ms (p95) |
 | Shadow merge cycle after a background fetch | under 5 s |
@@ -152,7 +152,7 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 - No network access of its own: data moves only through the user's Git remotes, with the user's Git credentials; Gedo never reads or stores credentials.
 - No telemetry. Logs stay in `.git/gedo/logs/` and never contain source code or credentials.
 - Everything fetched under `refs/gedo/*` is untrusted input: decoding enforces size limits and format versions, never panics on malformed data, and the decoders are fuzzed. Nothing fetched is ever executed.
-- Hooks installed by `gedo init` contain only a call to `gedo`; existing hooks are chained, never removed or rewritten.
+- Hooks installed by `gdo init` contain only a call to `gedo`; existing hooks are chained, never removed or rewritten.
 - `author_fingerprint` is the BLAKE3 hash of the Git author identity, not the identity itself.
 - Supply chain: `cargo-deny` runs in CI and checks licenses, duplicate versions and RustSec advisories; new dependencies need a reason in the pull request.
 - No personal data beyond what Git already records; no regulation beyond the licenses applies.
@@ -164,7 +164,7 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 - The redb cache is derived data and is rebuilt from `refs/gedo/*` on corruption or schema change.
 - Reference updates are compare-and-swap; Git's reflog keeps previous values of `refs/gedo/*`.
 - If Gedo fails inside a hook, the Git command still succeeds (the hook reports the error and exits 0, except in `pre-push` when the user enabled strict mode); the overlay is resynchronized on the next run.
-- A diagnostics command (`gedo doctor`) reports versions, paths, configuration, hook chain and overlay consistency, with the log path.
+- A diagnostics command (`gdo doctor`) reports versions, paths, configuration, hook chain and overlay consistency, with the log path.
 
 #### Accessibility and Localization
 
@@ -181,7 +181,7 @@ Reference repository for the numbers below: about 100,000 lines of Rust in about
 - **Merges never hide conflicts**: when the semantic merge is not certain, Git's textual merge is the result.
 - **No mandatory server** (ADR-0005, ADR-0010); the relay tier is optional, self-hostable, and Git stays the canonical store.
 - **Licenses**: the project is MIT OR Apache-2.0; dependencies must be permissive and compatible (MIT, Apache-2.0, BSD, ISC, Zlib, Unicode-3.0), enforced by `cargo-deny`.
-- **Quality**: property-based tests for the core algorithms, snapshot tests for outputs, fuzzing for decoders, an end-to-end suite that compares `git` and `gedo` on the same scenarios, and CI on Windows and Linux for every pull request.
+- **Quality**: property-based tests for the core algorithms, snapshot tests for outputs, fuzzing for decoders, an end-to-end suite that compares `git` and `gdo` on the same scenarios, and CI on Windows and Linux for every pull request.
 - **Team and budget**: one developer plus the agent; the GitHub repository is public, so standard CI runners are free (they would be paid, with Windows counting double, if it went private again); no paid infrastructure.
 
 ## Architecture Decisions
@@ -207,6 +207,7 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - ADR-0018: Semantic lanes per part with a refactor commit verified by re-indexing (`docs/adr/0018-semantic-lanes-per-part-with-a-refactor-commit-verified-by-r.md`)
 - ADR-0019: Commit generations in the symbol cache and a generation-bounded detached-tape search (`docs/adr/0019-commit-generations-in-the-symbol-cache-and-a-generation-boun.md`)
 - ADR-0020: Virtual streams as local records with their own log and pinned work commits (`docs/adr/0020-virtual-streams-as-local-records-with-their-own-log-and-pinn.md`)
+- ADR-0021: Short gdo command with gedo as a second name of the same binary (`docs/adr/0021-short-gdo-command-with-gedo-as-a-second-name-of-the-same-bin.md`)
 
 ## Governance
 
@@ -214,4 +215,4 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - Amendments change the source, not this file: an ADR for decisions, the technical specification for requirements and constraints, `.dev-cycle.json` for the architecture style, the skills for principles. Then run `constitution.py generate` and commit the result with the change.
 - Gate 3 of the development cycle blocks a plan while this file is stale or edited by hand.
 
-**Version**: 1.14.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-11-06
+**Version**: 1.15.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-11-09
