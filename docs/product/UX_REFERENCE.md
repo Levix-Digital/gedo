@@ -2,12 +2,12 @@
 
 Direction for how Gedo's main surfaces should read, captured during the improvement review of 2026-10-25. It is input for the discovery and specification of the features named below, not a specification: field names, glyphs and layout are decided in each feature's spec. Every surface keeps the rules of FEAT-088 (machine-readable `--json`, `NO_COLOR` and non-TTY handling, no information carried by color alone).
 
-## `gedo radar` (FEAT-074, FEAT-130)
+## `gdo radar` (FEAT-074, FEAT-130)
 
 Shows the anatomy of a collision before it happens: the entity, what each side did to it and the impact, with a hint for the next command. Collisions that need action come first; concurrent edits that converge on their own are listed after them, so the developer sees that Gedo handled them.
 
 ```text
-$ gedo radar
+$ gdo radar
 GEDO RADAR - Base: dev (fetched 2m ago) | Active stream: feat/retry-policy
 
 [!] 1 CONTRACT COLLISION (action required before publish)
@@ -15,7 +15,7 @@ GEDO RADAR - Base: dev (fetched 2m ago) | Active stream: feat/retry-policy
     Local (uncommitted):          BodyModified (calls compare_and_swap with 3 args)
     Remote (origin/fix/cas, 4m):  SignatureMutated (+ timeout: Duration)
     Impact: 2 call sites in crates/adapters/gedo-store/src/refs.rs no longer match
-    Hint:   gedo peek crate::store::GitRefStore::apply --branch origin/fix/cas
+    Hint:   gdo peek crate::store::GitRefStore::apply --branch origin/fix/cas
 
 [i] 2 CONCURRENT EDITS MERGED AUTOMATICALLY
   impl crate::store::GitRefStore
@@ -26,7 +26,7 @@ GEDO RADAR - Base: dev (fetched 2m ago) | Active stream: feat/retry-policy
 
 Sources include the upstream and remote branches (FEAT-074) and the agent streams of the same machine (FEAT-130).
 
-## `gedo delta` and the pull request comment (FEAT-075, FEAT-096)
+## `gdo delta` and the pull request comment (FEAT-075, FEAT-096)
 
 Groups changes by meaning instead of lines: what changed in a contract first, pure moves and formatting last and collapsed, with the amount of noise filtered stated in the summary. The same table is the body of the GitHub Action comment.
 
@@ -43,12 +43,12 @@ Summary: 18 entities touched | Noise filtered: ~420 lines of formatting and pure
 | Format only | 5 entities | src/rust/paths.rs | no semantic change |
 ```
 
-## `gedo trace` (FEAT-084)
+## `gdo trace` (FEAT-084)
 
 The biography of one entity, newest first, through renames, moves and squash merges, with the kind of each change and where the entity lived at that point.
 
 ```text
-$ gedo trace crate::store::refs::is_busy_lock
+$ gdo trace crate::store::refs::is_busy_lock
 Entity:  fn crate::store::refs::is_busy_lock
 Current: crates/adapters/gedo-store/src/refs.rs:142..168
 

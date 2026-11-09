@@ -4,7 +4,7 @@ Gedo (Git Event-Driven Overlay) is a collaboration overlay built directly on Git
 
 ## Features
 
-Gedo is a **library only** today: the store foundation that every later feature builds on, and the syntax model that node identity builds on. There is no `gedo` command or daemon yet.
+Gedo is a **library only** today: the store foundation that every later feature builds on, and the syntax model that node identity builds on. There is no `gdo` command (also installed as `gedo`) or daemon yet.
 
 - `gedo-core`: the ports, commit-chain collections, in-memory adapters and the contract suite.
 - `gedo-store`: the real adapters. Gedo data lives as commit chains under `refs/gedo/*` in the repository itself, next to a crash-safe local write-ahead log and a rebuildable redb cache in `.git/gedo/`. Nothing in the working tree, the index or any branch is touched.

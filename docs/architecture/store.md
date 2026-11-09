@@ -71,7 +71,7 @@ The `identity` namespace holds the results of history indexing ([ADR-0012](../ad
 
 The `events` namespace keeps the records of `refs/gedo/events` by event id (16 bytes), written by a publish and by reads that missed them ([ADR-0015](../adr/0015-packed-batch-writes-and-an-event-cache.md)). It is not rebuilt either: event ids derive from content, so an entry never becomes stale, and a missing or refused one is read from the collection again. `EventLog::fill_cache` writes it in batches when new events arrive.
 
-The `retention` namespace holds one record (key `detached`, format 1): the time this machine first saw each detached tape detached, for the 90-day grace period before `gedo gc` ([ADR-0016](../adr/0016-re-attachment-by-entity-state-with-a-semantic-signature-fast.md)). It is local state, never pushed; a lost or refused record only restarts the period.
+The `retention` namespace holds one record (key `detached`, format 1): the time this machine first saw each detached tape detached, for the 90-day grace period before `gdo gc` ([ADR-0016](../adr/0016-re-attachment-by-entity-state-with-a-semantic-signature-fast.md)). It is local state, never pushed; a lost or refused record only restarts the period.
 
 The `generations` namespace keeps commit generations by commit id (format byte `1`, then the generation as 8 little-endian bytes), written by the event log for every generation it computes, in transactions of up to 100,000 records sorted by commit id (the table's key order, so a first walk of a long history inserts sequentially) ([ADR-0019](../adr/0019-commit-generations-in-the-symbol-cache-and-a-generation-boun.md)). A record is used only when it equals one more than the highest generation of its commit's parents; it is not rebuilt on open, and a missing or refused one is computed from the history again.
 
@@ -87,8 +87,8 @@ On Windows, an operation on a file another program holds open (an antivirus, an 
 
 ### Later features
 
-- Events are stored by id and indexed by commit; after a rewrite, re-attachment adds index entries for the rewritten commits and never changes events or tapes (ADR-0008, ADR-0016). Detached tapes are kept for 90 days before `gedo gc`.
-- Textual three-way merges for the merge driver's fallback are computed with gitoxide's merge, without a subprocess; `gedo init` registers the merge driver in `.git/config` and `.git/info/attributes` (local, never committed).
+- Events are stored by id and indexed by commit; after a rewrite, re-attachment adds index entries for the rewritten commits and never changes events or tapes (ADR-0008, ADR-0016). Detached tapes are kept for 90 days before `gdo gc`.
+- Textual three-way merges for the merge driver's fallback are computed with gitoxide's merge, without a subprocess; `gdo init` registers the merge driver in `.git/config` and `.git/info/attributes` (local, never committed).
 
 ## Interfaces
 

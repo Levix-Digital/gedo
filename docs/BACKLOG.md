@@ -414,7 +414,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: gedo init registers merge.gedo.driver in .git/config and the supported languages in .git/info/attributes.
+- **Description**: gdo init registers merge.gedo.driver in .git/config and the supported languages in .git/info/attributes.
 
 ### FEAT-072: Differential merge test suite on real histories
 - **Priority**: high
@@ -432,15 +432,15 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: gedod runs the user's git fetch periodically (default 5 minutes), paused offline or on metered networks.
 
-### FEAT-074: Shadow merge and gedo radar
+### FEAT-074: Shadow merge and gdo radar
 - **Priority**: high
 - **Epic**: EPIC-006
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: In-memory merge of uncommitted work and local commits with the upstream and related remote branches; collisions in gedo radar and notifications. gedo radar --json and --label key=value (filter by stream labels) are part of the contract of ADR-0013.
+- **Description**: In-memory merge of uncommitted work and local commits with the upstream and related remote branches; collisions in gdo radar and notifications. gdo radar --json and --label key=value (filter by stream labels) are part of the contract of ADR-0013.
 
-### FEAT-075: Semantic diff (gedo delta)
+### FEAT-075: Semantic diff (gdo delta)
 - **Priority**: high
 - **Epic**: EPIC-006
 - **Status**: open
@@ -464,7 +464,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Directed graph of AstNodeIds (calls, implements, uses) built from the neutral syntax tree.
 
-### FEAT-078: Minimum-cut graft (gedo graft)
+### FEAT-078: Minimum-cut graft (gdo graft)
 - **Priority**: high
 - **Epic**: EPIC-007
 - **Status**: open
@@ -478,7 +478,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: Detect callers that no longer match a changed public signature before compilation, both from the post-merge hook (FEAT-076) and on demand with gedo check contracts [--json] over the working tree or a commit range, so the dev-cycle's check_design can call it (ADR-0013).
+- **Description**: Detect callers that no longer match a changed public signature before compilation, both from the post-merge hook (FEAT-076) and on demand with gdo check contracts [--json] over the working tree or a commit range, so the dev-cycle's check_design can call it (ADR-0013).
 
 ### FEAT-080: Language server type oracle
 - **Priority**: low
@@ -496,7 +496,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: gedo-cli with clap, the composition root and the use-case dispatch in gedo-app.
 
-### FEAT-082: gedo init
+### FEAT-082: gdo init
 - **Priority**: high
 - **Epic**: EPIC-008
 - **Status**: open
@@ -504,7 +504,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Run git init unchanged, then prepare .git/gedo/, refspecs, hooks, merge driver and the first AST maps.
 
-### FEAT-083: gedo publish
+### FEAT-083: gdo publish
 - **Priority**: high
 - **Epic**: EPIC-008
 - **Status**: open
@@ -512,7 +512,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Consolidate the WAL into tapes and create the native Git commit.
 
-### FEAT-084: gedo trace
+### FEAT-084: gdo trace
 - **Priority**: high
 - **Epic**: EPIC-008
 - **Status**: open
@@ -528,7 +528,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: gedod watches the working tree with notify and ingests each save (parse, identity, WAL) within the latency requirements.
 
-### FEAT-086: gedo doctor and structured logs
+### FEAT-086: gdo doctor and structured logs
 - **Priority**: high
 - **Epic**: EPIC-008
 - **Status**: open
@@ -536,7 +536,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Diagnostics of versions, paths, hook chain, merge driver and overlay consistency; logs in .git/gedo/logs.
 
-### FEAT-087: gedo gc
+### FEAT-087: gdo gc
 - **Priority**: medium
 - **Epic**: EPIC-008
 - **Status**: open
@@ -550,7 +550,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: --json output for Gedo commands with a documented, versioned schema covered by snapshot tests: it is the contract other tools build on (the dev-cycle protocol, Mission Control and the GitHub Action), with the rules of ADR-0013: schema and schema_version in every output, gedo version --json listing the capabilities and the schema major of each command, stable exit codes and the schemas in docs/schemas. NO_COLOR and non-TTY handling; no information by color alone.
+- **Description**: --json output for Gedo commands with a documented, versioned schema covered by snapshot tests: it is the contract other tools build on (the dev-cycle protocol, Mission Control and the GitHub Action), with the rules of ADR-0013: schema and schema_version in every output, gdo version --json listing the capabilities and the schema major of each command, stable exit codes and the schemas in docs/schemas. NO_COLOR and non-TTY handling; no information by color alone.
 
 ### FEAT-089: Command dispatcher and pure pass-through
 - **Priority**: high
@@ -576,15 +576,15 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: post-commit, post-checkout, post-merge, post-rewrite, pre-push and reference-transaction keep the overlay in step; failures never break Git.
 
-### FEAT-092: Git versus gedo end-to-end suite
+### FEAT-092: Git versus gdo end-to-end suite
 - **Priority**: high
 - **Epic**: EPIC-009
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: The same scenarios run through git and gedo with identical output, exit code and repository state.
+- **Description**: The same scenarios run through git and gdo with identical output, exit code and repository state.
 
-### FEAT-093: gedo recover
+### FEAT-093: gdo recover
 - **Priority**: medium
 - **Epic**: EPIC-010
 - **Status**: open
@@ -592,7 +592,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Restore any saved state of a file or stream from the WAL.
 
-### FEAT-094: Operation log and gedo undo
+### FEAT-094: Operation log and gdo undo
 - **Priority**: medium
 - **Epic**: EPIC-010
 - **Status**: open
@@ -614,7 +614,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: Post gedo delta and contract checks on pull requests.
+- **Description**: Post gdo delta and contract checks on pull requests.
 
 ### FEAT-097: Re-attachment after server-side merges
 - **Priority**: medium
@@ -688,7 +688,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: A relay for intents, threads and leases with second-level latency; technology decided in its own ADR (amending ADR-0010), which covers client authentication and the separation of teams (tenants) in the protocol from the start, even when a self-hosted relay serves one team, so a managed relay can serve several teams without changing the protocol.
 
-### FEAT-106: gedo peek
+### FEAT-106: gdo peek
 - **Priority**: medium
 - **Epic**: EPIC-013
 - **Status**: open
@@ -728,7 +728,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Multi-turn threads anchored to a node, each message with a comment and a validated code snapshot.
 
-### FEAT-111: gedo inbox and gedo accept
+### FEAT-111: gdo inbox and gdo accept
 - **Priority**: medium
 - **Epic**: EPIC-014
 - **Status**: open
@@ -758,7 +758,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-24
 - **Plan**: -
-- **Description**: gedo stack creates and updates the branches and pull requests of a stack on GitHub.
+- **Description**: gdo stack creates and updates the branches and pull requests of a stack on GitHub.
 
 ### FEAT-115: Automatic restack
 - **Priority**: medium
@@ -768,7 +768,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Restack every level with the semantic merge when a lower level changes or merges.
 
-### FEAT-116: gedo playback
+### FEAT-116: gdo playback
 - **Priority**: low
 - **Epic**: EPIC-016
 - **Status**: open
@@ -878,7 +878,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-25, improvement review 2026-10-25
 - **Plan**: -
-- **Description**: Parallel coding agents work on the same repository without the user seeing or managing worktrees: each agent virtual stream gets a checkout created and managed by Gedo under .git/gedo/streams/<name>, outside the user's folder, sharing the build output directory, removed when the stream is published or discarded; gedo radar and the shadow merge treat these sibling streams as first-class sources, without push or fetch. Agents keep their own file tools; nothing is written to the user's working tree.
+- **Description**: Parallel coding agents work on the same repository without the user seeing or managing worktrees: each agent virtual stream gets a checkout created and managed by Gedo under .git/gedo/streams/<name>, outside the user's folder, sharing the build output directory, removed when the stream is published or discarded; gdo radar and the shadow merge treat these sibling streams as first-class sources, without push or fetch. Agents keep their own file tools; nothing is written to the user's working tree.
 
 ### FEAT-131: Minimal language server for collisions and contract breaks
 - **Priority**: medium
@@ -886,7 +886,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-25, improvement review 2026-10-25
 - **Plan**: -
-- **Description**: A language server that only publishes diagnostics: collisions found by gedo radar and contract breaks (FEAT-079), so any LSP editor (VS Code, Zed, Neovim, RustRover) shows them without an extension. The full server (FEAT-117) and the VS Code extension (FEAT-118) stay later.
+- **Description**: A language server that only publishes diagnostics: collisions found by gdo radar and contract breaks (FEAT-079), so any LSP editor (VS Code, Zed, Neovim, RustRover) shows them without an extension. The full server (FEAT-117) and the VS Code extension (FEAT-118) stay later.
 
 ### FEAT-132: Embeddable library API for the parser and the symbol graph
 - **Priority**: low
@@ -896,13 +896,13 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: -
 - **Description**: Publish gedo-parse and gedo-graph as crates with a stable, semver-versioned public API, so other tools (the dev-cycle checkers, for example check_design) can parse code and query the dependency graph in-process. After v1.0.0; until then the crates stay internal to the workspace and other tools use the CLI and --json.
 
-### FEAT-133: gedo scope: entities and dependency closure of a scope
+### FEAT-133: gdo scope: entities and dependency closure of a scope
 - **Priority**: high
 - **Epic**: EPIC-007
 - **Status**: open
 - **Found**: 2026-10-25, dev-cycle integration contract 2026-10-25
 - **Plan**: -
-- **Description**: gedo scope <paths or symbols> --json lists the entities in a scope and the closure of their dependencies from the symbol graph (FEAT-077), and reports the overlap between two or more scopes, so a tool can check before work starts that parallel milestones do not touch the same entities (the dev-cycle's gate 3, ADR-0013).
+- **Description**: gdo scope <paths or symbols> --json lists the entities in a scope and the closure of their dependencies from the symbol graph (FEAT-077), and reports the overlap between two or more scopes, so a tool can check before work starts that parallel milestones do not touch the same entities (the dev-cycle's gate 3, ADR-0013).
 
 ### FEAT-134: macOS signing and notarization
 - **Priority**: low
@@ -918,23 +918,23 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-29, dev-cycle integration follow-ups 2026-10-29
 - **Plan**: -
-- **Description**: Every command of the ADR-0013 contract (doctor, radar, delta, trace, check contracts, version, scope, stream) gives a correct answer in a fresh clone where gedod never ran, as in short-lived cloud sessions and CI runners: it ingests what it needs on demand, or says in its JSON that the answer is partial (a freshness field in the envelope, which amends ADR-0013 when planned), never a silent stale answer. A one-shot gedo sync does what the daemon would have done since its last run (ingest and fetch), for hooks and agents to call after each task. Killing gedo at any point of gedo publish leaves no state that blocks the next run. Acceptance: on the reference repository, install, clone, gedo init and a first correct gedo radar --json in under 60 s with no daemon; each contract command has a snapshot test run without the daemon.
+- **Description**: Every command of the ADR-0013 contract (doctor, radar, delta, trace, check contracts, version, scope, stream) gives a correct answer in a fresh clone where gedod never ran, as in short-lived cloud sessions and CI runners: it ingests what it needs on demand, or says in its JSON that the answer is partial (a freshness field in the envelope, which amends ADR-0013 when planned), never a silent stale answer. A one-shot gdo sync does what the daemon would have done since its last run (ingest and fetch), for hooks and agents to call after each task. Killing gedo at any point of gdo publish leaves no state that blocks the next run. Acceptance: on the reference repository, install, clone, gdo init and a first correct gdo radar --json in under 60 s with no daemon; each contract command has a snapshot test run without the daemon.
 
-### FEAT-136: gedo stats: local usage metrics
+### FEAT-136: gdo stats: local usage metrics
 - **Priority**: medium
 - **Epic**: EPIC-008
 - **Status**: open
 - **Found**: 2026-10-29, dev-cycle integration follow-ups 2026-10-29
 - **Plan**: -
-- **Description**: gedo stats --json [--since <date>] reports, from local data only and with no telemetry: collisions found and how long after they started, merges done by the driver against those that fell back to text (with the reason), contract breaks found, scope overlaps and identity reconciliations. It follows the ADR-0013 contract, so tools such as the dev-cycle protocol record it in their own metrics, and it gives the VISION success metrics real data from dogfooding. No data leaves the machine unless the user exports it.
+- **Description**: gdo stats --json [--since <date>] reports, from local data only and with no telemetry: collisions found and how long after they started, merges done by the driver against those that fell back to text (with the reason), contract breaks found, scope overlaps and identity reconciliations. It follows the ADR-0013 contract, so tools such as the dev-cycle protocol record it in their own metrics, and it gives the VISION success metrics real data from dogfooding. No data leaves the machine unless the user exports it.
 
-### FEAT-137: gedo entities: entity references resolved at a revision
+### FEAT-137: gdo entities: entity references resolved at a revision
 - **Priority**: medium
 - **Epic**: EPIC-007
 - **Status**: open
 - **Found**: 2026-11-01, dev-cycle protocol request (DCP FEAT-026)
 - **Plan**: -
-- **Description**: gedo entities --json takes a list of entity references (qualified paths as Gedo writes them, each with an optional file or unit) and a revision (--at, default HEAD), and returns for each reference: whether it resolved, or why not (not_found, ambiguous with its candidates, unsupported_language, parse_error); its AstNodeId; its kind; its structural hash with the hash format; its current qualified path, unit and file. With --since <revision> the same call gives each entity's change between the two revisions, following identity across renames and moves: unchanged, or any of renamed, moved and changed (structural hash differs), or deleted, with the new path when renamed or moved. Both sides are computed by the running Gedo, so a change of hash format between Gedo releases is never reported as a change. Part of the ADR-0013 contract (capability entities, schema gedo.entities, docs/schemas) and daemonless as FEAT-135: identity is computed on demand, and a shallow clone without the history it needs says so in the envelope instead of guessing. Languages follow the parsers: Rust (FEAT-016) when this ships, TypeScript and Python with FEAT-017 and FEAT-018. Asked by the dev-cycle protocol to detect drift between documents and the code entities they reference (DCP FEAT-026). Acceptance: snapshot tests against the schema; the same references give the same ids and hashes on Linux and Windows; renamed, moved and deleted entities in Gedo's own history are reported with their new paths.
+- **Description**: gdo entities --json takes a list of entity references (qualified paths as Gedo writes them, each with an optional file or unit) and a revision (--at, default HEAD), and returns for each reference: whether it resolved, or why not (not_found, ambiguous with its candidates, unsupported_language, parse_error); its AstNodeId; its kind; its structural hash with the hash format; its current qualified path, unit and file. With --since <revision> the same call gives each entity's change between the two revisions, following identity across renames and moves: unchanged, or any of renamed, moved and changed (structural hash differs), or deleted, with the new path when renamed or moved. Both sides are computed by the running Gedo, so a change of hash format between Gedo releases is never reported as a change. Part of the ADR-0013 contract (capability entities, schema gedo.entities, docs/schemas) and daemonless as FEAT-135: identity is computed on demand, and a shallow clone without the history it needs says so in the envelope instead of guessing. Languages follow the parsers: Rust (FEAT-016) when this ships, TypeScript and Python with FEAT-017 and FEAT-018. Asked by the dev-cycle protocol to detect drift between documents and the code entities they reference (DCP FEAT-026). Acceptance: snapshot tests against the schema; the same references give the same ids and hashes on Linux and Windows; renamed, moved and deleted entities in Gedo's own history are reported with their new paths.
 
 ## Improvements
 
@@ -960,7 +960,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-25, improvement review 2026-10-25
 - **Plan**: -
-- **Description**: In repositories whose full history does not index within the gedo init target (under 30 s), index a configurable recent horizon synchronously and let gedod index the rest of the history to the roots in the background, reconciling identities deterministically. Needs a measurement on a large repository before it is scheduled.
+- **Description**: In repositories whose full history does not index within the gdo init target (under 30 s), index a configurable recent horizon synchronously and let gedod index the rest of the history to the roots in the background, reconciling identities deterministically. Needs a measurement on a large repository before it is scheduled.
 
 ### IMP-007: Follow moves in whole use declarations of a split publish
 - **Priority**: low
@@ -968,7 +968,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-30, PR #22, protocol review
 - **Plan**: -
-- **Description**: The refactor builder of a split publish (FEAT-067) treats a use declaration that is added or removed as a whole, because a move needs it, as feature text, so the refactor commit keeps the base imports and may not build (ADR-0018, known limits). Recognize a whole use declaration whose path names the new (or old) path of an entity moved in the same publish as a follow-up, and cover it with a scripted move whose callers need a new import. Scheduled in v0.4.0, to land before `gedo publish --split-lanes` (FEAT-083) puts the split in users' hands.
+- **Description**: The refactor builder of a split publish (FEAT-067) treats a use declaration that is added or removed as a whole, because a move needs it, as feature text, so the refactor commit keeps the base imports and may not build (ADR-0018, known limits). Recognize a whole use declaration whose path names the new (or old) path of an entity moved in the same publish as a follow-up, and cover it with a scripted move whose callers need a new import. Scheduled in v0.4.0, to land before `gdo publish --split-lanes` (FEAT-083) puts the split in users' hands.
 
 ### IMP-008: Forget the identity records of commits a split publish rejects
 - **Priority**: low
@@ -976,7 +976,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Status**: open
 - **Found**: 2026-10-30, PR #22, protocol review
 - **Plan**: -
-- **Description**: A split publish (FEAT-067) indexes the single commit and, when it splits, the refactor and feature commits; the commits it does not keep stay unreferenced and are removed by git gc, but their identity records stay in the local symbol cache. The cache is derived data, so this is only growth: drop the records of the commits a publish did not keep, or let gedo gc (FEAT-087) prune records of unreachable commits. Scheduled in v0.4.0 with FEAT-087: gedo gc prunes the identity records of unreachable commits, so this needs no separate change.
+- **Description**: A split publish (FEAT-067) indexes the single commit and, when it splits, the refactor and feature commits; the commits it does not keep stay unreferenced and are removed by git gc, but their identity records stay in the local symbol cache. The cache is derived data, so this is only growth: drop the records of the commits a publish did not keep, or let gdo gc (FEAT-087) prune records of unreachable commits. Scheduled in v0.4.0 with FEAT-087: gdo gc prunes the identity records of unreachable commits, so this needs no separate change.
 
 ## Adjustments
 
@@ -987,6 +987,14 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Found**: 2026-11-06, levix-admin-hub license proposal
 - **Plan**: -
 - **Description**: The strategy and distribution document v2 asks the owner to register the trademark of the name Gedo before the public launch, so anyone can fork and reuse the open source code (MIT OR Apache-2.0) while the name stays with Levix Digital. Not a code change: the owner files the registration before the public launch.
+
+### ADJ-002: Ship the CLI as gdo with gedo as a second name
+- **Priority**: high
+- **Epic**: EPIC-008
+- **Status**: open
+- **Found**: 2026-11-09, 2026-11-09, short command name decision
+- **Plan**: -
+- **Description**: The command users type is gdo, three letters like git, because Gedo passes every Git command through and is typed all day (ADR-0021). The same binary is also installed as gedo: hooks, the merge driver and scripts call gedo, people type gdo. Every release archive and package (cargo install, winget, Linux packages) installs both names: a symbolic or hard link on Linux and macOS, a second copy or hard link on Windows. Both names behave identically and gdo version reports the same build. The daemon keeps the name gedod. Delivered with the CLI skeleton (FEAT-081) and the release pipeline (FEAT-120).
 
 ## Epics
 
@@ -1036,13 +1044,13 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Priority**: high
 - **Status**: open
 - **Found**: 2026-10-24
-- **Description**: The gedo command line and the gedod daemon over the gedo-app use cases (scope 8).
+- **Description**: The gdo command line and the gedod daemon over the gedo-app use cases (scope 8).
 
 ### EPIC-009: Full Git command compatibility
 - **Priority**: high
 - **Status**: open
 - **Found**: 2026-10-24
-- **Description**: Every Git command works through gedo; hooks keep the overlay correct when git is used directly (scope 9, ADR-0006).
+- **Description**: Every Git command works through gdo; hooks keep the overlay correct when git is used directly (scope 9, ADR-0006).
 
 ### EPIC-010: Safety net
 - **Priority**: medium
@@ -1355,7 +1363,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Found**: 2026-10-29, PR #15, Windows reference benchmark
 - **Plan**: gedo_windows_event_publish_and_filter_performance_fixes
 - **Closed**: 2026-10-30, plan gedo_windows_event_publish_and_filter_performance_fixes
-- **Description**: On the Windows reference machine (i7-12700KF), cargo bench -p gedo-app --bench events gives p50 1.19 s and p95 1.31 s for publishing 1,000 events (1.49 s p95 into a chain of 100,000), above the 1 s budget of gedo publish (TECH_SPEC, SC-004 of 004-event-model); Linux p95 is 107 ms. Each event is a separate loose blob in refs/gedo/events, so a publish writes about 1,000 loose object files.
+- **Description**: On the Windows reference machine (i7-12700KF), cargo bench -p gedo-app --bench events gives p50 1.19 s and p95 1.31 s for publishing 1,000 events (1.49 s p95 into a chain of 100,000), above the 1 s budget of gdo publish (TECH_SPEC, SC-004 of 004-event-model); Linux p95 is 107 ms. Each event is a separate loose blob in refs/gedo/events, so a publish writes about 1,000 loose object files.
 
 ### BUG-010: Filtering 10,000 events by a label takes over 1 s on Windows
 - **Severity**: medium
@@ -1400,7 +1408,7 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Found**: 2026-10-24
 - **Plan**: gedo_semantic_lanes
 - **Closed**: 2026-10-30, PR #22
-- **Description**: Classify events into refactor and feature lanes; gedo publish --split-lanes creates a refactor commit then a feature commit.
+- **Description**: Classify events into refactor and feature lanes; gdo publish --split-lanes creates a refactor commit then a feature commit.
 
 ### IMP-006: Bound the history walk that finds detached tapes
 - **Priority**: low
@@ -1427,4 +1435,4 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Found**: 2026-10-24
 - **Plan**: gedo_virtual_streams
 - **Closed**: 2026-11-06, PR #32, plan gedo_virtual_streams
-- **Description**: gedo stream <name>: switch or isolate work in memory without git stash or checkout. A stream carries the same opaque labels as events (FEAT-063), set at creation, and an optional agent author (--agent <id>), so a tool can open one stream per plan milestone or per agent and find it again with gedo stream list --label key=value --json. Every event recorded inside a stream inherits its author and labels; outside a stream the author is the person of the Git identity, or the agent and labels named by GEDO_AGENT and GEDO_LABELS. The prefix gedo. is reserved for Gedo's own keys (ADR-0013). Delivered in PR #32 as the Streams use cases over the new StreamStore port (ADR-0020); the gedo stream commands come with the CLI in v0.4.0. Reference machine, five runs: create p95 2.1 to 8.4 ms, read 35 µs, listing 1,000 streams 51 to 54 ms (SC-003 met); switch p95 11 to 15 ms and publish overhead 9 to 13 ms at p50 followed as BUG-012.
+- **Description**: gdo stream <name>: switch or isolate work in memory without git stash or checkout. A stream carries the same opaque labels as events (FEAT-063), set at creation, and an optional agent author (--agent <id>), so a tool can open one stream per plan milestone or per agent and find it again with gdo stream list --label key=value --json. Every event recorded inside a stream inherits its author and labels; outside a stream the author is the person of the Git identity, or the agent and labels named by GEDO_AGENT and GEDO_LABELS. The prefix gedo. is reserved for Gedo's own keys (ADR-0013). Delivered in PR #32 as the Streams use cases over the new StreamStore port (ADR-0020); the gdo stream commands come with the CLI in v0.4.0. Reference machine, five runs: create p95 2.1 to 8.4 ms, read 35 µs, listing 1,000 streams 51 to 54 ms (SC-003 met); switch p95 11 to 15 ms and publish overhead 9 to 13 ms at p50 followed as BUG-012.

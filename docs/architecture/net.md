@@ -11,7 +11,7 @@ Carries events and intents between developers.
 ## Responsibilities
 
 - Implements the transport port: exchanging tapes, threads and developer intents (`SymbolLocked`, `SymbolMutating`).
-- Three tiers (ADR-0010): Git remotes with background fetch (MVP); an optional self-hostable relay for intents, `gedo peek`, soft leases for binary files and inbox threads; peer-to-peer in local networks. Git remains the canonical store in every tier.
+- Three tiers (ADR-0010): Git remotes with background fetch (MVP); an optional self-hostable relay for intents, `gdo peek`, soft leases for binary files and inbox threads; peer-to-peer in local networks. Git remains the canonical store in every tier.
 - Does not order or merge events; the deterministic sequencer is core logic (`gedo-crdt`).
 
 ## Structure
