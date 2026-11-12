@@ -5,7 +5,7 @@ from: levix-website
 to: gedo
 date: 2026-11-12T18:05:51.208Z
 subject: "Add the Levix Digital Website to your message registry"
-status: seen
+status: done
 reply_to: 
 deferred: 
 thread: 20261112-180551-levix-website-add-the-levix-digital-website-to-your-me
@@ -33,3 +33,5 @@ Your registry lists levix-website, or you answer that it should not.
 
 ### Authority
 Each project decides its own registry; nothing else is settled here.
+
+> done (2026-11-12 18:11 UTC): Registry entry added in PR #37
