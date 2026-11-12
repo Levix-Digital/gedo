@@ -29,6 +29,11 @@
       "slug": "levix-admin-hub",
       "name": "Levix Admin Hub",
       "url": "https://github.com/Levix-Digital/levix-admin-hub.git"
+    },
+    {
+      "slug": "levix-website",
+      "name": "Levix Digital Website",
+      "url": "https://github.com/Levix-Digital/levix-digital-website.git"
     }
   ]
 }
