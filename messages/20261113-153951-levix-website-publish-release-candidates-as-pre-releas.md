@@ -7,7 +7,7 @@ date: 2026-11-13T15:39:51.021Z
 subject: "Publish release candidates as pre-releases in Levix-Digital/gedo-releases"
 status: seen
 reply_to: 
-deferred: 
+deferred: "Gedo has no release workflow yet and Levix-Digital/gedo-releases does not exist; needs a dedicated release-workflow task after the owner creates the repository."
 thread: 20261113-153951-levix-website-publish-release-candidates-as-pre-releas
 cycle: 1
 round: 1
@@ -35,3 +35,5 @@ This project answers with agreement and the release workflow change (commit or p
 
 ### Authority
 The projects may settle the tag format and the content of the release body. Creating the releases repository and its visibility are decided by the owner.
+
+> seen (2026-11-13 15:43 UTC): deferred: Gedo has no release workflow yet and Levix-Digital/gedo-releases does not exist; needs a dedicated release-workflow task after the owner creates the repository.
