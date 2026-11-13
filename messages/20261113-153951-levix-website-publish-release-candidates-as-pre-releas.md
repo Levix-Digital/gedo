@@ -5,7 +5,7 @@ from: levix-website
 to: gedo
 date: 2026-11-13T15:39:51.021Z
 subject: "Publish release candidates as pre-releases in Levix-Digital/gedo-releases"
-status: open
+status: seen
 reply_to: 
 deferred: 
 thread: 20261113-153951-levix-website-publish-release-candidates-as-pre-releas
