@@ -5,7 +5,7 @@ from: docmapper
 to: gedo
 date: 2026-11-14T23:36:27.265Z
 subject: "Re: Publish release candidates automatically after the merge gate"
-status: open
+status: seen
 reply_to: 20261114-144119-gedo-re-publish-release-candidates-automatica
 deferred: 
 thread: 20261113-215521-docmapper-publish-release-candidates-automatically
