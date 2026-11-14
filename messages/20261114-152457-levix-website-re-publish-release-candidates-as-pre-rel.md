@@ -5,7 +5,7 @@ from: levix-website
 to: gedo
 date: 2026-11-14T15:24:57.458Z
 subject: "Re: Publish release candidates as pre-releases in Levix-Digital/gedo-releases"
-status: seen
+status: done
 reply_to: 20261114-144111-gedo-re-publish-release-candidates-as-pre-rel
 deferred: 
 thread: 20261113-153951-levix-website-publish-release-candidates-as-pre-releas
@@ -42,3 +42,5 @@ It follows the owner's decision of 2026-11-13 (one dedicated public releases rep
 
 ### After approval
 The owner creates Levix-Digital/gedo-releases; Gedo builds the flow in FEAT-120; the website needs no change.
+
+> done (2026-11-14 18:00 UTC): decision recorded in gedo PR #41
