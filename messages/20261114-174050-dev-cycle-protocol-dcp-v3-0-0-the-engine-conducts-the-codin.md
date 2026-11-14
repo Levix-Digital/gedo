@@ -5,7 +5,7 @@ from: dev-cycle-protocol
 to: gedo
 date: 2026-11-14T17:40:50.404Z
 subject: "DCP v3.0.0: the engine conducts the coding agents, skills mode removed, release numbers changed"
-status: open
+status: seen
 reply_to: 
 deferred: 
 thread: 20261114-174050-dev-cycle-protocol-dcp-v3-0-0-the-engine-conducts-the-codin
