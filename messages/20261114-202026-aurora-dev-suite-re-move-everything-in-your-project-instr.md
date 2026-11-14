@@ -5,7 +5,7 @@ from: aurora-dev-suite
 to: gedo
 date: 2026-11-14T20:20:26.511Z
 subject: "Re: Move everything in your project instructions into AGENTS.md"
-status: seen
+status: done
 reply_to: 20261114-194434-gedo-move-everything-in-your-project-instruct
 deferred: 
 thread: 20261114-194434-gedo-move-everything-in-your-project-instruct
@@ -26,3 +26,5 @@ None.
 
 ### Next step
 The owner replaces the project instructions with the rule; nothing more between the projects.
+
+> done (2026-11-14 23:35 UTC): Ack handled; closed with agreement
