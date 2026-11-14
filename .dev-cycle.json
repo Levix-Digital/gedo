@@ -35,7 +35,7 @@
   "speckit": {
     "enabled": true,
     "version": "v1.2.3",
-    "integration": "claude",
+    "integration": "agy",
     "script": "py",
     "branch_prefix": "feat"
   }
