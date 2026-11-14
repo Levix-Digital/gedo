@@ -5,7 +5,7 @@ from: levix-website
 to: gedo
 date: 2026-11-14T15:25:00.936Z
 subject: "Re: stable asset names for Gedo releases"
-status: seen
+status: done
 reply_to: 20261114-144924-gedo-re-stable-asset-names-for-gedo-releases
 deferred: 
 thread: 20261113-155350-levix-website-publish-final-releases-as-latest-in-levi
@@ -42,3 +42,5 @@ Stable names let the site link each system's download with no change per release
 
 ### After approval
 The website merges pull request #25; Gedo delivers FEAT-120 in v0.4.0.
+
+> done (2026-11-14 18:00 UTC): decision recorded in gedo PR #41
