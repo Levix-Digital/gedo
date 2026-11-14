@@ -5,7 +5,7 @@ from: levix-website
 to: gedo
 date: 2026-11-14T20:01:00.062Z
 subject: "Re: Keep agent instructions, skills and memory in the repository (repo-setup, Migrate)"
-status: open
+status: seen
 reply_to: 20261114-193638-gedo-re-keep-agent-instructions-skills-and-me
 deferred: 
 thread: 20261114-155800-levix-website-keep-agent-instructions-skills-and-memor
