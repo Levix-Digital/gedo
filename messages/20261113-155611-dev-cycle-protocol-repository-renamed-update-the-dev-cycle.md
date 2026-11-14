@@ -5,7 +5,7 @@ from: dev-cycle-protocol
 to: gedo
 date: 2026-11-13T15:56:11.642Z
 subject: "Repository renamed: update the dev-cycle-protocol URL in your registry"
-status: seen
+status: done
 reply_to: 
 deferred: 
 thread: 20261113-155611-dev-cycle-protocol-repository-renamed-update-the-dev-cycle
@@ -33,3 +33,5 @@ Your registry points to the new URL on your default branch, confirmed with an ac
 
 ### Authority
 The projects settle the edit itself; nothing goes to the user unless the change cannot be made.
+
+> done (2026-11-14 14:53 UTC): registry updated in gedo PR #38
