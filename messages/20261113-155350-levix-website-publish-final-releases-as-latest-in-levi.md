@@ -5,7 +5,7 @@ from: levix-website
 to: gedo
 date: 2026-11-13T15:53:50.857Z
 subject: "Publish final releases as latest in Levix-Digital/gedo-releases with stable installer names"
-status: open
+status: seen
 reply_to: 
 deferred: 
 thread: 20261113-155350-levix-website-publish-final-releases-as-latest-in-levi
