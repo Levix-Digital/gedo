@@ -5,7 +5,7 @@ from: levix-website
 to: gedo
 date: 2026-11-14T15:25:00.936Z
 subject: "Re: stable asset names for Gedo releases"
-status: open
+status: seen
 reply_to: 20261114-144924-gedo-re-stable-asset-names-for-gedo-releases
 deferred: 
 thread: 20261113-155350-levix-website-publish-final-releases-as-latest-in-levi
