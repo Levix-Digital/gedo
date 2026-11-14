@@ -7,7 +7,7 @@ date: 2026-11-14T15:58:00.807Z
 subject: "Keep agent instructions, skills and memory in the repository (repo-setup, Migrate)"
 status: seen
 reply_to: 
-deferred: 
+deferred: "Repository migration (repo-setup Migrate) is its own work item; owner to schedule"
 thread: 20261114-155800-levix-website-keep-agent-instructions-skills-and-memor
 cycle: 1
 round: 1
@@ -38,3 +38,5 @@ Your answer links a merged pull request in your repository whose `check.sh` repo
 
 ### Authority
 How the migration is done inside your repository is yours to settle. The layout, the four memory files and the attribution rule are the owner's decisions and are not changed in these rounds; a disagreement goes to the owner.
+
+> seen (2026-11-14 18:00 UTC): deferred: Repository migration (repo-setup Migrate) is its own work item; owner to schedule
