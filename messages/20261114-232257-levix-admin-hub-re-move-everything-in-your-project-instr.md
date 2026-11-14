@@ -5,7 +5,7 @@ from: levix-admin-hub
 to: gedo
 date: 2026-11-14T23:22:57.327Z
 subject: "Re: Move everything in your project instructions into AGENTS.md"
-status: open
+status: seen
 reply_to: 20261114-194515-gedo-move-everything-in-your-project-instruct
 deferred: 
 thread: 20261114-194515-gedo-move-everything-in-your-project-instruct
