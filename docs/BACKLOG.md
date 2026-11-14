@@ -6,14 +6,6 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 
 ## Bugs
 
-### BUG-012: Stream switch that saves new work and stream publish over budget on the reference machine
-- **Severity**: low
-- **Epic**: EPIC-005
-- **Status**: open
-- **Found**: 2026-11-06, v0.3.0, PR #32, reference bench
-- **Plan**: -
-- **Description**: On the reference machine (i7-12700KF, Windows 11, Defender real-time protection on), five runs of cargo bench -p gedo-app --bench streams at 98fce7b gave stream switch p50 1.3 to 1.6 ms but p95 11 to 15 ms (SC-003 of specs/009-virtual-streams: under 10 ms), and publishing a stream of 1,000 events p50 24 to 33 ms against 15 to 23 ms for EventLog::publish of the same events (SC-003: adds under 10 ms; measured 9 to 13 ms). Create (p95 2.1 to 8.4 ms), get (35 µs) and listing 1,000 streams (51 to 54 ms) meet SC-003. The slow switches are the ones that save new work: a loose work commit, a pin reference update and a record replacement, all new files the antivirus scans; a sync is no longer done (6 to 8 ms each on that machine). Measure each step of a switch that saves work on Windows before changing anything; candidates are fewer new files per switch (pins written later, or one pin update per save) and one record write per publish instead of two.
-
 ## Features
 
 ### FEAT-008: SHA-256 repository support
@@ -1451,3 +1443,12 @@ Each item: `### <ID>: <title>` with the fields `Severity` (bugs: critical, high,
 - **Plan**: gedo_virtual_streams
 - **Closed**: 2026-11-06, PR #32, plan gedo_virtual_streams
 - **Description**: gdo stream <name>: switch or isolate work in memory without git stash or checkout. A stream carries the same opaque labels as events (FEAT-063), set at creation, and an optional agent author (--agent <id>), so a tool can open one stream per plan milestone or per agent and find it again with gdo stream list --label key=value --json. Every event recorded inside a stream inherits its author and labels; outside a stream the author is the person of the Git identity, or the agent and labels named by GEDO_AGENT and GEDO_LABELS. The prefix gedo. is reserved for Gedo's own keys (ADR-0013). Delivered in PR #32 as the Streams use cases over the new StreamStore port (ADR-0020); the gdo stream commands come with the CLI in v0.4.0. Reference machine, five runs: create p95 2.1 to 8.4 ms, read 35 µs, listing 1,000 streams 51 to 54 ms (SC-003 met); switch p95 11 to 15 ms and publish overhead 9 to 13 ms at p50 followed as BUG-012.
+
+### BUG-012: Stream switch that saves new work and stream publish over budget on the reference machine
+- **Severity**: low
+- **Epic**: EPIC-005
+- **Status**: done
+- **Found**: 2026-11-06, v0.3.0, PR #32, reference bench
+- **Plan**: -
+- **Closed**: 2026-11-14, PR #40
+- **Description**: On the reference machine (i7-12700KF, Windows 11, Defender real-time protection on), five runs of cargo bench -p gedo-app --bench streams at 98fce7b gave stream switch p50 1.3 to 1.6 ms but p95 11 to 15 ms (SC-003 of specs/009-virtual-streams: under 10 ms), and publishing a stream of 1,000 events p50 24 to 33 ms against 15 to 23 ms for EventLog::publish of the same events (SC-003: adds under 10 ms; measured 9 to 13 ms). Create (p95 2.1 to 8.4 ms), get (35 µs) and listing 1,000 streams (51 to 54 ms) meet SC-003. The slow switches are the ones that save new work: a loose work commit, a pin reference update and a record replacement, all new files the antivirus scans; a sync is no longer done (6 to 8 ms each on that machine). Measure each step of a switch that saves work on Windows before changing anything; candidates are fewer new files per switch (pins written later, or one pin update per save) and one record write per publish instead of two. Fixed in PR #40 (ADR-0022): pins are written as loose references with Git's lock protocol (no read of the old value, no reflog, no packed-refs check), and a stream publish counts its pending events once instead of reading its log three more times. Reference machine, 34992b5 before and 6eb0263 to d578629 after: a pin p50 1.6-2.0 ms to 0.45 ms; the storage of a saving switch p50 4.4-4.5 ms to 2.7-3.0 ms; the publish overhead p50 9.9-10.8 ms to 3.7-9.1 ms in six of eight bench runs (11.7 and 13.8 ms in two); a whole switch that saves work (200 runs) p50 5.7-6.7 ms, p95 7.1-10.4 ms. What is left is the antivirus, not Gedo: about half of such a switch (2.6-2.9 ms) is Defender scanning the target's record on its first read after it was rewritten, and writing a loose object stalls 50-280 ms now and then. Closed by the owner's decision (2026-11-14) with the antivirus documented in docs/architecture/store.md: excluding the repository's .git folder from real-time scanning, or keeping repositories on a Dev Drive, removes that cost.
