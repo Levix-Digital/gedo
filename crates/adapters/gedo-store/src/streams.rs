@@ -10,15 +10,13 @@
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use gedo_core::ports::StreamStore;
 use gedo_core::stream::StreamName;
 use gedo_core::{GitOid, StoreError};
-use gix::refs::Target;
-use gix::refs::transaction::{Change, LogChange, PreviousValue, RefEdit, RefLog};
+use gix::refs::transaction::{Change, PreviousValue, RefEdit, RefLog};
 
-use crate::convert::to_gix_oid;
 use crate::fs::retry_sharing_violation;
 use crate::refs::REF_LOCK_WAIT_MS;
 use crate::repository::GitRepository;
@@ -71,32 +69,31 @@ impl FileStreamStore {
         let repo = self.repository.local();
         let name = gix::refs::FullName::try_from(reference)
             .map_err(|error| StoreError::backend("reference name", error))?;
-        let change = match commit {
-            Some(commit) => Change::Update {
-                log: LogChange {
-                    mode: RefLog::AndReference,
-                    force_create_reflog: false,
-                    message: "gedo stream".into(),
-                },
-                expected: PreviousValue::Any,
-                new: Target::Object(to_gix_oid(&commit)?),
-            },
-            None => {
-                let exists = repo
-                    .try_find_reference(reference)
-                    .map_err(|error| StoreError::backend("read reference", format!("{reference}: {error}")))?
-                    .is_some();
-                if !exists {
-                    return Ok(());
-                }
-                Change::Delete {
-                    expected: PreviousValue::Any,
-                    log: RefLog::AndReference,
-                }
-            }
+        let Some(commit) = commit else {
+            return self.delete_reference(&repo, reference, name);
         };
+        write_loose_reference(&self.repository.common_dir(), reference, &commit)
+    }
+
+    /// Deletes `reference` (loose or packed) through a Git reference transaction.
+    fn delete_reference(
+        &self,
+        repo: &gix::Repository,
+        reference: &str,
+        name: gix::refs::FullName,
+    ) -> Result<(), StoreError> {
+        let exists = repo
+            .try_find_reference(reference)
+            .map_err(|error| StoreError::backend("read reference", format!("{reference}: {error}")))?
+            .is_some();
+        if !exists {
+            return Ok(());
+        }
         let edit = RefEdit {
-            change,
+            change: Change::Delete {
+                expected: PreviousValue::Any,
+                log: RefLog::AndReference,
+            },
             name,
             deref: false,
         };
@@ -111,6 +108,64 @@ impl FileStreamStore {
             .map_err(|error| StoreError::backend("update reference", format!("{reference}: {error}")))?;
         Ok(())
     }
+}
+
+/// Points the loose reference `reference` of the repository whose common directory is `common`
+/// at `commit`, with Git's own protocol: the lock file `<reference>.lock` is created exclusively
+/// (waiting up to [`REF_LOCK_WAIT_MS`] for another writer), written and renamed onto the
+/// reference. A loose reference takes precedence over a packed one, so a packed pin needs no
+/// change.
+///
+/// A pin has no reflog (Git logs only branches, remote-tracking references, notes and `HEAD`)
+/// and no expected previous value (its stream's log is held), so the old value is not read: on
+/// Windows, a reference transaction's extra opens of the old reference, the reflog and
+/// `packed-refs` cost 1 to 2 ms per pin (BUG-012).
+fn write_loose_reference(common: &Path, reference: &str, commit: &GitOid) -> Result<(), StoreError> {
+    let path = reference
+        .split('/')
+        .fold(common.to_path_buf(), |path, part| path.join(part));
+    let file_name = path
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let lock = path.with_file_name(format!("{file_name}.lock"));
+    let deadline = Instant::now() + Duration::from_millis(REF_LOCK_WAIT_MS);
+    let mut pause = Duration::from_millis(1);
+    let mut file = loop {
+        match OpenOptions::new().write(true).create_new(true).open(&lock) {
+            Ok(file) => break file,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {
+                let directory = path.parent().unwrap_or(common);
+                fs::create_dir_all(directory)
+                    .map_err(|error| StoreError::io("create reference directory", directory, error))?;
+            }
+            // Another writer holds the lock, or (Windows) its lock is still pending deletion.
+            Err(error)
+                if matches!(
+                    error.kind(),
+                    io::ErrorKind::AlreadyExists | io::ErrorKind::PermissionDenied
+                ) && Instant::now() < deadline =>
+            {
+                std::thread::sleep(pause);
+                pause = (pause * 2).min(Duration::from_millis(100));
+            }
+            Err(error) => {
+                return Err(StoreError::backend(
+                    "update reference",
+                    format!("{reference}: lock {}: {error}", lock.display()),
+                ));
+            }
+        }
+    };
+    let written = file.write_all(format!("{commit}\n").as_bytes());
+    // The lock is closed before it is renamed or removed (Windows keeps open files).
+    drop(file);
+    written
+        .and_then(|()| retry_sharing_violation(&path, || fs::rename(&lock, &path)))
+        .map_err(|error| {
+            let _ = fs::remove_file(&lock);
+            StoreError::io("update reference", &path, error)
+        })
 }
 
 /// Writes `bytes` to a temporary file next to `path` and returns it.

@@ -103,6 +103,7 @@ pushed). Source files and `refs/heads/*` stay untouched.
 <!-- architecture-docs:adrs:start -->
 | ADR | Title | Status | Version | Date |
 |---|---|---|---|---|
+| [ADR-0022](docs/adr/0022-stream-pins-as-loose-references-written-with-git-s-lock-prot.md) | Stream pins as loose references written with Git's lock protocol | accepted | v0.3.0 | 2026-11-14 |
 | [ADR-0021](docs/adr/0021-short-gdo-command-with-gedo-as-a-second-name-of-the-same-bin.md) | Short gdo command with gedo as a second name of the same binary | accepted | v0.4.0 | 2026-11-09 |
 | [ADR-0020](docs/adr/0020-virtual-streams-as-local-records-with-their-own-log-and-pinn.md) | Virtual streams as local records with their own log and pinned work commits | accepted | v0.3.0 | 2026-11-06 |
 | [ADR-0019](docs/adr/0019-commit-generations-in-the-symbol-cache-and-a-generation-boun.md) | Commit generations in the symbol cache and a generation-bounded detached-tape search | accepted | v0.3.0 | 2026-10-31 |

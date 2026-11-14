@@ -151,6 +151,8 @@ pub struct EventLog<'a, O, R, W> {
     cache: Option<&'a dyn SymbolCache>,
     /// The clock of the last event in the log, to continue its sequence.
     last: Option<gedo_core::event::Clock>,
+    /// The number of records in the log, as of its last read or write through this value.
+    records: usize,
     generations: HashMap<GitOid, u64>,
     /// Parents of the commits whose cached generation was checked, so a walk that visits them
     /// next does not read them again.
@@ -166,11 +168,21 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
             wal,
             cache: None,
             last: None,
+            records: 0,
             generations: HashMap::new(),
             checked_parents: HashMap::new(),
         };
-        log.last = log.pending()?.last().map(|(_, event)| event.clock);
+        let pending = log.pending()?;
+        log.last = pending.last().map(|(_, event)| event.clock);
+        log.records = pending.len();
         Ok(log)
+    }
+
+    /// The number of events in the log, without reading it again: counted when the log was
+    /// opened and kept up to date by [`EventLog::record`] and [`EventLog::publish`]. Exact while
+    /// the caller holds the log, which has one writer at a time.
+    pub fn pending_count(&self) -> usize {
+        self.records
     }
 
     /// Keeps stored event records in `cache` too, and reads them from it first.
@@ -227,6 +239,7 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
                 .append(&bytes)
                 .context(|| "append an event to the log".into())?;
             self.last = Some(event.clock);
+            self.records += 1;
             ids.push(event_id(&event));
         }
         tracing::debug!(events = ids.len(), "events recorded");
@@ -345,7 +358,9 @@ impl<'a, O: ObjectStore, R: RefStore, W: WriteAheadLog> EventLog<'a, O, R, W> {
         self.wal
             .truncate_through(last_sequence)
             .context(|| "remove the published events from the log".into())?;
-        self.last = self.pending()?.last().map(|(_, event)| event.clock);
+        let pending = self.pending()?;
+        self.last = pending.last().map(|(_, event)| event.clock);
+        self.records = pending.len();
         for ((commit, events), tape) in groups.iter().zip(&tapes) {
             if let Some((tape, _)) = tape {
                 tracing::info!(%commit, %tape, events = events.len(), "events published");

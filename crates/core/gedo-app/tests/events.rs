@@ -182,6 +182,27 @@ fn sequences_continue_across_reopening_and_restart_after_a_publish() {
 }
 
 #[test]
+fn the_pending_count_follows_the_log_without_reading_it_again() {
+    let (history, base, next) = two_commits();
+    let refs = MemoryRefStore::new();
+    let mut wal = MemoryWal::new();
+    {
+        let mut log = EventLog::open(&history.objects, &refs, &mut wal).expect("opens");
+        assert_eq!(log.pending_count(), 0);
+        log.record(&person(), Some(base), &[created(1), body(1, 2)])
+            .expect("recorded");
+        assert_eq!(log.pending_count(), 2);
+    }
+    let mut log = EventLog::open(&history.objects, &refs, &mut wal).expect("reopens");
+    assert_eq!(log.pending_count(), 2, "counted when the log is opened");
+    log.record(&person(), Some(base), &[body(1, 3)])
+        .expect("recorded");
+    assert_eq!(log.pending_count(), log.pending().expect("pending").len());
+    log.publish(next).expect("published");
+    assert_eq!(log.pending_count(), 0, "published events leave the count");
+}
+
+#[test]
 fn reserved_labels_and_bad_agents_are_refused_before_recording() {
     assert!(RecordingContext::from_texts("e@x", None, Some("gedo.stream=x")).is_err());
     assert!(RecordingContext::from_texts("e@x", Some("Agent One"), None).is_err());

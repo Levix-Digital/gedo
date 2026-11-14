@@ -1,0 +1,221 @@
+//! Times each storage step of a stream switch that saves new work, and of a stream publish, on a
+//! scratch repository (BUG-012). Every run saves a new work tree, so every switch writes.
+//!
+//! `cargo run --release -p gedo-app --example stream_steps [runs]`
+//!
+//! The scratch repository is created with `git init`, which only this developer tool runs.
+
+use std::collections::BTreeMap;
+use std::process::Command;
+use std::time::{Duration, Instant};
+
+use gedo_core::ids::GitOid;
+use gedo_core::ports::{EntryMode, NewCommit, ObjectStore, StreamStore, TreeEntry};
+use gedo_core::stream::StreamName;
+use gedo_store::{FileStreamStore, GitObjectStore, GitRepository};
+
+struct Steps(BTreeMap<&'static str, Vec<Duration>>);
+
+impl Steps {
+    fn time<T>(&mut self, step: &'static str, operation: impl FnOnce() -> T) -> T {
+        let started = Instant::now();
+        let value = operation();
+        self.0.entry(step).or_default().push(started.elapsed());
+        value
+    }
+
+    fn report(self) {
+        for (step, mut samples) in self.0 {
+            samples.sort();
+            let at = |fraction: f64| samples[((samples.len() as f64 - 1.0) * fraction).round() as usize];
+            println!(
+                "{step:<28} p50 {:>10.3?}  p95 {:>10.3?}  max {:>10.3?}",
+                at(0.50),
+                at(0.95),
+                samples[samples.len() - 1]
+            );
+        }
+    }
+}
+
+fn tree(objects: &GitObjectStore, text: &str) -> GitOid {
+    let blob = objects.write_blob(text.as_bytes()).expect("blob");
+    objects
+        .write_tree(&[TreeEntry {
+            name: "lib.rs".into(),
+            mode: EntryMode::Blob,
+            oid: blob,
+        }])
+        .expect("tree")
+}
+
+fn main() {
+    let runs: usize = std::env::args()
+        .nth(1)
+        .map(|text| text.parse().expect("runs is a number"))
+        .unwrap_or(50);
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let git = |args: &[&str]| {
+        Command::new("git")
+            .args(args)
+            .current_dir(directory.path())
+            .status()
+            .expect("git runs")
+    };
+    assert!(git(&["init", "--quiet"]).success());
+    assert!(git(&["config", "user.name", "Gedo Bench"]).success());
+    assert!(git(&["config", "user.email", "bench@gedo.invalid"]).success());
+    let repository = GitRepository::open_isolated(directory.path()).expect("opens");
+    let objects = GitObjectStore::new(repository.clone());
+    let store = FileStreamStore::open(&repository).expect("opens");
+    let base_tree = tree(&objects, "pub fn base() {}\n");
+    let base = objects
+        .write_commit(&NewCommit {
+            tree: base_tree,
+            parents: vec![],
+            message: "base".into(),
+        })
+        .expect("commit");
+    let name = StreamName::new("bench/steps").expect("name");
+    gedo_app::Streams::new(
+        &objects,
+        &gedo_store::GitRefStore::new(repository.clone()),
+        &store,
+    )
+    .create(&name, None, gedo_core::event::Labels::new(), Some(base))
+    .expect("created");
+    let record = store.read(&name).expect("read").expect("exists");
+    let state = match store.read_state().expect("state") {
+        Some(state) => state,
+        None => {
+            gedo_core::stream::encode_state(&gedo_core::stream::WorktreeState::default()).expect("encoded")
+        }
+    };
+    let works: Vec<GitOid> = (0..runs)
+        .map(|run| tree(&objects, &format!("pub fn w{run}() {{}}\n")))
+        .collect();
+
+    let mut steps = Steps(BTreeMap::new());
+    for work in works {
+        let total = Instant::now();
+        steps.time("1 read record", || store.read(&name).expect("read"));
+        steps.time("2 read state", || store.read_state().expect("state"));
+        let log = steps.time("3 open log", || store.open_log(&name).expect("log"));
+        steps.time("4 read base commit", || objects.read_commit(&base).expect("base"));
+        let commit = steps.time("5 write work commit", || {
+            objects
+                .write_commit(&NewCommit {
+                    tree: work,
+                    parents: vec![base],
+                    message: gedo_app::streams::WORK_COMMIT_MESSAGE.into(),
+                })
+                .expect("commit")
+        });
+        steps.time("6 replace record", || {
+            store.replace(&name, &record).expect("replace")
+        });
+        steps.time("7 pin reference", || store.pin(&name, Some(commit)).expect("pin"));
+        drop(log);
+        steps.time("8 write state", || store.write_state(&state).expect("state"));
+        steps.0.entry("0 total").or_default().push(total.elapsed());
+    }
+    println!("switch that saves new work, {runs} runs:");
+    steps.report();
+
+    // The storage steps a stream publish adds to `EventLog::publish` (research R9).
+    let mut steps = Steps(BTreeMap::new());
+    for run in 0..runs {
+        let total = Instant::now();
+        steps.time("1 read record", || store.read(&name).expect("read"));
+        let log = steps.time("2 open log", || store.open_log(&name).expect("log"));
+        steps.time("3 read record again", || store.read(&name).expect("read"));
+        steps.time("4 read base commit", || objects.read_commit(&base).expect("base"));
+        let commit = steps.time("5 write commit", || {
+            objects
+                .write_commit(&NewCommit {
+                    tree: base_tree,
+                    parents: vec![base],
+                    message: format!("publish {run}\n"),
+                })
+                .expect("commit")
+        });
+        steps.time("6 replace record (publishing)", || {
+            store.replace(&name, &record).expect("replace")
+        });
+        steps.time("7 pin reference", || store.pin(&name, Some(commit)).expect("pin"));
+        steps.time("8 replace record (published)", || {
+            store.replace(&name, &record).expect("replace")
+        });
+        drop(log);
+        steps.0.entry("0 total").or_default().push(total.elapsed());
+    }
+    println!("storage steps a publish adds, {runs} runs:");
+    steps.report();
+
+    // The whole use case, as the streams bench runs it: two streams, every switch saving new work.
+    let refs = gedo_store::GitRefStore::new(repository.clone());
+    let pair = [
+        StreamName::new("bench/pair-a").expect("name"),
+        StreamName::new("bench/pair-b").expect("name"),
+    ];
+    for stream in &pair {
+        gedo_app::Streams::new(&objects, &refs, &store)
+            .create(stream, None, gedo_core::event::Labels::new(), Some(base))
+            .expect("created");
+    }
+    let works: Vec<GitOid> = (0..runs)
+        .map(|run| tree(&objects, &format!("pub fn pair{run}() {{}}\n")))
+        .collect();
+    let mut steps = Steps(BTreeMap::new());
+    for (run, work) in works.into_iter().enumerate() {
+        steps.time("Streams::switch", || {
+            gedo_app::Streams::new(&objects, &refs, &store)
+                .switch(Some(&pair[run % 2]), work)
+                .expect("switched")
+        });
+    }
+    println!("Streams::switch between two streams, each saving new work, {runs} runs:");
+    steps.report();
+
+    // The same switch, step by step through public calls, in the order `Streams::switch` runs.
+    let works: Vec<GitOid> = (0..runs)
+        .map(|run| tree(&objects, &format!("pub fn steps{run}() {{}}\n")))
+        .collect();
+    let mut steps = Steps(BTreeMap::new());
+    for (run, work) in works.into_iter().enumerate() {
+        let streams = gedo_app::Streams::new(&objects, &refs, &store);
+        let target = &pair[run % 2];
+        let active = &pair[(run + 1) % 2];
+        let total = Instant::now();
+        steps.time("a get target", || streams.get(target).expect("target"));
+        steps.time("b read state", || store.read_state().expect("state"));
+        steps.time("c read active record", || store.read(active).expect("read"));
+        steps.time("d get active", || streams.get(active).expect("active"));
+        let log = steps.time("e open log", || store.open_log(active).expect("log"));
+        let mut stream = steps.time("f get active again", || streams.get(active).expect("active"));
+        steps.time("g read base commit", || objects.read_commit(&base).expect("base"));
+        let commit = steps.time("h write work commit", || {
+            objects
+                .write_commit(&NewCommit {
+                    tree: work,
+                    parents: vec![base],
+                    message: gedo_app::streams::WORK_COMMIT_MESSAGE.into(),
+                })
+                .expect("commit")
+        });
+        stream.work = Some(work);
+        steps.time("i encode and replace record", || {
+            let record = gedo_core::stream::encode_stream(&stream).expect("encoded");
+            store.replace(active, &record).expect("replace")
+        });
+        steps.time("j pin reference", || {
+            store.pin(active, Some(commit)).expect("pin")
+        });
+        steps.time("k close log", || drop(log));
+        steps.time("l get target again", || streams.get(target).expect("target"));
+        steps.time("m write state", || store.write_state(&state).expect("state"));
+        steps.0.entry("0 total").or_default().push(total.elapsed());
+    }
+    println!("the same switch step by step, {runs} runs:");
+    steps.report();
+}
