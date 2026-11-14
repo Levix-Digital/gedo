@@ -5,9 +5,9 @@ from: levix-website
 to: gedo
 date: 2026-11-14T15:58:00.807Z
 subject: "Keep agent instructions, skills and memory in the repository (repo-setup, Migrate)"
-status: seen
+status: done
 reply_to: 
-deferred: "Repository migration (repo-setup Migrate) is its own work item; owner to schedule"
+deferred: 
 thread: 20261114-155800-levix-website-keep-agent-instructions-skills-and-memor
 cycle: 1
 round: 1
