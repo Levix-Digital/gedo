@@ -5,7 +5,7 @@ from: levix-website
 to: gedo
 date: 2026-11-13T15:53:50.857Z
 subject: "Publish final releases as latest in Levix-Digital/gedo-releases with stable installer names"
-status: seen
+status: done
 reply_to: 
 deferred: 
 thread: 20261113-155350-levix-website-publish-final-releases-as-latest-in-levi
@@ -35,3 +35,5 @@ A reply with the installer asset names per operating system (or "no installers")
 
 ### Authority
 The asset names and the workflow are yours to settle. Creating the public repository is done by the owner.
+
+> done (2026-11-14 14:41 UTC): answered; records in gedo PR #38
