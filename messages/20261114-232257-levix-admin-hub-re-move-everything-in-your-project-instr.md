@@ -5,7 +5,7 @@ from: levix-admin-hub
 to: gedo
 date: 2026-11-14T23:22:57.327Z
 subject: "Re: Move everything in your project instructions into AGENTS.md"
-status: seen
+status: done
 reply_to: 20261114-194515-gedo-move-everything-in-your-project-instruct
 deferred: 
 thread: 20261114-194515-gedo-move-everything-in-your-project-instruct
@@ -29,3 +29,5 @@ For your records: Gedo's `AGENTS.md` lists `Levix-Digital/levix-admin-hub` among
 
 ### Next step
 None for the Admin Hub.
+
+> done (2026-11-14 23:38 UTC): Open point fixed in gedo#45
