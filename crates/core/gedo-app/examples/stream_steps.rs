@@ -176,4 +176,46 @@ fn main() {
     }
     println!("Streams::switch between two streams, each saving new work, {runs} runs:");
     steps.report();
+
+    // The same switch, step by step through public calls, in the order `Streams::switch` runs.
+    let works: Vec<GitOid> = (0..runs)
+        .map(|run| tree(&objects, &format!("pub fn steps{run}() {{}}\n")))
+        .collect();
+    let mut steps = Steps(BTreeMap::new());
+    for (run, work) in works.into_iter().enumerate() {
+        let streams = gedo_app::Streams::new(&objects, &refs, &store);
+        let target = &pair[run % 2];
+        let active = &pair[(run + 1) % 2];
+        let total = Instant::now();
+        steps.time("a get target", || streams.get(target).expect("target"));
+        steps.time("b read state", || store.read_state().expect("state"));
+        steps.time("c read active record", || store.read(active).expect("read"));
+        steps.time("d get active", || streams.get(active).expect("active"));
+        let log = steps.time("e open log", || store.open_log(active).expect("log"));
+        let mut stream = steps.time("f get active again", || streams.get(active).expect("active"));
+        steps.time("g read base commit", || objects.read_commit(&base).expect("base"));
+        let commit = steps.time("h write work commit", || {
+            objects
+                .write_commit(&NewCommit {
+                    tree: work,
+                    parents: vec![base],
+                    message: gedo_app::streams::WORK_COMMIT_MESSAGE.into(),
+                })
+                .expect("commit")
+        });
+        stream.work = Some(work);
+        steps.time("i encode and replace record", || {
+            let record = gedo_core::stream::encode_stream(&stream).expect("encoded");
+            store.replace(active, &record).expect("replace")
+        });
+        steps.time("j pin reference", || {
+            store.pin(active, Some(commit)).expect("pin")
+        });
+        steps.time("k close log", || drop(log));
+        steps.time("l get target again", || streams.get(target).expect("target"));
+        steps.time("m write state", || store.write_state(&state).expect("state"));
+        steps.0.entry("0 total").or_default().push(total.elapsed());
+    }
+    println!("the same switch step by step, {runs} runs:");
+    steps.report();
 }
