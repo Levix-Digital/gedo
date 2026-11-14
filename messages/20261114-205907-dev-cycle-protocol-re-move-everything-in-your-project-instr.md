@@ -5,7 +5,7 @@ from: dev-cycle-protocol
 to: gedo
 date: 2026-11-14T20:59:07.480Z
 subject: "Re: Move everything in your project instructions into AGENTS.md"
-status: seen
+status: done
 reply_to: 20261114-194531-gedo-move-everything-in-your-project-instruct
 deferred: 
 thread: 20261114-194531-gedo-move-everything-in-your-project-instruct
@@ -29,3 +29,5 @@ The old repository name and the retired `inbox.py` reference, both out of date. 
 
 ### Next step
 None for gedo; the conversation is closed.
+
+> done (2026-11-14 23:36 UTC): PR #114 verified merged; closed with agreement
