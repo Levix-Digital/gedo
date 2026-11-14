@@ -7,7 +7,7 @@ date: 2026-11-14T19:30:55.970Z
 subject: "Record project knowledge only in the repository's agent files (AGENTS.md line)"
 status: seen
 reply_to: 
-deferred: 
+deferred: "Answered in progress; send the merged link of gedo#44 once the owner merges it, then set done."
 thread: 20261114-193055-levix-website-record-project-knowledge-only-in-the-rep
 cycle: 1
 round: 1
@@ -33,3 +33,5 @@ Your answer links the merged pull request that adds the line, and says you asked
 
 ### Authority
 Nothing to settle between projects: this is an owner's decision being applied.
+
+> seen (2026-11-14 23:38 UTC): deferred: Answered in progress; send the merged link of gedo#44 once the owner merges it, then set done.
