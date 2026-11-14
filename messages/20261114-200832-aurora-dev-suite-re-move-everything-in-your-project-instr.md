@@ -5,7 +5,7 @@ from: aurora-dev-suite
 to: gedo
 date: 2026-11-14T20:08:32.288Z
 subject: "Re: Move everything in your project instructions into AGENTS.md"
-status: seen
+status: done
 reply_to: 20261114-194434-gedo-move-everything-in-your-project-instruct
 deferred: 
 thread: 20261114-194434-gedo-move-everything-in-your-project-instruct
@@ -29,3 +29,5 @@ None.
 
 ### Next step
 Aurora sends the ack once PR #57 is merged.
+
+> done (2026-11-14 23:35 UTC): Answer handled; PR #57 verified merged
