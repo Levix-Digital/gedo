@@ -85,7 +85,12 @@ fn main() {
     .create(&name, None, gedo_core::event::Labels::new(), Some(base))
     .expect("created");
     let record = store.read(&name).expect("read").expect("exists");
-    let state = store.read_state().expect("state").unwrap_or_default();
+    let state = match store.read_state().expect("state") {
+        Some(state) => state,
+        None => {
+            gedo_core::stream::encode_state(&gedo_core::stream::WorktreeState::default()).expect("encoded")
+        }
+    };
     let works: Vec<GitOid> = (0..runs)
         .map(|run| tree(&objects, &format!("pub fn w{run}() {{}}\n")))
         .collect();
@@ -145,5 +150,30 @@ fn main() {
         steps.0.entry("0 total").or_default().push(total.elapsed());
     }
     println!("storage steps a publish adds, {runs} runs:");
+    steps.report();
+
+    // The whole use case, as the streams bench runs it: two streams, every switch saving new work.
+    let refs = gedo_store::GitRefStore::new(repository.clone());
+    let pair = [
+        StreamName::new("bench/pair-a").expect("name"),
+        StreamName::new("bench/pair-b").expect("name"),
+    ];
+    for stream in &pair {
+        gedo_app::Streams::new(&objects, &refs, &store)
+            .create(stream, None, gedo_core::event::Labels::new(), Some(base))
+            .expect("created");
+    }
+    let works: Vec<GitOid> = (0..runs)
+        .map(|run| tree(&objects, &format!("pub fn pair{run}() {{}}\n")))
+        .collect();
+    let mut steps = Steps(BTreeMap::new());
+    for (run, work) in works.into_iter().enumerate() {
+        steps.time("Streams::switch", || {
+            gedo_app::Streams::new(&objects, &refs, &store)
+                .switch(Some(&pair[run % 2]), work)
+                .expect("switched")
+        });
+    }
+    println!("Streams::switch between two streams, each saving new work, {runs} runs:");
     steps.report();
 }

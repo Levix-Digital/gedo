@@ -8,7 +8,7 @@ subsystems: [events, store, surfaces]
 supersedes: []
 superseded_by: []
 amends: []
-amended_by: []
+amended_by: [22]
 ---
 
 # ADR-0020: Virtual streams as local records with their own log and pinned work commits

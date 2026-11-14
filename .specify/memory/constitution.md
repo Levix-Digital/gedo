@@ -1,7 +1,7 @@
 <!-- dev-cycle-constitution
 generated-by: dev-cycle-protocol/constitution.py (do not edit; change a source and regenerate)
-sources-sha256: 51ff10be33cda80a23df8bc67bae8b78f40fca6e711aae43183fc33ff978da90
-content-sha256: b90713841d9762c550e18e6f92c13545edc76f6b53866ddcf146dc39ce3d49de
+sources-sha256: f76186a3c9bdf1097cb0fb99d2d9c49506f4fc0c0fad2aec22674db7e84e0476
+content-sha256: f4b159c9350575ff8c0dc99e7ba53f2eb1e10baf8673189aabdd8543f2a2276b
 -->
 # gedo Constitution
 
@@ -208,6 +208,7 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - ADR-0019: Commit generations in the symbol cache and a generation-bounded detached-tape search (`docs/adr/0019-commit-generations-in-the-symbol-cache-and-a-generation-boun.md`)
 - ADR-0020: Virtual streams as local records with their own log and pinned work commits (`docs/adr/0020-virtual-streams-as-local-records-with-their-own-log-and-pinn.md`)
 - ADR-0021: Short gdo command with gedo as a second name of the same binary (`docs/adr/0021-short-gdo-command-with-gedo-as-a-second-name-of-the-same-bin.md`)
+- ADR-0022: Stream pins as loose references written with Git's lock protocol (`docs/adr/0022-stream-pins-as-loose-references-written-with-git-s-lock-prot.md`)
 
 ## Governance
 
@@ -215,4 +216,4 @@ Accepted decisions; a plan that contradicts one needs a new ADR that supersedes 
 - Amendments change the source, not this file: an ADR for decisions, the technical specification for requirements and constraints, `.dev-cycle.json` for the architecture style, the skills for principles. Then run `constitution.py generate` and commit the result with the change.
 - Gate 3 of the development cycle blocks a plan while this file is stale or edited by hand.
 
-**Version**: 1.15.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-11-09
+**Version**: 1.16.0 | **Ratified**: 2026-10-23 | **Last Amended**: 2026-11-14
