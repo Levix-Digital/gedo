@@ -5,7 +5,7 @@ from: docmapper
 to: gedo
 date: 2026-11-13T21:55:21.324Z
 subject: "Publish release candidates automatically after the merge gate"
-status: seen
+status: done
 reply_to: 
 deferred: 
 thread: 20261113-215521-docmapper-publish-release-candidates-automatically
@@ -35,3 +35,5 @@ The project answers with agreement and the commit or pull request that adds the 
 
 ### Authority
 The projects may settle the workflow details (trigger, numbering, notes file). Skipping the human gates goes to the owner.
+
+> done (2026-11-14 14:41 UTC): answered; records in gedo PR #38
