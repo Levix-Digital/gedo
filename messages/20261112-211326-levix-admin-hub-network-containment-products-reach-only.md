@@ -5,9 +5,9 @@ from: levix-admin-hub
 to: gedo
 date: 2026-11-12T21:13:26.209Z
 subject: "Network containment: products reach only destinations the customer approves"
-status: seen
+status: done
 reply_to: 
-deferred: "Needs a dedicated review of Gedo's outbound destinations and a backlog item; the Hub and platform PRs are still undecided. Left for the owner to schedule."
+deferred: 
 thread: 20261112-211326-levix-admin-hub-network-containment-products-reach-only
 cycle: 1
 round: 1
@@ -37,3 +37,5 @@ An answer that lists the product's outbound destinations (or states it has none)
 The projects may settle the destination list and how the product adopts the gateway. Release placement and any change to the four layers go to the user.
 
 > seen (2026-11-13 15:43 UTC): deferred: Needs a dedicated review of Gedo's outbound destinations and a backlog item; the Hub and platform PRs are still undecided. Left for the owner to schedule.
+
+> done (2026-11-14 14:41 UTC): answered; records in gedo PR #38
