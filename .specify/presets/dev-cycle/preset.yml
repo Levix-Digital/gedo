@@ -6,7 +6,7 @@ preset:
   version: "1.0.0"
   description: "Adds the dev-cycle-protocol sections (tests, documentation, CI and release, security and rollback) to Spec Kit plans."
   author: "Levi Silveira"
-  repository: "https://github.com/Levix-Digital/ai-code-agent-skills"
+  repository: "https://github.com/Levix-Digital/dev-cycle-protocol"
   license: "UNLICENSED"
 
 requires:
