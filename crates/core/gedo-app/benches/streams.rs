@@ -1,7 +1,7 @@
 //! Virtual streams on a real repository (SC-003 of `specs/009-virtual-streams`): creating,
-//! switching and reading a stream, listing 1,000 streams, and publishing a stream of 1,000 events
-//! against `EventLog::publish` of the same events. Each operation runs through new use cases, as
-//! separate commands would.
+//! switching (each switch saving new work) and reading a stream, listing 1,000 streams, and
+//! publishing a stream of 1,000 events against `EventLog::publish` of the same events. Each
+//! operation runs through new use cases, as separate commands would.
 //!
 //! The scratch repository is created with `git init`, which only this developer tool runs.
 
@@ -106,13 +106,13 @@ fn streams_bench() {
     });
     report("stream create", create);
 
-    let works = [
-        tree(&objects, "pub fn a() {}\n"),
-        tree(&objects, "pub fn b() {}\n"),
-    ];
+    // Every switch saves new work (a work commit, a record and a pin), the slowest kind.
+    let works: Vec<GitOid> = (0..RUNS)
+        .map(|run| tree(&objects, &format!("pub fn switched{run}() {{}}\n")))
+        .collect();
     let switch = time(|run| {
         Streams::new(&objects, &refs, &store)
-            .switch(Some(&name(run % 2)), works[run % 2])
+            .switch(Some(&name(run % 2)), works[run])
             .expect("switched");
     });
     report("stream switch", switch);

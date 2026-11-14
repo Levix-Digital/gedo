@@ -344,7 +344,7 @@ impl<'a, O: ObjectStore, R: RefStore, S: StreamStore> Streams<'a, O, R, S> {
     ) -> Result<StreamPublish, StreamError> {
         let (mut wal, mut stream) = self.open(name)?;
         let mut events = self.event_log(&mut wal)?;
-        let pending = events.pending()?.len();
+        let pending = events.pending_count();
         let base_tree = self.base_tree(&stream)?;
         let tree = tree.or(stream.work).unwrap_or(base_tree);
         if pending == 0 && tree == base_tree {
@@ -389,7 +389,7 @@ impl<'a, O: ObjectStore, R: RefStore, S: StreamStore> Streams<'a, O, R, S> {
     /// saved work is discarded only with `force`.
     pub fn discard(&self, name: &StreamName, force: bool) -> Result<Discarded, StreamError> {
         let (mut wal, stream) = self.open(name)?;
-        let events = self.event_log(&mut wal)?.pending()?.len();
+        let events = self.event_log(&mut wal)?.pending_count();
         let work = stream.work.is_some();
         if !force && (events > 0 || work) {
             return Err(StreamError::HasWork {
@@ -423,7 +423,7 @@ impl<'a, O: ObjectStore, R: RefStore, S: StreamStore> Streams<'a, O, R, S> {
         let mut stream = self.get(name)?;
         if let Some(commit) = stream.publishing {
             let mut events = self.event_log(&mut wal)?;
-            let count = events.pending()?.len();
+            let count = events.pending_count();
             events.publish(commit)?;
             stream.base = Some(commit);
             stream.work = None;

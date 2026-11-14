@@ -203,3 +203,83 @@ fn a_new_stream_starts_clear_of_what_an_earlier_one_left() {
         "temporary files were removed: {leftovers:?}"
     );
 }
+
+#[test]
+fn a_pin_written_over_a_packed_one_wins_and_removal_clears_both() {
+    let sandbox = Sandbox::new();
+    let path = sandbox.repository("packed");
+    let repository = GitRepository::open_isolated(&path).expect("opens");
+    let objects = GitObjectStore::new(repository.clone());
+    let streams = FileStreamStore::open(&repository).expect("opens");
+    let name = StreamName::new("dc/m3").expect("name");
+    assert!(streams.create(&name, b"record").expect("created"));
+    let reference = format!("refs/gedo-local/streams/{}", name.key());
+    let (first, _) = unreferenced_commit(&objects, "pub fn first() {}\n");
+    let (second, _) = unreferenced_commit(&objects, "pub fn second() {}\n");
+    streams.pin(&name, Some(first)).expect("pinned");
+    sandbox.git(&path, &["pack-refs", "--all"]);
+    assert!(
+        std::fs::read_to_string(path.join(".git/packed-refs"))
+            .expect("packed refs")
+            .contains(&reference),
+        "the pin is packed"
+    );
+    assert!(
+        !path.join(".git").join(&reference).exists(),
+        "and no longer loose"
+    );
+
+    streams.pin(&name, Some(second)).expect("pinned again");
+    assert_eq!(
+        sandbox.git(&path, &["rev-parse", &reference]).trim(),
+        second.to_hex(),
+        "the loose pin takes precedence over the packed one"
+    );
+    sandbox.git(&path, &["fsck", "--no-progress"]);
+
+    let log = streams.open_log(&name).expect("log");
+    streams.remove(&name, log).expect("removed");
+    assert!(
+        sandbox
+            .git(&path, &["for-each-ref", "refs/gedo-local/streams"])
+            .is_empty(),
+        "neither the loose nor the packed pin is left"
+    );
+}
+
+#[test]
+fn a_pin_waits_for_another_writer_of_its_reference() {
+    let sandbox = Sandbox::new();
+    let path = sandbox.repository("locked");
+    let repository = GitRepository::open_isolated(&path).expect("opens");
+    let objects = GitObjectStore::new(repository.clone());
+    let streams = FileStreamStore::open(&repository).expect("opens");
+    let name = StreamName::new("dc/m4").expect("name");
+    assert!(streams.create(&name, b"record").expect("created"));
+    let (commit, _) = unreferenced_commit(&objects, "pub fn locked() {}\n");
+    let directory = path.join(".git/refs/gedo-local/streams");
+    std::fs::create_dir_all(&directory).expect("directory");
+    let lock = directory.join(format!("{}.lock", name.key()));
+    std::fs::write(&lock, b"").expect("another writer's lock");
+    let release = {
+        let lock = lock.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_millis(100));
+            std::fs::remove_file(lock).expect("released");
+        })
+    };
+    streams
+        .pin(&name, Some(commit))
+        .expect("pinned once the lock is released");
+    release.join().expect("thread");
+    assert!(!lock.exists());
+    assert_eq!(
+        sandbox
+            .git(
+                &path,
+                &["rev-parse", &format!("refs/gedo-local/streams/{}", name.key())]
+            )
+            .trim(),
+        commit.to_hex()
+    );
+}
