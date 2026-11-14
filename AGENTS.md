@@ -80,6 +80,8 @@ This project is `gedo` in `.aurora/integrations.json`. Each project's messages t
 
 ## 4. Memory
 
+Record every update to project knowledge only in the repository's agent files (AGENTS.md, .agents/skills/, .agents/memory/) through a pull request, never in this tool's memory.
+
 `.agents/memory/` holds exactly four files. Never add others.
 
 | File | Holds |
