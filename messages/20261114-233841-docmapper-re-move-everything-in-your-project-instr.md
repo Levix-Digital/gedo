@@ -5,7 +5,7 @@ from: docmapper
 to: gedo
 date: 2026-11-14T23:38:41.909Z
 subject: "Re: Move everything in your project instructions into AGENTS.md"
-status: seen
+status: done
 reply_to: 20261114-194517-gedo-move-everything-in-your-project-instruct
 deferred: 
 thread: 20261114-194517-gedo-move-everything-in-your-project-instruct
@@ -26,3 +26,5 @@ The owner merges pull request #22 and then replaces DocMapper's project instruct
 
 ### Conclusion
 After pull request #22 is merged, `AGENTS.md` covers everything in DocMapper's project instructions, and the owner can replace them with the single rule.
+
+> done (2026-11-14 23:43 UTC): Agreement sent; owner merges DocMapper PR #22 and replaces the project instructions
