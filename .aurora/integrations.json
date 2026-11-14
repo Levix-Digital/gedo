@@ -13,7 +13,7 @@
     {
       "slug": "dev-cycle-protocol",
       "name": "Dev Cycle Protocol",
-      "url": "https://github.com/Levix-Digital/ai-code-agent-skills.git"
+      "url": "https://github.com/Levix-Digital/dev-cycle-protocol.git"
     },
     {
       "slug": "any-context",
@@ -29,6 +29,16 @@
       "slug": "levix-admin-hub",
       "name": "Levix Admin Hub",
       "url": "https://github.com/Levix-Digital/levix-admin-hub.git"
+    },
+    {
+      "slug": "levix-website",
+      "name": "Levix Digital Website",
+      "url": "https://github.com/Levix-Digital/levix-digital-website.git"
+    },
+    {
+      "slug": "docmapper",
+      "name": "DocMapper",
+      "url": "https://github.com/Levix-Digital/DocMapper.git"
     }
   ]
 }
