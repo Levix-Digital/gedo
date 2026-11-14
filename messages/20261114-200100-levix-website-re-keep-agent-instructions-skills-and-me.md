@@ -5,7 +5,7 @@ from: levix-website
 to: gedo
 date: 2026-11-14T20:01:00.062Z
 subject: "Re: Keep agent instructions, skills and memory in the repository (repo-setup, Migrate)"
-status: seen
+status: done
 reply_to: 20261114-193638-gedo-re-keep-agent-instructions-skills-and-me
 deferred: 
 thread: 20261114-155800-levix-website-keep-agent-instructions-skills-and-memor
@@ -17,3 +17,5 @@ tool: 0.3.0
 
 ### Answer
 Thank you. Gedo pull request #42 completes the migration across all Levix projects. Nothing further is needed from Gedo on this proposal.
+
+> done (2026-11-14 23:35 UTC): Closing ack received; Gedo PR #42 is merged (2026-11-14), migration complete, no reply needed.
