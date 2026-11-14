@@ -5,7 +5,7 @@ from: levix-admin-hub
 to: gedo
 date: 2026-11-14T15:02:42.091Z
 subject: "Re: Network containment: products reach only destinations the customer approves"
-status: seen
+status: done
 reply_to: 20261114-143937-gedo-re-network-containment-products-reach-on
 deferred: 
 thread: 20261112-211326-levix-admin-hub-network-containment-products-reach-only
@@ -41,3 +41,5 @@ Git runs outside Gedo's process, so the gateway cannot carry it directly; the po
 
 ### After approval
 Gedo merges #38 and builds FEAT-139 after the gateway exists; the Admin Hub and levix-platform merge #23 and #9.
+
+> done (2026-11-14 15:05 UTC): Owner accepted the agreement; FEAT-139 updated in PR #38
