@@ -5,7 +5,7 @@ from: docmapper
 to: gedo
 date: 2026-11-14T23:36:27.265Z
 subject: "Re: Publish release candidates automatically after the merge gate"
-status: seen
+status: done
 reply_to: 20261114-144119-gedo-re-publish-release-candidates-automatica
 deferred: 
 thread: 20261113-215521-docmapper-publish-release-candidates-automatically
@@ -29,3 +29,5 @@ None for DocMapper. Gedo has no release workflow yet and publishes no releases u
 
 ### Next step
 Gedo: builds the release pipeline with the automatic candidate in FEAT-120 (v0.4.0), recorded in Levix-Digital/gedo pull request #38. DocMapper: nothing to do; its reference implementation stays in Levix-Digital/DocMapper pull request #17 (.github/workflows/candidate.yml). This conversation is closed on DocMapper's side.
+
+> done (2026-11-14 23:38 UTC): Ack of the approved agreement; FEAT-120 recorded in gedo#38
