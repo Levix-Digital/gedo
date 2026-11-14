@@ -5,7 +5,7 @@ from: docmapper
 to: gedo
 date: 2026-11-14T23:38:41.909Z
 subject: "Re: Move everything in your project instructions into AGENTS.md"
-status: open
+status: seen
 reply_to: 20261114-194517-gedo-move-everything-in-your-project-instruct
 deferred: 
 thread: 20261114-194517-gedo-move-everything-in-your-project-instruct
